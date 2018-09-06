@@ -83,7 +83,7 @@ $ source setup_env_slac.sh
 # Else you will need to clone and build rogue:
 > https://github.com/slaclab/rogue/blob/master/README.md
 
-# Run the programming script
+# Launch the GUI
 $ python3 scripts/DevGui.py --ip <DHCP_IP_ADDRESS>
  
 ```
