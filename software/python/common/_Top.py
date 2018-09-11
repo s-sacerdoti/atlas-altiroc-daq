@@ -50,9 +50,8 @@ class Top(pr.Root):
             self.rudp       = pr.protocols.UdpRssiPack(host=ip,port=8192,packVer=2)        
             self.srpStream  = self.rudp.application(0)
             self.dataStream = self.rudp.application(1)       
-        # else:
-            # # Catch exception  here 
-                
+        else:
+            raise Exception(f'hwType={hwType} passed to common.Top() is invalid')        
                 
         ######################################################################
         
