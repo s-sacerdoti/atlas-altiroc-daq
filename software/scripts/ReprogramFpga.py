@@ -10,19 +10,17 @@
 ##############################################################################
 
 import sys
-import rogue
 import pyrogue as pr
 import pyrogue.gui
+import PyQt4.QtGui
 import argparse
+import time
 import common as feb
 
 #################################################################
 
 # Set the argument parser
 parser = argparse.ArgumentParser()
-
-# Convert str to bool
-argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
 
 # Add arguments
 parser.add_argument(
@@ -33,20 +31,11 @@ parser.add_argument(
 )  
 
 parser.add_argument(
-    "--pollEn", 
-    type     = argBool,
-    required = False,
-    default  = True,
-    help     = "Enable auto-polling",
-) 
-
-parser.add_argument(
-    "--initRead", 
-    type     = argBool,
-    required = False,
-    default  = True,
-    help     = "Enable read all variables at start",
-)  
+    "--mcs", 
+    type     = str,
+    required = True,
+    help     = "path to mcs file",
+)
 
 # Get the arguments
 args = parser.parse_args()
@@ -54,26 +43,38 @@ args = parser.parse_args()
 #################################################################
 
 # Set base
-base = feb.Top(hwType='eth',ip=args.ip)    
+base = pr.Root(name='base',description='')    
+
+# Set base
+base = feb.Top(hwType='eth',ip=args.ip)   
 
 # Start the system
-base.start(
-    pollEn   = args.pollEn,
-    initRead = args.initRead,
-)
-
-# Create GUI
-appTop = pr.gui.application(sys.argv)
-guiTop = pr.gui.GuiTop(group='rootMesh')
-appTop.setStyle('Fusion')
-guiTop.addTree(base)
-guiTop.resize(600, 800)
-
-print("Starting GUI...\n");
-
-# Run GUI
-appTop.exec_()    
+base.start(pollEn=False)
     
-# Close
+# Create useful pointers
+AxiVersion = base.Top.AxiVersion
+PROM       = base.Top.AxiMicronN25Q
+
+print ( '###################################################')
+print ( '#                 Old Firmware                    #')
+print ( '###################################################')
+AxiVersion.printStatus()
+
+# Program the FPGA's PROM
+PROM.LoadMcsFile(args.mcs)
+
+if(PROM._progDone):
+    print('\nReloading FPGA firmware from PROM ....')
+    AxiVersion.FpgaReload()
+    time.sleep(5)
+    print('\nReloading FPGA done')
+
+    print ( '###################################################')
+    print ( '#                 New Firmware                    #')
+    print ( '###################################################')
+    AxiVersion.printStatus()
+else:
+    print('Failed to program FPGA')
+
 base.stop()
-exit()   
+exit()

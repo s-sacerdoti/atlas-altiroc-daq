@@ -49,7 +49,7 @@ $ source atlas-altiroc-daq/firmware/setup_env_slac.csh
 2) Go to the firmware's target directory:
 
 ```
-$ cd atlas-altiroc-daq/firmware/targets/AtlasAltirocFpga
+$ cd atlas-altiroc-daq/firmware/targets/AtlasAltirocFpga1GbE
 ```
 
 3) Build the firmware

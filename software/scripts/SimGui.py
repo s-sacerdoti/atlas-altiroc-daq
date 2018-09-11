@@ -10,9 +10,9 @@
 ##############################################################################
 
 import sys
-import rogue
 import pyrogue as pr
 import pyrogue.gui
+import rogue
 import argparse
 import common as feb
 
@@ -26,17 +26,10 @@ argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
 
 # Add arguments
 parser.add_argument(
-    "--ip", 
-    type     = str,
-    required = True,
-    help     = "IP address",
-)  
-
-parser.add_argument(
     "--pollEn", 
     type     = argBool,
     required = False,
-    default  = True,
+    default  = False,
     help     = "Enable auto-polling",
 ) 
 
@@ -44,7 +37,7 @@ parser.add_argument(
     "--initRead", 
     type     = argBool,
     required = False,
-    default  = True,
+    default  = False,
     help     = "Enable read all variables at start",
 )  
 
@@ -54,7 +47,7 @@ args = parser.parse_args()
 #################################################################
 
 # Set base
-base = feb.Top(hwType='eth',ip=args.ip)    
+base = feb.Top(hwType='simulation')    
 
 # Start the system
 base.start(

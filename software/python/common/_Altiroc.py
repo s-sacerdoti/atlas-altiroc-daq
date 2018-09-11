@@ -8,7 +8,18 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-from common._Altiroc import *
-from common._Dac     import *
-from common._SysReg  import *
-from common._Top     import *
+
+import pyrogue as pr
+
+class Altiroc(pr.Device):
+    def __init__(   
+        self,       
+        name        = "Altiroc",
+        description = "Container for Altiroc ASIC",
+            **kwargs):
+        
+        super().__init__(
+            name        = name,
+            description = description,
+            **kwargs)
+            

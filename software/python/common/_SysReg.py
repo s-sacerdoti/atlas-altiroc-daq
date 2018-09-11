@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 ##############################################################################
-## This file is part of 'ATLAS RD53 DEV'.
+## This file is part of 'ATLAS ALTIROC DEV'.
 ## It is subject to the license terms in the LICENSE.txt file found in the 
 ## top-level directory of this distribution and at: 
 ##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'ATLAS RD53 DEV', including this file, 
+## No part of 'ATLAS ALTIROC DEV', including this file, 
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
@@ -68,94 +68,41 @@ class SysReg(pr.Device):
             base         = pr.UInt,
             pollInterval = pollInterval,
         ))          
-            
-        self.add(pr.RemoteVariable(
-            name         = 'RefClk160MHzFreq', 
-            description  = 'Reference Clock Frequency',
-            offset       = 0x404,
-            bitSize      = 32, 
-            mode         = 'RO',
-            units        = "Hz", 
-            disp         = '{:d}',
-            base         = pr.UInt,
-            pollInterval = pollInterval,
-        ))
-        
+                    
         ##################
         # Status Registers 
-        ##################        
+        ##################    
+
+        self.add(pr.RemoteVariable(
+            name         = 'DlyLen', 
+            description  = 'SY89295UMG LEN bit',
+            offset       = 0x800,
+            bitSize      = 1, 
+            mode         = 'RW',
+        ))
         
         self.add(pr.RemoteVariable(
-            name         = 'RefClkSel', 
-            description  = 'Reference Clock Select',
+            name         = 'DlyData', 
+            description  = 'SY89295UMG Data bus',
             offset       = 0x800,
+            bitSize      = 10, 
+            mode         = 'RW',
+            units        = '10ps',
+        ))        
+
+        self.add(pr.RemoteVariable(
+            name         = 'RefClkSel', 
+            description  = 'Reference Clock Select: Si5345.IN_SEL_REGCTRL must be 0x0 for CLKIN controlled by this else Si5345.IN_SEL controls the CLKIN MUXing',
+            offset       = 0x808,
             bitSize      = 2, 
             mode         = 'RW',
             enum         = {
                 0x0: 'IntClk', 
-                0x2: 'ExtSmaClk', 
-                0x3: 'ExtLemoClk',
+                0x1: 'ExtSmaClk', 
+                0x2: 'ExtLemoClk',
             },
         ))        
-        
-        self.add(pr.RemoteCommand(   
-            name         = 'PllRst',
-            description  = 'PLL Reset',
-            offset       = 0x804,
-            # bitSize      = 1,
-            # base         = pr.UInt,
-            function     = lambda cmd: cmd.toggle(cmd),
-            hidden       = False,
-        ))   
-
-        self.add(pr.RemoteCommand(   
-            name         = 'AsicRst',
-            description  = 'ASIC Reset',
-            offset       = 0x808,
-            # bitSize      = 1,
-            # base         = pr.UInt,
-            function     = lambda cmd: cmd.toggle(cmd),
-            hidden       = False,
-        ))           
-        
-        self.add(pr.RemoteVariable(
-            name         = 'TimerConfig', 
-            description  = 'Batcher timer configuration',
-            offset       = 0x80C,
-            bitSize      = 16, 
-            mode         = 'RW',
-            units        = '6.4ns',
-            base         = pr.UInt,
-        ))   
-
-        self.add(pr.RemoteVariable(
-            name         = 'BatchSize', 
-            description  = 'Number of 32-bit (4 bytes) words to batch together into a AXIS frame',
-            offset       = 0x810,
-            bitSize      = 16, 
-            mode         = 'RW',
-            units        = '4Bytes',
-            base         = pr.UInt,
-        ))           
-        
-        self.add(pr.RemoteVariable(  
-            name        = 'EnAuxClk',
-            description = 'Enable the 40 MHz clock on the DPORT AUX pin (required for remote board emulation)',
-            offset      = 0x814, 
-            bitSize     = 1, 
-            base        = pr.Bool,
-            mode        = 'RW',
-        ))  
-
-        self.add(pr.RemoteVariable(  
-            name        = 'EnLocalEmu',
-            description = 'Enable non-serializer local emulation mode (A.K.A. stand alone emulation mode)',
-            offset      = 0x818, 
-            bitSize     = 1, 
-            base        = pr.Bool,
-            mode        = 'RW',
-        ))          
-        
+           
         self.add(pr.RemoteVariable(
             name         = 'RollOverEn', 
             description  = 'Rollover enable for status counters',
