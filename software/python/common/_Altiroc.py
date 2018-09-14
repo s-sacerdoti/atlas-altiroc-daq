@@ -11,6 +11,8 @@
 
 import pyrogue as pr
 
+import common
+
 class Altiroc(pr.Device):
     def __init__(   
         self,       
@@ -23,3 +25,16 @@ class Altiroc(pr.Device):
             description = description,
             **kwargs)
             
+        self.add(common.AltirocSlowControl(
+            name        = 'AltirocSlowControl', 
+            description = 'This device contains Altiroc ASIC\'s slow control shift register interface',
+            offset      = 0x00000000, 
+            expand      = False,
+        ))    
+
+        self.add(common.AltirocProbe(
+            name        = 'AltirocProbe', 
+            description = 'This device contains Altiroc ASIC\'s probe shift register interface',
+            offset      = 0x00010000, 
+            expand      = False,
+        ))
