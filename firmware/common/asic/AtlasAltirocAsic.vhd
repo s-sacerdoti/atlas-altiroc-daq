@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocAsic.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-07
--- Last update: 2018-09-13
+-- Last update: 2018-09-14
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -79,18 +79,23 @@ end AtlasAltirocAsic;
 
 architecture mapping of AtlasAltirocAsic is
 
-   constant NUM_AXIL_MASTERS_C : natural := 2;
+   constant NUM_AXIL_MASTERS_C : natural := 3;
 
-   constant SC_INDEX_C    : natural := 0;
-   constant PROBE_INDEX_C : natural := 1;
+   constant CTRL_INDEX_C  : natural := 0;
+   constant SC_INDEX_C    : natural := 1;
+   constant PROBE_INDEX_C : natural := 2;
 
    constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
-      SC_INDEX_C      => (
+      CTRL_INDEX_C    => (
          baseAddr     => (x"0000_0000" + AXI_BASE_ADDR_G),
          addrBits     => 16,
          connectivity => x"FFFF"),
-      PROBE_INDEX_C   => (
+      SC_INDEX_C      => (
          baseAddr     => (x"0001_0000" + AXI_BASE_ADDR_G),
+         addrBits     => 16,
+         connectivity => x"FFFF"),
+      PROBE_INDEX_C   => (
+         baseAddr     => (x"0002_0000" + AXI_BASE_ADDR_G),
          addrBits     => 16,
          connectivity => x"FFFF"));
 
@@ -107,6 +112,15 @@ architecture mapping of AtlasAltirocAsic is
    signal cmdPulseDdr : sl;
 
 begin
+
+   -----------------------
+   -- Terminate Unused I/O
+   -----------------------
+
+   busy     <= '0';
+   spareOut <= '0';
+
+   mDataMaster <= AXI_STREAM_MASTER_INIT_C;
 
    --------------------------
    -- AXI-Lite: Crossbar Core
@@ -173,55 +187,55 @@ begin
          axilWriteMaster => axilWriteMasters(PROBE_INDEX_C),
          axilWriteSlave  => axilWriteSlaves(PROBE_INDEX_C));
 
+   ------------------------------
+   -- AXI-Lite: Control Registers
+   ------------------------------
+   U_Ctrl : entity work.AtlasAltirocAsicCtrl
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- ASIC Interface  (clk160MHz domain)
+         clk160MHz       => clk160MHz,
+         rst160MHz       => rst160MHz,
+         renable         => renable,      -- RENABLE
+         rstbRam         => rstbRam,      -- RSTB_RAM
+         rstbRead        => rstbRead,     -- RSTB_READ
+         rstbTdc         => rstbTdc,      -- RSTB_TDC
+         rstbCounter     => rstbCounter,  -- RSTB_COUNTER
+         ckWriteAsic     => ckWriteAsic,  -- CK_WRITE_ASIC
+         -- AXI-Lite Interface (axilClk domain)
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMasters(CTRL_INDEX_C),
+         axilReadSlave   => axilReadSlaves(CTRL_INDEX_C),
+         axilWriteMaster => axilWriteMasters(CTRL_INDEX_C),
+         axilWriteSlave  => axilWriteSlaves(CTRL_INDEX_C));
+
+
    U_dout : IBUFDS
       port map (
          I  => doutP,
          IB => doutN,
          O  => dout);
 
-   trig        <= '0';
-   cmdPulse    <= '0';
-   renable     <= '0';
-   rstbRam     <= '0';
-   rstbRead    <= '0';
-   rstbTdc     <= '0';
-   rstbCounter <= '0';
-   ckWriteAsic <= '0';
+   trig     <= '0';
+   cmdPulse <= '0';
 
-   busy     <= '0';
-   spareOut <= '0';
-
-   mDataMaster <= AXI_STREAM_MASTER_INIT_C;
-
-   ----------------------------------------------------
-   -- Use the SELECTIO register for outputting EXT_TRIG
-   ----------------------------------------------------
-
-   U_extTrig : entity work.AtlasAltirocOutputReg
+   U_extTrig : entity work.OutputBufferReg
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk => clk160MHz,
-         I   => trig,
-         O   => extTrig);
+         C => clk160MHz,
+         I => trig,
+         O => extTrig);
 
-   -----------------------------------------------------
-   -- Use the SELECTIO register for outputting CMD_PULSE
-   -----------------------------------------------------
-
-   U_cmdPulseDdr : ODDR
+   U_cmdPulse : entity work.OutputBufferReg
+      generic map (
+         TPD_G       => TPD_G,
+         DIFF_PAIR_G => true)
       port map (
          C  => clk160MHz,
-         Q  => cmdPulseDdr,
-         CE => '1',
-         D1 => cmdPulse,
-         D2 => cmdPulse,
-         R  => '0',
-         S  => '0');
-
-   U_cmdPulse : OBUFDS
-      port map (
-         I  => cmdPulseDdr,
+         I  => cmdPulse,
          O  => cmdPulseP,
          OB => cmdPulseN);
 

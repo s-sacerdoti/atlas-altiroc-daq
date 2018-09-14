@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocAsicShiftReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-07
--- Last update: 2018-09-13
+-- Last update: 2018-09-14
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -87,13 +87,13 @@ architecture mapping of AtlasAltirocAsicShiftReg is
 
 begin
 
-   U_srout : entity work.AtlasAltirocInputReg
+   U_srout : entity work.InputBufferReg
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk => axilClk,
-         I   => srout,
-         O   => shiftIn);
+         C  => axilClk,
+         I  => srout,
+         Q1 => shiftIn);
 
    comb : process (axilReadMaster, axilRst, axilWriteMaster, r, shiftIn) is
       variable v         : RegType;
@@ -102,6 +102,9 @@ begin
    begin
       -- Latch the current value
       v := r;
+
+      -- Update the variables
+      rstCmdDet := '0';
 
       -- State Machine      
       case (r.state) is
@@ -206,28 +209,28 @@ begin
       end if;
    end process seq;
 
-   U_srin : entity work.AtlasAltirocOutputReg
+   U_srin : entity work.OutputBufferReg
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk => axilClk,
-         I   => r.shiftReg(SHIFT_REG_SIZE_G-1),
-         O   => srin);
+         C => axilClk,
+         I => r.shiftReg(SHIFT_REG_SIZE_G-1),
+         O => srin);
 
-   U_rstb : entity work.AtlasAltirocOutputReg
+   U_rstb : entity work.OutputBufferReg
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk => axilClk,
-         I   => rstL,
-         O   => rstb);
+         C => axilClk,
+         I => rstL,
+         O => rstb);
 
-   U_ck : entity work.AtlasAltirocOutputReg
+   U_ck : entity work.OutputBufferReg
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk => axilClk,
-         I   => r.sclk,
-         O   => ck);
+         C => axilClk,
+         I => r.sclk,
+         O => ck);
 
 end mapping;
