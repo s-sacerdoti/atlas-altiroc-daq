@@ -10,6 +10,7 @@
 ##############################################################################
 
 import pyrogue as pr
+import common 
 
 class AltirocProbe(pr.Device):
     def __init__(   
@@ -20,11 +21,14 @@ class AltirocProbe(pr.Device):
         
         super().__init__(name=name,description=description,**kwargs)
         
+        downToBitOrdering = pr.UIntReversed 
+        upToBitOrdering   = pr.UInt        
+        
         def addReg(name,description,bitSize,bitOffset):
             self.add(pr.RemoteVariable(  
                 name        = name, 
                 description = description,
-                base        = pr.UInt,
+                base        = upToBitOrdering,
                 offset      = 0x000,
                 mode        = 'RW', 
                 bitSize     = bitSize, 
@@ -150,5 +154,5 @@ class AltirocProbe(pr.Device):
             bitSize      = 1, 
             mode         = 'RW',
             base         = pr.UInt,
-            value       = 0x1,
+            value        = 0x1,
         ))         

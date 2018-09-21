@@ -10,6 +10,7 @@
 ##############################################################################
 
 import pyrogue as pr
+import common 
 
 class AltirocSlowControl(pr.Device):
     def __init__(   
@@ -20,11 +21,14 @@ class AltirocSlowControl(pr.Device):
         
         super().__init__(name=name,description=description,**kwargs)
         
-        def addReg(name,description,bitSize,bitOffset,value):
+        downToBitOrdering = pr.UIntReversed 
+        upToBitOrdering   = pr.UInt  
+        
+        def addReg(name,description,bitSize,bitOffset,value,base):
             self.add(pr.RemoteVariable(  
                 name        = name, 
                 description = description,
-                base        = pr.UInt,
+                base        = base,
                 offset      = 0x000,
                 mode        = 'RW', 
                 bitSize     = bitSize, 
@@ -38,6 +42,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 10, 
             bitOffset   = 1,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )
 
         addReg(
@@ -46,6 +51,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 11,
             value       = 0x1, # DEF Value
+            base        = downToBitOrdering,
         )        
           
         ##############
@@ -58,6 +64,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 12,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )  
 
         addReg(
@@ -66,6 +73,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 13,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )   
 
         addReg(
@@ -74,6 +82,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 14,
             value       = 0x1, # DEF Value
+            base        = downToBitOrdering,
         )   
 
         addReg(
@@ -82,6 +91,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 6, 
             bitOffset   = 15,
             value       = 0x7, # DEF Value
+            base        = downToBitOrdering,
         ) 
 
         addReg(
@@ -90,6 +100,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 21,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         ) 
 
         addReg(
@@ -98,6 +109,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 22,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )     
 
         addReg(
@@ -106,6 +118,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 3, 
             bitOffset   = 23,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         ) 
 
         addReg(
@@ -114,6 +127,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 6, 
             bitOffset   = 26,
             value       = 0xC, # DEF Value
+            base        = downToBitOrdering,
         )  
 
         addReg(
@@ -122,6 +136,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 32,
             value       = 0x1, # DEF Value
+            base        = downToBitOrdering,
         )  
 
         addReg(
@@ -130,6 +145,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 33,
             value       = 0x1, # DEF Value
+            base        = downToBitOrdering,
         )    
 
         addReg(
@@ -138,6 +154,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 10, 
             bitOffset   = 34,
             value       = 0x80, # DEF Value
+            base        = downToBitOrdering,
         )
 
         addReg(
@@ -146,6 +163,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 3, 
             bitOffset   = 44,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )   
 
         addReg(
@@ -154,6 +172,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 3, 
             bitOffset   = 47,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )  
 
         addReg(
@@ -162,6 +181,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 3, 
             bitOffset   = 50,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         ) 
 
         addReg(
@@ -170,6 +190,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 3, 
             bitOffset   = 53,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )   
 
         addReg(
@@ -178,6 +199,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 56,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )   
 
         addReg(
@@ -186,6 +208,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 57,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )
         
         addReg(
@@ -194,6 +217,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 58,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )
         
         addReg(
@@ -202,14 +226,16 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 59,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )  
-
+        
         addReg(
             name        = 'cBitf', 
             description = '',
             bitSize     = 4, 
             bitOffset   = 60,
             value       = 0x0, # DEF Value
+            base        = upToBitOrdering,
         )  
 
         addReg(
@@ -218,6 +244,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 64,
             value       = 0x1, # DEF Value
+            base        = downToBitOrdering,
         ) 
 
         addReg(
@@ -226,6 +253,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 3, 
             bitOffset   = 65,
             value       = 0x3, # DEF Value
+            base        = upToBitOrdering,
         )         
         
         addReg(
@@ -234,6 +262,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 68,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )
 
         addReg(
@@ -242,6 +271,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 4, 
             bitOffset   = 69,
             value       = 0x0, # DEF Value
+            base        = upToBitOrdering,
         )
 
         addReg(
@@ -250,6 +280,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 73,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )    
 
         addReg(
@@ -258,6 +289,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 4, 
             bitOffset   = 74,
             value       = 0x0, # DEF Value
+            base        = upToBitOrdering,
         ) 
 
         addReg(
@@ -266,6 +298,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 78,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )
 
         addReg(
@@ -274,6 +307,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 79,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,
         )        
 
         ######################
@@ -290,6 +324,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 1, 
                 bitOffset   = (0+pixChBitOffset[i]),
                 value       = 0x1, # DEF Value
+                base        = downToBitOrdering,
             )
 
             addReg(
@@ -298,6 +333,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 1, 
                 bitOffset   = (1+pixChBitOffset[i]),
                 value       = 0x0, # DEF Value
+                base        = downToBitOrdering,
             ) 
 
             addReg(
@@ -306,6 +342,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 1, 
                 bitOffset   = (2+pixChBitOffset[i]),
                 value       = 0x0, # DEF Value
+                base        = downToBitOrdering,
             ) 
 
             addReg(
@@ -314,6 +351,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 7, 
                 bitOffset   = (3+pixChBitOffset[i]),
                 value       = 0x8, # DEF Value
+                base        = downToBitOrdering,
             )         
             
             addReg(
@@ -322,6 +360,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 1, 
                 bitOffset   = (10+pixChBitOffset[i]),
                 value       = 0x1, # DEF Value
+                base        = downToBitOrdering,
             )  
 
             addReg(
@@ -330,6 +369,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 1, 
                 bitOffset   = (11+pixChBitOffset[i]),
                 value       = 0x1, # DEF Value
+                base        = downToBitOrdering,
             )    
 
             addReg(
@@ -338,6 +378,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 1, 
                 bitOffset   = (12+pixChBitOffset[i]),
                 value       = 0x0, # DEF Value
+                base        = downToBitOrdering,
             )  
             
             addReg(
@@ -346,6 +387,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 4, 
                 bitOffset   = (13+pixChBitOffset[i]),
                 value       = 0x0, # DEF Value
+                base        = downToBitOrdering,
             )  
 
             addReg(
@@ -354,6 +396,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 4, 
                 bitOffset   = (17+pixChBitOffset[i]),
                 value       = 0x0, # DEF Value
+                base        = downToBitOrdering,
             )   
 
             addReg(
@@ -362,6 +405,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 4, 
                 bitOffset   = (21+pixChBitOffset[i]),
                 value       = 0x0, # DEF Value
+                base        = downToBitOrdering,
             )
 
             addReg(
@@ -370,6 +414,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 4, 
                 bitOffset   = (25+pixChBitOffset[i]),
                 value       = 0x0, # DEF Value
+                base        = downToBitOrdering,
             )  
 
             addReg(
@@ -378,6 +423,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 4, 
                 bitOffset   = (29+pixChBitOffset[i]),
                 value       = 0x0, # DEF Value
+                base        = downToBitOrdering,
             )              
         
             cdBitOffset = [212,380,548,716,884]
@@ -390,6 +436,7 @@ class AltirocSlowControl(pr.Device):
                 bitSize     = 3, 
                 bitOffset   = cdBitOffset[i],
                 value       = 0x0, # DEF Value
+                base        = upToBitOrdering,
             )          
             
         ###############
@@ -402,6 +449,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 920,
             value       = 0x1, # DEF Value
+            base        = downToBitOrdering,            
         ) 
 
         addReg(
@@ -410,6 +458,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 6, 
             bitOffset   = 921,
             value       = 0xA, # DEF Value
+            base        = upToBitOrdering,            
         ) 
 
         addReg(
@@ -418,6 +467,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 6, 
             bitOffset   = 927,
             value       = 0x20, # DEF Value
+            base        = upToBitOrdering,            
         )
 
         addReg(
@@ -426,6 +476,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 933,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,            
         )
 
         addReg(
@@ -434,6 +485,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 2, 
             bitOffset   = 934,
             value       = 0x3, # DEF Value
+            base        = upToBitOrdering,            
         )
 
         addReg(
@@ -442,6 +494,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 3, 
             bitOffset   = 936,
             value       = 0x0, # DEF Value
+            base        = upToBitOrdering,            
         )  
 
         addReg(
@@ -450,6 +503,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 939,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,            
         )
 
         addReg(
@@ -458,6 +512,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 940,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,            
         ) 
 
         addReg(
@@ -466,6 +521,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 941,
             value       = 0x1, # DEF Value
+            base        = downToBitOrdering,            
         ) 
 
         addReg(
@@ -474,6 +530,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 942,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,            
         )  
 
         addReg(
@@ -482,6 +539,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 943,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,            
         ) 
 
         addReg(
@@ -490,6 +548,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 944,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,            
         )         
         
         ####################        
@@ -502,6 +561,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 8, 
             bitOffset   = 945,
             value       = 0x0, # DEF Value
+            base        = upToBitOrdering,              
         ) 
 
         addReg(
@@ -510,6 +570,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 2, 
             bitOffset   = 953,
             value       = 0x0, # DEF Value
+            base        = upToBitOrdering,              
         ) 
 
         addReg(
@@ -518,6 +579,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 955,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,             
         )
 
         addReg(
@@ -526,6 +588,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 956,
             value       = 0x1, # DEF Value
+            base        = downToBitOrdering,             
         ) 
 
         addReg(
@@ -534,6 +597,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 957,
             value       = 0x1, # DEF Value
+            base        = downToBitOrdering,             
         ) 
 
         addReg(
@@ -542,6 +606,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 958,
             value       = 0x1, # DEF Value
+            base        = downToBitOrdering,             
         )
 
         addReg(
@@ -550,6 +615,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 959,
             value       = 0x0, # DEF Value
+            base        = downToBitOrdering,             
         )
 
         addReg(
@@ -558,6 +624,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 4, 
             bitOffset   = 960,
             value       = 0x0, # DEF Value
+            base        = upToBitOrdering,             
         ) 
 
         addReg(
@@ -566,6 +633,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 964,
             value       = 0x1, # DEF Value
+            base        = downToBitOrdering,             
         )
 
         addReg(
@@ -574,6 +642,7 @@ class AltirocSlowControl(pr.Device):
             bitSize     = 1, 
             bitOffset   = 965,
             value       = 0x1, # DEF Value
+            base        = downToBitOrdering,             
         )        
         
         self.add(pr.RemoteVariable(
