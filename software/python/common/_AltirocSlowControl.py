@@ -614,7 +614,7 @@ class AltirocSlowControl(pr.Device):
             description = 'Charge pump bias enable',
             bitSize     = 1, 
             bitOffset   = 959,
-            value       = 0x0, # DEF Value
+            value       = 0x1, # DEF Value
             base        = downToBitOrdering,             
         )
 
