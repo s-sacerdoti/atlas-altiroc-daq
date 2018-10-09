@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocClk.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-07
--- Last update: 2018-09-07
+-- Last update: 2018-10-09
 -------------------------------------------------------------------------------
 -- Description: PLL Wrapper and 160 MHz clock MUX
 -------------------------------------------------------------------------------
@@ -49,10 +49,8 @@ entity AtlasAltirocClk is
       pwrSyncFclk  : out sl;
       pllLocked    : out sl;
       -- Reference Clock/Reset Interface
-      clk640MHz    : out sl;
-      rst640MHz    : out sl;
-      clk320MHz    : out sl;
-      rst320MHz    : out sl;
+      deserClk     : out sl;
+      deserRst     : out sl;
       clk160MHz    : out sl;
       rst160MHz    : out sl);
 end AtlasAltirocClk;
@@ -61,16 +59,17 @@ architecture mapping of AtlasAltirocClk is
 
    signal localRefClock : sl;
    signal localRefClk   : sl;
-
-   signal pllClkIn : slv(3 downto 0);
-
-   signal refClk : sl;
-   signal refRst : sl;
+   signal pllClkIn      : slv(3 downto 0);
+   signal refClk        : sl;
+   signal deserClock    : sl;
 
 begin
 
    pllClkSel <= clkSel;
 
+   --------------------------------------------   
+   -- On-board 160 MHz reference for SI5345 PLL
+   --------------------------------------------      
    U_IBUFDS : IBUFDS_GTE2
       port map (
          I     => localRefClkP,
@@ -92,6 +91,9 @@ begin
          clkOutP => pllClkOutP,
          clkOutN => pllClkOutN);
 
+   ---------------------------------
+   -- FPGA_CLK_IN[3:1] Input buffers
+   ---------------------------------
    GEN_VEC : for i in 3 downto 0 generate
       U_IBUFDS : IBUFDS
          port map (
@@ -100,60 +102,67 @@ begin
             O  => pllClkIn(i));
    end generate GEN_VEC;
 
+   -----------------------------------------   
+   -- External Trigger/CMD Pulse Clock/Reset
+   -----------------------------------------   
    U_refClk : BUFG
       port map (
          I => pllClkIn(0),
          O => refClk);
 
-   U_PwrUpRst : entity work.PwrUpRst
+   clk160MHz <= refClk;
+
+   U_refRst : entity work.PwrUpRst
       generic map(
-         TPD_G         => TPD_G,
-         SIM_SPEEDUP_G => SIMULATION_G)
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '0',
+         OUT_POLARITY_G => '1',
+         SIM_SPEEDUP_G  => SIMULATION_G)
       port map (
          arst   => pllLolL,
          clk    => refClk,
-         rstOut => refRst);
+         rstOut => rst160MHz);
 
-   U_PLL : entity work.ClockManager7
+   ---------------------------
+   -- Deserializer Clock/Reset
+   ---------------------------
+   U_deserClock : BUFG
+      port map (
+         I => pllClkIn(1),
+         O => deserClock);
+
+   deserClk <= deserClock;
+
+   U_deserRst : entity work.PwrUpRst
       generic map(
-         TPD_G            => TPD_G,
-         SIMULATION_G     => SIMULATION_G,
-         TYPE_G           => "PLL",
-         BANDWIDTH_G      => "HIGH",
-         INPUT_BUFG_G     => false,
-         FB_BUFG_G        => true,
-         NUM_CLOCKS_G     => 3,
-         CLKIN_PERIOD_G   => 6.256,     -- 160 MHz
-         DIVCLK_DIVIDE_G  => 1,         -- 160 MHz = 160 MHz/1
-         CLKFBOUT_MULT_G  => 8,         -- 1.28 GHz = 160 MHz x 8
-         CLKOUT0_DIVIDE_G => 2,         -- 640 MHz = 1.28 GHz/2
-         CLKOUT1_DIVIDE_G => 4,         -- 320 MHz = 1.28 GHz/4
-         CLKOUT2_DIVIDE_G => 8)         -- 160 MHz = 1.28 GHz/8
-      port map(
-         clkIn     => refClk,
-         rstIn     => refRst,
-         -- Clock Outputs
-         clkOut(0) => clk640MHz,
-         clkOut(1) => clk320MHz,
-         clkOut(2) => clk160MHz,
-         -- Reset Outputs
-         rstOut(0) => rst640MHz,
-         rstOut(1) => rst320MHz,
-         rstOut(2) => rst160MHz,
-         -- Status         
-         locked    => pllLocked);
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '0',
+         OUT_POLARITY_G => '1',
+         SIM_SPEEDUP_G  => SIMULATION_G)
+      port map (
+         arst   => pllLolL,
+         clk    => deserClock,
+         rstOut => deserRst);
 
+   ----------------------------------------------
    -- Not synchronizing the DC/DC to system clock
+   ----------------------------------------------
    pwrSyncSclk <= '0';
    pwrSyncFclk <= '0';
 
+   ---------------------
    -- OSC Always enabled
+   ---------------------
    oscOe <= x"F";
 
+   ------------------------
    -- PLL OE Always enabled
+   ------------------------
    pllSpiOeL <= '0';
 
+   -----------------------------------------------------
    -- Reset SPI interface with respect to AXI-Lite reset
+   -----------------------------------------------------
    pllSpiRstL <= not(axilRst);
 
 end mapping;

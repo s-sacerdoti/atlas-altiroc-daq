@@ -8,13 +8,10 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-create_clock -name gtClkP      -period 3.200 [get_ports { gtClkP }]
-create_clock -name localRefClk -period 6.237 [get_ports { localRefClkP }]
-create_clock -name pllClkIn    -period 6.237 [get_ports { pllClkInP[0] }]
-
-create_generated_clock -name clk640 [get_pins {U_Core/U_Clk/U_PLL/PllGen.U_Pll/CLKOUT0}] 
-create_generated_clock -name clk320 [get_pins {U_Core/U_Clk/U_PLL/PllGen.U_Pll/CLKOUT1}] 
-create_generated_clock -name clk160 [get_pins {U_Core/U_Clk/U_PLL/PllGen.U_Pll/CLKOUT2}] 
+create_clock -name gtClkP      -period 3.200 [get_ports { gtClkP }];       # 315.25 MHz
+create_clock -name localRefClk -period 6.250 [get_ports { localRefClkP }]; # 160 MHz (on-board reference)
+create_clock -name pllClkIn0   -period 6.237 [get_ports { pllClkInP[0] }]; # 160.32 MHz (4 x 40.08 MHz LHC clock)
+create_clock -name pllClkIn1   -period 3.118 [get_ports { pllClkInP[1] }]; # 320.64 MHz (8 x 40.08 MHz LHC clock)
 
 create_generated_clock -name iprogClk  [get_pins {U_Core/U_System/U_AxiVersion/GEN_ICAP.Iprog_1/GEN_7SERIES.Iprog7Series_Inst/DIVCLK_GEN.BUFR_ICPAPE2/O}] 
 create_generated_clock -name dnaClk    [get_pins {U_Core/U_System/U_AxiVersion/GEN_DEVICE_DNA.DeviceDna_1/GEN_7SERIES.DeviceDna7Series_Inst/BUFR_Inst/O}] 
@@ -23,5 +20,6 @@ create_generated_clock -name dnaClkInv [get_pins {U_Core/U_System/U_AxiVersion/G
 set_clock_groups -asynchronous \ 
    -group [get_clocks -include_generated_clocks {gtClkP}] \
    -group [get_clocks -include_generated_clocks {localRefClk}] \
-   -group [get_clocks -include_generated_clocks {pllClkIn}]
+   -group [get_clocks -include_generated_clocks {pllClkIn0}] \
+   -group [get_clocks -include_generated_clocks {pllClkIn1}]
  

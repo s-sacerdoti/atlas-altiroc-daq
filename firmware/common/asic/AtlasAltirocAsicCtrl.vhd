@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocAsicCtrl.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-14
--- Last update: 2018-09-14
+-- Last update: 2018-10-09
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -36,6 +36,12 @@ entity AtlasAltirocAsicCtrl is
       rstbTdc         : out sl;         -- RSTB_TDC
       rstbCounter     : out sl;         -- RSTB_COUNTER
       ckWriteAsic     : out sl;         -- CK_WRITE_ASIC
+      deserSampleEdge : out sl;
+      continuous  : out  sl;
+      oneShot     : out  sl;
+      pulseCount  : out  slv(15 downto 0);
+      pulseWidth  : out  slv(15 downto 0);
+      pulsePeriod : out  slv(15 downto 0);      
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -50,25 +56,37 @@ architecture mapping of AtlasAltirocAsicCtrl is
    constant CK_WR_CONFIG_SIZE_C : positive := 3;
 
    type RegType is record
-      renable        : sl;
-      rstbRam        : sl;
-      rstbRead       : sl;
-      rstbTdc        : sl;
-      rstbCounter    : sl;
-      ckWrConfig     : slv(CK_WR_CONFIG_SIZE_C-1 downto 0);
-      axilReadSlave  : AxiLiteReadSlaveType;
-      axilWriteSlave : AxiLiteWriteSlaveType;
+      continuous  : sl;
+      oneShot     : sl;
+      pulseCount  : slv(15 downto 0);
+      pulseWidth  : slv(15 downto 0);
+      pulsePeriod : slv(15 downto 0);     
+      deserSampleEdge : sl;
+      renable         : sl;
+      rstbRam         : sl;
+      rstbRead        : sl;
+      rstbTdc         : sl;
+      rstbCounter     : sl;
+      ckWrConfig      : slv(CK_WR_CONFIG_SIZE_C-1 downto 0);
+      axilReadSlave   : AxiLiteReadSlaveType;
+      axilWriteSlave  : AxiLiteWriteSlaveType;
    end record;
 
    constant REG_INIT_C : RegType := (
-      renable        => '0',
-      rstbRam        => '1',
-      rstbRead       => '1',
-      rstbTdc        => '1',
-      rstbCounter    => '1',
-      ckWrConfig     => (others => '0'),
-      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
+      continuous  => '0',
+      oneShot     => '0',
+      pulseCount  => (others => '0'),
+      pulseWidth  => (others => '0'),
+      pulsePeriod => (others => '0'),
+      deserSampleEdge => '0',
+      renable         => '0',
+      rstbRam         => '1',
+      rstbRead        => '1',
+      rstbTdc         => '1',
+      rstbCounter     => '1',
+      ckWrConfig      => (others => '0'),
+      axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -86,6 +104,9 @@ begin
       -- Latch the current value
       v := r;
 
+      -- Reset strobes
+      v.oneShot := '0';
+      
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
@@ -95,6 +116,14 @@ begin
       axiSlaveRegister(axilEp, x"80C", 0, v.rstbTdc);
       axiSlaveRegister(axilEp, x"810", 0, v.rstbCounter);
       axiSlaveRegister(axilEp, x"814", 0, v.ckWrConfig);
+      
+      axiSlaveRegister(axilEp, x"900", 0, v.deserSampleEdge);
+      
+      axiSlaveRegister(axilEp, x"A00", 0, v.pulseCount);
+      axiSlaveRegister(axilEp, x"A04", 0, v.pulseWidth);
+      axiSlaveRegister(axilEp, x"A08", 0, v.pulsePeriod);
+      axiSlaveRegister(axilEp, x"A0C", 0, v.continuous);
+      axiSlaveRegister(axilEp, x"A10", 0, v.oneShot);
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -119,6 +148,57 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+   
+   U_pulseCount : entity work.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 16)
+      port map (
+         clk     => clk160MHz,
+         dataIn  => r.pulseCount,
+         dataOut => pulseCount);
+         
+   U_pulseWidth : entity work.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 16)
+      port map (
+         clk     => clk160MHz,
+         dataIn  => r.pulseWidth,
+         dataOut => pulseWidth); 
+
+   U_pulsePeriod : entity work.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 16)
+      port map (
+         clk     => clk160MHz,
+         dataIn  => r.pulsePeriod,
+         dataOut => pulsePeriod);          
+         
+   U_continuous : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => clk160MHz,
+         dataIn  => r.continuous,
+         dataOut => continuous);  
+
+   U_oneShot : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => clk160MHz,
+         dataIn  => r.oneShot,
+         dataOut => oneShot);           
+         
+   U_deserSampleEdge : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => clk160MHz,
+         dataIn  => r.deserSampleEdge,
+         dataOut => deserSampleEdge);
 
    U_renable : entity work.Synchronizer
       generic map (

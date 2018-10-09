@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocAsic.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-07
--- Last update: 2018-09-14
+-- Last update: 2018-10-09
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -37,6 +37,8 @@ entity AtlasAltirocAsic is
       -- Reference Clock/Reset Interface
       clk160MHz       : in  sl;
       rst160MHz       : in  sl;
+      deserClk        : in  sl;
+      deserRst        : in  sl;
       -- ASIC Ports
       renable         : out sl;               -- RENABLE
       srinSc          : out sl;               -- SRIN_SC
@@ -104,23 +106,20 @@ architecture mapping of AtlasAltirocAsic is
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
 
-   signal dout     : sl;
-   signal trig     : sl;
-   signal cmdPulse : sl;
-
-   signal trigDdr     : sl;
-   signal cmdPulseDdr : sl;
+   signal deserSampleEdge : sl;
+   signal continuous      : sl;
+   signal oneShot         : sl;
+   signal pulseCount      : slv(15 downto 0);
+   signal pulseWidth      : slv(15 downto 0);
+   signal pulsePeriod     : slv(15 downto 0);
 
 begin
 
    -----------------------
    -- Terminate Unused I/O
    -----------------------
-
    busy     <= '0';
    spareOut <= '0';
-
-   mDataMaster <= AXI_STREAM_MASTER_INIT_C;
 
    --------------------------
    -- AXI-Lite: Crossbar Core
@@ -203,6 +202,12 @@ begin
          rstbTdc         => rstbTdc,      -- RSTB_TDC
          rstbCounter     => rstbCounter,  -- RSTB_COUNTER
          ckWriteAsic     => ckWriteAsic,  -- CK_WRITE_ASIC
+         deserSampleEdge => deserSampleEdge,
+         continuous      => continuous,
+         oneShot         => oneShot,
+         pulseCount      => pulseCount,
+         pulseWidth      => pulseWidth,
+         pulsePeriod     => pulsePeriod,
          -- AXI-Lite Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
@@ -211,32 +216,44 @@ begin
          axilWriteMaster => axilWriteMasters(CTRL_INDEX_C),
          axilWriteSlave  => axilWriteSlaves(CTRL_INDEX_C));
 
-
-   U_dout : IBUFDS
-      port map (
-         I  => doutP,
-         IB => doutN,
-         O  => dout);
-
-   trig     <= '0';
-   cmdPulse <= '0';
-
-   U_extTrig : entity work.OutputBufferReg
+   ---------------------
+   -- Pulse Train Module
+   ---------------------
+   U_PulseTrain : entity work.AtlasAltirocAsicPulseTrain
       generic map (
          TPD_G => TPD_G)
       port map (
-         C => clk160MHz,
-         I => trig,
-         O => extTrig);
+         -- Clock and Reset
+         clk160MHz   => clk160MHz,
+         rst160MHz   => clk160MHz,
+         -- Configuration Interface
+         continuous  => continuous,
+         oneShot     => oneShot,
+         pulseCount  => pulseCount,
+         pulseWidth  => pulseWidth,
+         pulsePeriod => pulsePeriod,
+         -- ASIC Ports
+         cmdPulseP   => cmdPulseP,      -- CMD_PULSE_P
+         cmdPulseN   => cmdPulseN,      -- CMD_PULSE_N
+         extTrig     => extTrig);       -- EXT_TRIG    
 
-   U_cmdPulse : entity work.OutputBufferReg
+   ----------------------
+   -- Deserializer Module
+   ----------------------
+   U_Deser : entity work.AtlasAltirocAsicDeser
       generic map (
-         TPD_G       => TPD_G,
-         DIFF_PAIR_G => true)
+         TPD_G => TPD_G)
       port map (
-         C  => clk160MHz,
-         I  => cmdPulse,
-         O  => cmdPulseP,
-         OB => cmdPulseN);
+         -- Serial Interface
+         deserClk        => deserClk,
+         deserRst        => deserRst,
+         deserSampleEdge => deserSampleEdge,
+         doutP           => doutP,
+         doutN           => doutN,
+         -- Master AXI Stream Interface
+         mAxisClk        => axilClk,
+         mAxisRst        => axilRst,
+         mAxisMaster     => mDataMaster,
+         mAxisSlave      => mDataSlave);
 
 end mapping;

@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-07
--- Last update: 2018-09-07
+-- Last update: 2018-10-09
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -153,6 +153,9 @@ architecture mapping of AtlasAltirocCore is
    signal clk160MHz : sl;
    signal rst160MHz : sl;
 
+   signal deserClk : sl;
+   signal deserRst : sl;
+
    signal status : AtlasAltirocStatusType := ALTIROC_STATUS_INIT_C;
    signal config : AtlasAltirocConfigType := ALTIROC_CONFIG_INIT_C;
 
@@ -195,6 +198,8 @@ begin
          pwrSyncFclk  => pwrSyncFclk,
          pllLocked    => status.pllLocked,
          -- Reference Clock/Reset Interface
+         deserClk     => deserClk,
+         deserRst     => deserRst,
          clk160MHz    => clk160MHz,
          rst160MHz    => rst160MHz);
 
@@ -340,6 +345,8 @@ begin
          -- Reference Clock/Reset Interface
          clk160MHz       => clk160MHz,
          rst160MHz       => rst160MHz,
+         deserClk        => deserClk,
+         deserRst        => deserRst,
          -- ASIC Ports
          renable         => renable,
          srinSc          => srinSc,
