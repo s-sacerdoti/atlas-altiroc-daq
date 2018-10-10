@@ -225,7 +225,7 @@ begin
       port map (
          -- Clock and Reset
          clk160MHz   => clk160MHz,
-         rst160MHz   => clk160MHz,
+         rst160MHz   => rst160MHz,
          -- Configuration Interface
          continuous  => continuous,
          oneShot     => oneShot,
