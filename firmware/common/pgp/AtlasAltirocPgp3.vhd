@@ -202,9 +202,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          SIMULATION_G => SIMULATION_G,
-         RX_G         => false,
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
-         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
+         RX_G         => false)
       port map (
          -- System Interface (axilClk domain)
          sysClk      => sysClk,

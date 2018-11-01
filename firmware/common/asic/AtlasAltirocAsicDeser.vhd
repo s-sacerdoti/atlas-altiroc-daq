@@ -21,6 +21,7 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
+use work.Pgp3Pkg.all;
 
 entity AtlasAltirocAsicDeser is
    generic (
@@ -198,7 +199,7 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
+         MASTER_AXI_CONFIG_G => PGP3_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => deserClk,
