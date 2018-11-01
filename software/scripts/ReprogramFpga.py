@@ -63,7 +63,7 @@ PROM.LoadMcsFile(args.mcs)
 if(PROM._progDone):
     print('\nReloading FPGA firmware from PROM ....')
     AxiVersion.FpgaReload()
-    time.sleep(5)
+    time.sleep(10)
     print('\nReloading FPGA done')
 
     print ( '###################################################')

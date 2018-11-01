@@ -82,8 +82,8 @@ class Top(pr.Root):
         ))
         
         if (configProm):
-            self.add(prom.AxiMicronP30(
-                name    = 'AxiMicronP30', 
+            self.add(prom.AxiMicronN25Q(
+                name    = 'AxiMicronN25Q', 
                 memBase = self.memMap, 
                 offset  = 0x00020000, 
                 hidden  = True, # Hidden in GUI because indented for scripting
