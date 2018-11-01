@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocSys.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-07
--- Last update: 2018-09-07
+-- Last update: 2018-10-29
 -------------------------------------------------------------------------------
 -- Description: System Level Modules
 -------------------------------------------------------------------------------
@@ -287,9 +287,9 @@ begin
             axiClk         => axilClk,
             axiRst         => axilRst);
 
-      ----------------------
-      -- AXI-Lite: Power I2C
-      ----------------------
+      ----------------------------
+      -- AXI-Lite: DLY Monitor I2C
+      ----------------------------
       U_DlyTempI2C : entity work.AxiI2cRegMaster
          generic map (
             TPD_G          => TPD_G,
@@ -315,6 +315,7 @@ begin
       U_DAC : entity work.AxiSpiMaster
          generic map (
             TPD_G             => TPD_G,
+            CPOL_G            => '1',     -- SDIN sampled on falling edge
             ADDRESS_SIZE_G    => 0,
             DATA_SIZE_G       => 24,
             MODE_G            => "WO",    -- "WO" (write only)

@@ -29,18 +29,5 @@ class Dac(pr.Device):
             offset      = 0x0,
             bitSize     = 16,
             mode        = 'WO',
+            units        = '1.024V/2^16',
         ))   
-
-        self.add(pr.LinkVariable(
-            name         = 'Voltage', 
-            mode         = 'RO', 
-            units        = 'V',
-            linkedGet    = self.convVolts,
-            disp         = '{:1.3f}',
-            dependencies = [self.variables['Value']],
-        ))         
-                    
-    @staticmethod
-    def convVolts(dev, var):
-        x  = var.dependencies[0].value() 
-        return ((1.024*float(x))/65536.0)

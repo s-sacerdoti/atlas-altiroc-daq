@@ -1,5 +1,5 @@
 # Define the firmware version
-export PRJ_VERSION = 0x00000001
+export PRJ_VERSION = 0x00000011
 
 # Define target output
 target: prom

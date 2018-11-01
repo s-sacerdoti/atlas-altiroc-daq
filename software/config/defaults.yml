@@ -1,0 +1,22 @@
+Top:
+  SysReg:
+    DlyLen: 0x0
+    DlyData: 0x0
+    RefClkSel: IntClk
+    RollOverEn: 0x0
+  Dac:
+    Value:  0x8000
+  Asic:
+    RENABLE: 0x0
+    RSTB_RAM: 0x1
+    RSTB_READ: 0x1
+    RSTB_TDC: 0x1
+    RSTB_COUNTER: 0x1
+    CK_WRITE: Disabled
+    DeserSampleEdge: RisingEdge
+    PulseCount: 0x0
+    PulseWidth: 0x0
+    PulsePeriod: 0x0
+    Continuous: 0x0 
+  Pll:
+    CsvFilePath: config/pll-config/Si5345-RevD-Registers.csv

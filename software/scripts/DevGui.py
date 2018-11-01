@@ -53,20 +53,23 @@ args = parser.parse_args()
 
 #################################################################
 
-# Set base
-base = feb.Top(hwType='eth',ip=args.ip)    
+# Setup root class
+top = feb.Top(hwType='eth',ip=args.ip)    
 
 # Start the system
-base.start(
+top.start(
     pollEn   = args.pollEn,
     initRead = args.initRead,
 )
+
+# Default PLL configuration file path
+top.Pll.CsvFilePath.set('config/pll-config/Si5345-RevD-Registers.csv')
 
 # Create GUI
 appTop = pr.gui.application(sys.argv)
 guiTop = pr.gui.GuiTop(group='rootMesh')
 appTop.setStyle('Fusion')
-guiTop.addTree(base)
+guiTop.addTree(top)
 guiTop.resize(600, 800)
 
 print("Starting GUI...\n");
@@ -75,5 +78,5 @@ print("Starting GUI...\n");
 appTop.exec_()    
     
 # Close
-base.stop()
+top.stop()
 exit()   

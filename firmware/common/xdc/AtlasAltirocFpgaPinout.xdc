@@ -76,22 +76,22 @@ set_property -dict { PACKAGE_PIN D10 IOSTANDARD LVDS_25 DIFF_TERM true } [get_po
 set_property -dict { PACKAGE_PIN C12 IOSTANDARD LVDS_25 DIFF_TERM true } [get_ports { pllClkInP[3] }];
 set_property -dict { PACKAGE_PIN C11 IOSTANDARD LVDS_25 DIFF_TERM true } [get_ports { pllClkInN[3] }];
 
-set_property -dict { PACKAGE_PIN AE13 IOSTANDARD LVCMOS18 } [get_ports { pllSpiCsL   }];
-set_property -dict { PACKAGE_PIN AE8  IOSTANDARD LVCMOS18 } [get_ports { pllSpiSclk  }];
-set_property -dict { PACKAGE_PIN AF8  IOSTANDARD LVCMOS18 } [get_ports { pllSpiSdi   }];
-set_property -dict { PACKAGE_PIN AF13 IOSTANDARD LVCMOS18 } [get_ports { pllSpiSdo   }];
-set_property -dict { PACKAGE_PIN AF10 IOSTANDARD LVCMOS18 } [get_ports { pllSpiRstL  }];
-set_property -dict { PACKAGE_PIN AF9  IOSTANDARD LVCMOS18 } [get_ports { pllSpiOeL   }];
-set_property -dict { PACKAGE_PIN AD10 IOSTANDARD LVCMOS18 } [get_ports { pllClkSel[0]}];
-set_property -dict { PACKAGE_PIN AE10 IOSTANDARD LVCMOS18 } [get_ports { pllClkSel[1]}];
-set_property -dict { PACKAGE_PIN AE12 IOSTANDARD LVCMOS18 } [get_ports { pllIntrL    }];
-set_property -dict { PACKAGE_PIN AF12 IOSTANDARD LVCMOS18 } [get_ports { pllLolL     }];
+set_property -dict { PACKAGE_PIN AD10 IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { pllClkSel[0]}];
+set_property -dict { PACKAGE_PIN AE10 IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { pllClkSel[1]}];
+set_property -dict { PACKAGE_PIN AE12 IOSTANDARD LVCMOS18           } [get_ports { pllIntrL    }];
+set_property -dict { PACKAGE_PIN AF12 IOSTANDARD LVCMOS18           } [get_ports { pllLolL     }];
+set_property -dict { PACKAGE_PIN AE8  IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { pllSpiSclk  }];
+set_property -dict { PACKAGE_PIN AF8  IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { pllSpiSdi   }];
+set_property -dict { PACKAGE_PIN AE13 IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { pllSpiCsL   }];
+set_property -dict { PACKAGE_PIN AF13 IOSTANDARD LVCMOS18           } [get_ports { pllSpiSdo   }];
+set_property -dict { PACKAGE_PIN AF10 IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { pllSpiRstL  }];
+set_property -dict { PACKAGE_PIN AF9  IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { pllSpiOeL   }];
 
 # DAC Ports
 
-set_property -dict { PACKAGE_PIN E26 IOSTANDARD LVCMOS33 } [get_ports { dacCsL }];
-set_property -dict { PACKAGE_PIN J26 IOSTANDARD LVCMOS33 } [get_ports { dacSclk }];
-set_property -dict { PACKAGE_PIN H26 IOSTANDARD LVCMOS33 } [get_ports { dacSdi }];
+set_property -dict { PACKAGE_PIN E26 IOSTANDARD LVCMOS33 SLEW FAST } [get_ports { dacCsL }];
+set_property -dict { PACKAGE_PIN J26 IOSTANDARD LVCMOS33 SLEW FAST } [get_ports { dacSclk }];
+set_property -dict { PACKAGE_PIN H26 IOSTANDARD LVCMOS33 SLEW FAST } [get_ports { dacSdi }];
 
 # TTL IN/OUT Ports
 

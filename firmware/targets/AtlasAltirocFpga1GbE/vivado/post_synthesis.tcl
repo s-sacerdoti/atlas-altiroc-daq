@@ -35,46 +35,21 @@ CreateDebugCore ${ilaName}
 #######################
 ## Set the record depth
 #######################
-set_property C_DATA_DEPTH 1024 [get_debug_cores ${ilaName}]
+set_property C_DATA_DEPTH 8192 [get_debug_cores ${ilaName}]
 
 #################################
 ## Set the clock for the ILA core
 #################################
-SetDebugCoreClk ${ilaName} {U_Core/clk160MHz}
+SetDebugCoreClk ${ilaName} {U_Core/axilClk}
 
 #######################
 ## Set the debug Probes
 #######################
 
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/afull[*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/data[0][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/data[1][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/data[2][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/data[3][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/enable[*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/header[0][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/header[1][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/header[2][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/header[3][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/invData[*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rdEn[*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxData[0][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxData[1][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxData[2][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxData[3][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxHeader[0][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxHeader[1][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxHeader[2][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxHeader[3][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxStatus[0][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxStatus[1][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxStatus[2][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxStatus[3][*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rxValid[*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/valid[*]}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/chBond}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rst160MHz}
-ConfigProbe ${ilaName} {U_Core/GEN_VEC[0].U_RxPhy/U_RxPhy/U_RxPhyLayer/rst160MHzL}
+ConfigProbe ${ilaName} {U_Core/pllSpiCsL}
+ConfigProbe ${ilaName} {U_Core/pllSpiSclk}
+ConfigProbe ${ilaName} {U_Core/pllSpiSdi}
+ConfigProbe ${ilaName} {U_Core/pllSpiSdo}
 
 ##########################
 ## Write the port map file
