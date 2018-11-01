@@ -41,7 +41,7 @@ $ git clone --recursive https://github.com/slaclab/atlas-altiroc-daq
 > If you are on the SLAC AFS network:
 
 ```
-$ source atlas-altiroc-daq/firmware/setup_env_slac.csh
+$ source atlas-altiroc-daq/firmware/setup_env_slac.sh
 ```
 
 > Else you will need to install Vivado and install the Xilinx Licensing
@@ -71,7 +71,7 @@ Note: For more information about the firmware build system, please refer to this
 
 <!--- ########################################################################################### -->
 
-# How to run the software Development GUI
+# How to run the Software Development GUI
 
 ```
 # Go to software directory
