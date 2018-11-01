@@ -89,3 +89,41 @@ $ python3 scripts/DevGui.py --ip <DHCP_IP_ADDRESS>
 ```
 
 <!--- ########################################################################################### -->
+
+
+# How to Reprogram the FPGA Firmware
+
+```
+# Go to software directory
+$ cd atlas-altiroc-daq/software
+
+# If you are on the SLAC AFS network, 
+$ source setup_env_slac.sh
+
+# Else you will need to clone and build rogue:
+> https://github.com/slaclab/rogue/blob/master/README.md
+
+# Reprogram the FPGA
+$ python3 scripts/ReprogramFpga.py --ip <DHCP_IP_ADDRESS> --mcs <PATH_TO_MCS_FILE>
+ 
+```
+
+<!--- ########################################################################################### -->
+
+# How to Reprogram the SiLab PLL's NVM
+
+```
+# Go to software directory
+$ cd atlas-altiroc-daq/software
+
+# If you are on the SLAC AFS network, 
+$ source setup_env_slac.sh
+
+# Else you will need to clone and build rogue:
+> https://github.com/slaclab/rogue/blob/master/README.md
+
+# Update the PLL"s NVM (configuration sotred in config/pll-config/Si5345-RevD-Registers.csv)
+$ python3 scripts/BurnPllNvm.py --ip <DHCP_IP_ADDRESS>
+```
+
+<!--- ########################################################################################### -->
