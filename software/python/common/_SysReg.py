@@ -26,44 +26,23 @@ class SysReg(pr.Device):
         ##################
         # Status Registers 
         ##################
-
+        
         self.add(pr.RemoteVariable(
-            name         = 'IdlyCtrlRdyCnt', 
-            description  = 'IDELAY controller ready counter',
+            name         = 'PllLockedCnt', 
+            description  = 'PLL Locked counter',
             offset       = 0x0,
             bitSize      = 32, 
             mode         = 'RO',
             base         = pr.UInt,
             pollInterval = pollInterval,
-        )) 
-        
-        self.add(pr.RemoteVariable(
-            name         = 'PllLockedCnt', 
-            description  = 'PLL Locked counter',
-            offset       = 0x4,
-            bitSize      = 32, 
-            mode         = 'RO',
-            base         = pr.UInt,
-            pollInterval = pollInterval,
         ))            
-            
-        self.add(pr.RemoteVariable(
-            name         = 'IdlyCtrlRdy', 
-            description  = 'IDELAY controller ready status',
-            offset       = 0x400,
-            bitSize      = 1,
-            bitOffset    = 0,             
-            mode         = 'RO',
-            base         = pr.UInt,
-            pollInterval = pollInterval,
-        )) 
-        
+
         self.add(pr.RemoteVariable(
             name         = 'PllLocked', 
             description  = 'PLL Locked status',
             offset       = 0x400,
             bitSize      = 1,
-            bitOffset    = 1,  
+            bitOffset    = 0,  
             mode         = 'RO',
             base         = pr.UInt,
             pollInterval = pollInterval,
@@ -72,19 +51,11 @@ class SysReg(pr.Device):
         ##################
         # Status Registers 
         ##################    
-
-        self.add(pr.RemoteVariable(
-            name         = 'DlyLen', 
-            description  = 'SY89295UMG LEN bit',
-            offset       = 0x800,
-            bitSize      = 1, 
-            mode         = 'RW',
-        ))
         
         self.add(pr.RemoteVariable(
             name         = 'DlyData', 
             description  = 'SY89295UMG Data bus',
-            offset       = 0x800,
+            offset       = 0x804,
             bitSize      = 10, 
             mode         = 'RW',
             units        = '10ps',
@@ -107,7 +78,7 @@ class SysReg(pr.Device):
             name         = 'RollOverEn', 
             description  = 'Rollover enable for status counters',
             offset       = 0xFF8,
-            bitSize      = 2, 
+            bitSize      = 1, 
             mode         = 'RW',
             base         = pr.UInt,
         ))        

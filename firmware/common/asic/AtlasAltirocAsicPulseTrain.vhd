@@ -51,9 +51,6 @@ architecture rtl of AtlasAltirocAsicPulseTrain is
       continuous  : sl;
       start       : sl;
       stop        : sl;
-      pulseCount  : slv(15 downto 0);
-      pulseWidth  : slv(15 downto 0);
-      pulsePeriod : slv(15 downto 0);
       cnt         : slv(15 downto 0);
       pulseCnt    : slv(15 downto 0);
       state       : StateType;
@@ -64,15 +61,15 @@ architecture rtl of AtlasAltirocAsicPulseTrain is
       continuous  => '0',
       start       => '0',
       stop        => '0',
-      pulseCount  => (others => '0'),
-      pulseWidth  => (others => '0'),
-      pulsePeriod => (others => '0'),
       cnt         => (others => '0'),
       pulseCnt    => (others => '0'),
       state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -86,6 +83,8 @@ begin
 
       -- Reset strobes
       v.pulse := '0';
+      v.start := '0';
+      v.stop  := '0';
 
       -- Keep a delay copy
       v.continuous := continuous;
@@ -107,33 +106,32 @@ begin
             -- Reset the counter
             v.cnt         := (others => '0');
             v.pulseCnt    := (others => '0');
-            -- Create a local copy of the one-shot configurations
-            v.pulseCount  := pulseCount;
-            v.pulseWidth  := pulseWidth;
-            v.pulsePeriod := pulsePeriod;
-            -- Check for start
-            if (r.start = '1') or (oneShot = '1') then
-               -- Next state
-               v.state := RUN_S;
+            -- Check for a non-zero pulse period
+            if (pulsePeriod /= 0) then
+               -- Check for start and a one-shot trigger with a non-zero pulse count
+               if (r.start = '1') or ((oneShot = '1') and (pulseCount /= 0)) then
+                  -- Next state
+                  v.state := RUN_S;
+               end if;
             end if;
          ----------------------------------------------------------------------
          when RUN_S =>
             -- Increment the counter
             v.cnt := r.cnt + 1;
             -- Check the pulse width
-            if (r.cnt < r.pulseWidth) then
+            if (r.cnt < pulseWidth) then
                v.pulse := '1';
             end if;
             -- Check for last count value
-            if (r.cnt <= r.pulsePeriod) then
+            if (r.cnt >= (pulsePeriod-1)) then
                -- Reset the counter
                v.cnt := (others => '0');
                -- Check if not continuous mode
                if (r.continuous = '0') then
                   -- Increment the counter
-                  v.pulseCnt     := r.pulseCnt + 1;
+                  v.pulseCnt := r.pulseCnt + 1;
                   -- Check for last one-shot pulse
-                  if (r.pulseCnt <= r.pulseCount) then
+                  if (r.pulseCnt >= (pulseCount-1)) then
                      -- Reset the counter
                      v.pulseCnt := (others => '0');
                      -- Next state

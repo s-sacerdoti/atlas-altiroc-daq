@@ -44,7 +44,7 @@ end AtlasAltirocSysReg;
 
 architecture rtl of AtlasAltirocSysReg is
 
-   constant STATUS_SIZE_C : positive := 2;
+   constant STATUS_SIZE_C : positive := 1;
 
    type RegType is record
       cntRst         : sl;
@@ -93,7 +93,6 @@ begin
       axiSlaveRegisterR(regCon, x"400", 0, statusOut);
 
       -- Map the write registers
-      axiSlaveRegister(regCon, x"800", 0, v.config.dlyLen);
       axiSlaveRegister(regCon, x"804", 0, v.config.dlyData);
       axiSlaveRegister(regCon, x"808", 0, v.config.clkSel);
 
@@ -135,8 +134,7 @@ begin
          WIDTH_G        => STATUS_SIZE_C)
       port map (
          -- Input Status bit Signals (wrClk domain)
-         statusIn(1)  => status.pllLocked,
-         statusIn(0)  => status.iDelayCtrlRdy,
+         statusIn(0)  => status.pllLocked,
          -- Output Status bit Signals (rdClk domain)  
          statusOut    => statusOut,
          -- Status Bit Counters Signals (rdClk domain) 

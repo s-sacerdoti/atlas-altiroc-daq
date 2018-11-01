@@ -42,18 +42,15 @@ args = parser.parse_args()
 
 #################################################################
 
-# Set base
-base = pr.Root(name='base',description='')    
-
-# Set base
-base = feb.Top(hwType='eth',ip=args.ip)   
+# Setup root class
+top = feb.Top(hwType='eth',ip=args.ip,configProm=True)   
 
 # Start the system
-base.start(pollEn=False)
+top.start(pollEn=False)
     
 # Create useful pointers
-AxiVersion = base.Top.AxiVersion
-PROM       = base.Top.AxiMicronN25Q
+AxiVersion = top.AxiVersion
+PROM       = top.AxiMicronN25Q
 
 print ( '###################################################')
 print ( '#                 Old Firmware                    #')
@@ -76,5 +73,5 @@ if(PROM._progDone):
 else:
     print('Failed to program FPGA')
 
-base.stop()
+top.stop()
 exit()

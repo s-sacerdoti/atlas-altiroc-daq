@@ -54,25 +54,20 @@ args = parser.parse_args()
 #################################################################
 
 # Setup root class
-top = feb.Top(hwType='eth',ip=args.ip)    
+top = feb.Top(hwType='eth',ip=args.ip,configPll=True)    
 
 # Start the system
 top.start(
-    pollEn   = args.pollEn,
-    initRead = args.initRead,    
+    pollEn    = args.pollEn,
+    initRead  = args.initRead,
 )
 
-# Create GUI
-appTop = pr.gui.application(sys.argv)
-guiTop = pr.gui.GuiTop(group='rootMesh')
-appTop.setStyle('Fusion')
-guiTop.addTree(top)
-guiTop.resize(600, 800)
+# Default PLL configuration file path
+top.Pll.LoadCsvFile(arg='config/pll-config/Si5345-RevD-Registers.csv') 
 
-print("Starting GUI...\n");
-
-# Run GUI
-appTop.exec_()    
+# Write the volatile configuration into the non-volatile memory
+top.Pll.Page0.NVM_WRITE.set(0xc7)
+top.Pll.Page0.NVM_WRITE.set(0x0)
     
 # Close
 top.stop()

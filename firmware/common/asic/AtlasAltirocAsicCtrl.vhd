@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocAsicCtrl.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-14
--- Last update: 2018-10-09
+-- Last update: 2018-11-01
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -37,11 +37,11 @@ entity AtlasAltirocAsicCtrl is
       rstbCounter     : out sl;         -- RSTB_COUNTER
       ckWriteAsic     : out sl;         -- CK_WRITE_ASIC
       deserSampleEdge : out sl;
-      continuous  : out  sl;
-      oneShot     : out  sl;
-      pulseCount  : out  slv(15 downto 0);
-      pulseWidth  : out  slv(15 downto 0);
-      pulsePeriod : out  slv(15 downto 0);      
+      continuous      : out sl;
+      oneShot         : out sl;
+      pulseCount      : out slv(15 downto 0);
+      pulseWidth      : out slv(15 downto 0);
+      pulsePeriod     : out slv(15 downto 0);
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -56,11 +56,11 @@ architecture mapping of AtlasAltirocAsicCtrl is
    constant CK_WR_CONFIG_SIZE_C : positive := 3;
 
    type RegType is record
-      continuous  : sl;
-      oneShot     : sl;
-      pulseCount  : slv(15 downto 0);
-      pulseWidth  : slv(15 downto 0);
-      pulsePeriod : slv(15 downto 0);     
+      continuous      : sl;
+      oneShot         : sl;
+      pulseCount      : slv(15 downto 0);
+      pulseWidth      : slv(15 downto 0);
+      pulsePeriod     : slv(15 downto 0);
       deserSampleEdge : sl;
       renable         : sl;
       rstbRam         : sl;
@@ -73,11 +73,11 @@ architecture mapping of AtlasAltirocAsicCtrl is
    end record;
 
    constant REG_INIT_C : RegType := (
-      continuous  => '0',
-      oneShot     => '0',
-      pulseCount  => (others => '0'),
-      pulseWidth  => (others => '0'),
-      pulsePeriod => (others => '0'),
+      continuous      => '0',
+      oneShot         => '0',
+      pulseCount      => toSlv(1, 16),
+      pulseWidth      => toSlv(1, 16),
+      pulsePeriod     => toSlv(2, 16),
       deserSampleEdge => '0',
       renable         => '0',
       rstbRam         => '1',
@@ -91,9 +91,12 @@ architecture mapping of AtlasAltirocAsicCtrl is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal ckWr       : sl                                  := '0';
-   signal ckWrConfig : slv(CK_WR_CONFIG_SIZE_C-1 downto 0) := (others => '0');
-   signal ckWrCnt    : slv(CK_WR_CONFIG_SIZE_C-1 downto 0) := (others => '0');
+   signal ckWr       : sl                                       := '0';
+   signal ckWrConfig : slv(CK_WR_CONFIG_SIZE_C-1 downto 0)      := (others => '0');
+   signal ckWrCnt    : slv((2**CK_WR_CONFIG_SIZE_C)-1 downto 0) := (others => '0');
+
+   -- attribute dont_touch         : string;
+   -- attribute dont_touch of ckWr : signal is "TRUE";   
 
 begin
 
@@ -106,7 +109,7 @@ begin
 
       -- Reset strobes
       v.oneShot := '0';
-      
+
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
@@ -116,9 +119,9 @@ begin
       axiSlaveRegister(axilEp, x"80C", 0, v.rstbTdc);
       axiSlaveRegister(axilEp, x"810", 0, v.rstbCounter);
       axiSlaveRegister(axilEp, x"814", 0, v.ckWrConfig);
-      
+
       axiSlaveRegister(axilEp, x"900", 0, v.deserSampleEdge);
-      
+
       axiSlaveRegister(axilEp, x"A00", 0, v.pulseCount);
       axiSlaveRegister(axilEp, x"A04", 0, v.pulseWidth);
       axiSlaveRegister(axilEp, x"A08", 0, v.pulsePeriod);
@@ -148,7 +151,7 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
    U_pulseCount : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
@@ -157,7 +160,7 @@ begin
          clk     => clk160MHz,
          dataIn  => r.pulseCount,
          dataOut => pulseCount);
-         
+
    U_pulseWidth : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
@@ -165,7 +168,7 @@ begin
       port map (
          clk     => clk160MHz,
          dataIn  => r.pulseWidth,
-         dataOut => pulseWidth); 
+         dataOut => pulseWidth);
 
    U_pulsePeriod : entity work.SynchronizerVector
       generic map (
@@ -174,15 +177,15 @@ begin
       port map (
          clk     => clk160MHz,
          dataIn  => r.pulsePeriod,
-         dataOut => pulsePeriod);          
-         
+         dataOut => pulsePeriod);
+
    U_continuous : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
          clk     => clk160MHz,
          dataIn  => r.continuous,
-         dataOut => continuous);  
+         dataOut => continuous);
 
    U_oneShot : entity work.SynchronizerOneShot
       generic map (
@@ -190,8 +193,8 @@ begin
       port map (
          clk     => clk160MHz,
          dataIn  => r.oneShot,
-         dataOut => oneShot);           
-         
+         dataOut => oneShot);
+
    U_deserSampleEdge : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
@@ -264,19 +267,21 @@ begin
    process(clk160MHz)
    begin
       if rising_edge(clk160MHz) then
-         ckWriteAsic <= ckWr;
          if (ckWrConfig = 0) then
-            ckWr    <= '0'                           after TPD_G;
-            ckWrCnt <= toSlv(1, CK_WR_CONFIG_SIZE_C) after TPD_G;
+            ckWr <= '0' after TPD_G;
          else
-            if ckWrCnt = ckWrConfig then
-               ckWr    <= not(ckWr)                     after TPD_G;
-               ckWrCnt <= toSlv(1, CK_WR_CONFIG_SIZE_C) after TPD_G;
-            else
-               ckWrCnt <= ckWrCnt + 1 after TPD_G;
-            end if;
+            ckWr <= ckWrCnt(conv_integer(ckWrConfig)-1) after TPD_G;
          end if;
+         ckWrCnt <= ckWrCnt + 1 after TPD_G;
       end if;
    end process;
+
+   U_ckWriteAsic : entity work.OutputBufferReg
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         C => clk160MHz,
+         I => ckWr,
+         O => ckWriteAsic);
 
 end mapping;

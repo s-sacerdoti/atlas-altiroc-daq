@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocClk.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-07
--- Last update: 2018-10-09
+-- Last update: 2018-11-01
 -------------------------------------------------------------------------------
 -- Description: PLL Wrapper and 160 MHz clock MUX
 -------------------------------------------------------------------------------
@@ -66,6 +66,14 @@ architecture mapping of AtlasAltirocClk is
 begin
 
    pllClkSel <= clkSel;
+
+   U_pllLocked : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => pllLolL,
+         dataOut => pllLocked);
 
    --------------------------------------------   
    -- On-board 160 MHz reference for SI5345 PLL

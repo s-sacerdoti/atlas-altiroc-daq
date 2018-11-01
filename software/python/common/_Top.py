@@ -34,6 +34,8 @@ class Top(pr.Root):
             description = "Container for FEB FPGA",
             hwType      = 'eth',
             ip          = '10.0.0.1',
+            configPll   = False,
+            configProm  = False,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
@@ -79,12 +81,13 @@ class Top(pr.Root):
             expand  = False,
         ))
         
-        self.add(prom.AxiMicronP30(
-            name    = 'AxiMicronP30', 
-            memBase = self.memMap, 
-            offset  = 0x00020000, 
-            hidden  = True, # Hidden in GUI because indented for scripting
-        ))
+        if (configProm):
+            self.add(prom.AxiMicronP30(
+                name    = 'AxiMicronP30', 
+                memBase = self.memMap, 
+                offset  = 0x00020000, 
+                hidden  = True, # Hidden in GUI because indented for scripting
+            ))
         
         self.add(common.SysReg(
             name        = 'SysReg', 
@@ -127,20 +130,21 @@ class Top(pr.Root):
             expand      = False,
         ))        
         
-        self.add(silabs.Si5345(      
-            name        = 'Pll', 
-            description = 'This device contains Jitter cleaner PLL', 
-            memBase     = self.memMap, 
-            offset      = 0x00070000, 
-            expand      = False,
-        ))     
+        if (configPll):
+            self.add(silabs.Si5345(      
+                name        = 'Pll', 
+                description = 'This device contains Jitter cleaner PLL', 
+                memBase     = self.memMap, 
+                offset      = 0x00070000, 
+                expand      = True,
+            ))     
 
         self.add(common.Altiroc(
             name        = 'Asic', 
             description = 'This device contains all the ASIC control/monitoring', 
             memBase     = self.memMap, 
             offset      = 0x01000000, 
-            expand      = False,
+            expand      = True,
         ))           
 
         ######################################################################

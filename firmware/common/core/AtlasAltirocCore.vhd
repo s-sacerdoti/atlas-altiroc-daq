@@ -166,7 +166,7 @@ begin
    led(2) <= not(axilRst);
    led(3) <= not(rst160MHz);
 
-   dlyLen  <= config.dlyLen;
+   dlyLen  <= '0';
    dlyData <= config.dlyData;
 
    ----------------------
