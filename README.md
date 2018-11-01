@@ -105,7 +105,6 @@ $ source setup_env_slac.sh
 
 # Reprogram the FPGA
 $ python3 scripts/ReprogramFpga.py --ip <DHCP_IP_ADDRESS> --mcs <PATH_TO_MCS_FILE>
- 
 ```
 
 <!--- ########################################################################################### -->
