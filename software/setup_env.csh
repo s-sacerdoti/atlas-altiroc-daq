@@ -8,6 +8,9 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+## Activate Rogue conda Environment 
+conda activate rogue_env
+
 # Python Package directories
 setenv SURF_DIR ${PWD}/../firmware/submodules/surf/python
 
