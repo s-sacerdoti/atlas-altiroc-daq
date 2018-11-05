@@ -122,7 +122,6 @@ $ cd atlas-altiroc-daq/software
 
 # Activate Rogue conda Environment 
 $ source /path/to/my/anaconda3/etc/profile.d/conda.sh
-$ conda activate rogue_env
 
 # Setup the Python Environment
 $ source setup_env.sh
