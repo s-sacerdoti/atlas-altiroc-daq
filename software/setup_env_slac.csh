@@ -8,10 +8,6 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-# Setup environment
-#source /afs/slac/g/reseng/rogue/pre-release/setup_env.csh
-source /u/re/ruckman/projects/rogue/setup_env.csh
-
 # Python Package directories
 setenv SURF_DIR ${PWD}/../firmware/submodules/surf/python
 
