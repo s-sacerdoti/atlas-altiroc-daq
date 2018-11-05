@@ -4,7 +4,7 @@
 
 # Before you clone the GIT repository
 
-1) Setup for large filesystems on github
+1) Setup for large filesystems on github (one-time step)
 
 ```
 $ git lfs install
