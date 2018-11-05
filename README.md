@@ -68,6 +68,11 @@ Note: For more information about the firmware build system, please refer to this
 
 > https://docs.google.com/presentation/d/1kvzXiByE8WISo40Xd573DdR7dQU4BpDQGwEgNyeJjTI/edit?usp=sharing
 
+<!--- ########################################################################################### -->
+
+# How to install the Rogue With Anaconda
+
+> https://github.com/slaclab/rogue/blob/master/README_anaconda.md
 
 <!--- ########################################################################################### -->
 
@@ -77,11 +82,12 @@ Note: For more information about the firmware build system, please refer to this
 # Go to software directory
 $ cd atlas-altiroc-daq/software
 
-# If you are on the SLAC AFS network, 
-$ source setup_env_slac.sh
+# Activate Rogue conda Environment 
+$ source /path/to/my/anaconda3/etc/profile.d/conda.sh
+$ conda activate rogue_env
 
-# Else you will need to clone and build rogue:
-> https://github.com/slaclab/rogue/blob/master/README.md
+# Setup the Python Environment
+$ source setup_env_slac.sh
 
 # Launch the GUI
 $ python3 scripts/DevGui.py --ip <DHCP_IP_ADDRESS>
@@ -97,11 +103,12 @@ $ python3 scripts/DevGui.py --ip <DHCP_IP_ADDRESS>
 # Go to software directory
 $ cd atlas-altiroc-daq/software
 
-# If you are on the SLAC AFS network, 
-$ source setup_env_slac.sh
+# Activate Rogue conda Environment 
+$ source /path/to/my/anaconda3/etc/profile.d/conda.sh
+$ conda activate rogue_env
 
-# Else you will need to clone and build rogue:
-> https://github.com/slaclab/rogue/blob/master/README.md
+# Setup the Python Environment
+$ source setup_env_slac.sh
 
 # Reprogram the FPGA
 $ python3 scripts/ReprogramFpga.py --ip <DHCP_IP_ADDRESS> --mcs <PATH_TO_MCS_FILE>
@@ -115,11 +122,12 @@ $ python3 scripts/ReprogramFpga.py --ip <DHCP_IP_ADDRESS> --mcs <PATH_TO_MCS_FIL
 # Go to software directory
 $ cd atlas-altiroc-daq/software
 
-# If you are on the SLAC AFS network, 
-$ source setup_env_slac.sh
+# Activate Rogue conda Environment 
+$ source /path/to/my/anaconda3/etc/profile.d/conda.sh
+$ conda activate rogue_env
 
-# Else you will need to clone and build rogue:
-> https://github.com/slaclab/rogue/blob/master/README.md
+# Setup the Python Environment
+$ source setup_env_slac.sh
 
 # Update the PLL"s NVM (configuration sotred in config/pll-config/Si5345-RevD-Registers.csv)
 $ python3 scripts/BurnPllNvm.py --ip <DHCP_IP_ADDRESS>
