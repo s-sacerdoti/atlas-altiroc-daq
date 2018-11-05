@@ -87,7 +87,7 @@ $ source /path/to/my/anaconda3/etc/profile.d/conda.sh
 $ conda activate rogue_env
 
 # Setup the Python Environment
-$ source setup_env_slac.sh
+$ source setup_env.sh
 
 # Launch the GUI
 $ python3 scripts/DevGui.py --ip <DHCP_IP_ADDRESS>
@@ -108,7 +108,7 @@ $ source /path/to/my/anaconda3/etc/profile.d/conda.sh
 $ conda activate rogue_env
 
 # Setup the Python Environment
-$ source setup_env_slac.sh
+$ source setup_env.sh
 
 # Reprogram the FPGA
 $ python3 scripts/ReprogramFpga.py --ip <DHCP_IP_ADDRESS> --mcs <PATH_TO_MCS_FILE>
@@ -127,7 +127,7 @@ $ source /path/to/my/anaconda3/etc/profile.d/conda.sh
 $ conda activate rogue_env
 
 # Setup the Python Environment
-$ source setup_env_slac.sh
+$ source setup_env.sh
 
 # Update the PLL"s NVM (configuration sotred in config/pll-config/Si5345-RevD-Registers.csv)
 $ python3 scripts/BurnPllNvm.py --ip <DHCP_IP_ADDRESS>
