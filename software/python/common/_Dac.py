@@ -24,7 +24,7 @@ class Dac(pr.Device):
             **kwargs)
             
         self.add(pr.RemoteVariable(
-            name        = 'Value',
+            name        = 'RawValue',
             description = '16-bit DAC Value',
             offset      = 0x0,
             bitSize     = 16,

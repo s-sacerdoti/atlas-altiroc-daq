@@ -3,7 +3,7 @@ Top:
     DlyData: 0x0
     RefClkSel: IntClk
   Dac:
-    Value:  0x8000
+    RawValue:  0x8000
   Asic:
     RENABLE: 0x0
     RSTB_RAM: 0x1
@@ -16,92 +16,94 @@ Top:
     PulseWidth: 0x1
     PulsePeriod: 0x1
     Continuous: 0x0 
-    # AltirocSlowControl:
-      # dac: 0x0
-      # ON_dac_LR: 0x1
-      # Write_opt: 0x0
-      # Precharge_opt: 0x0
-      # ref_bg: 0x1
-      # dac_pulser: 0x7
-      # Ccomp_TZ: 0x0
-      # Rin_Vpa: 0x0
-      # Cp_Vpa: 0x0
-      # dac_biaspa: 0xc
-      # ON_dac_biaspa: 0x1
-      # ON_ota_dac: 0x1
-      # DAC10bit: 0x80
-      # SatFVa: 0x0
-      # IntFVa: 0x0
-      # SatFTz: 0x0
-      # IntFTz: 0x0
-      # totf_satovfw: 0x0
-      # totc_satovfw: 0x0
-      # toa_satovfw: 0x0
-      # ckw_choice: 0x0
-      # cBitf: 0x0
-      # DLL_ALockR_en: 0x1
-      # CP_b: 0x3
-      # ext_Vcrtlf_en: 0x0
-      # cBits: 0x0
-      # ext_Vcrtls_en: 0x0
-      # cBitc: 0x0
-      # ext_Vcrtlc_en: 0x0
-      # en_8drivers: 0x0
-      # EN_ck_SRAM[24:0]: 0x1
-      # ON_Ctest[24:0]: 0x0
-      # disable_pa[24:0]: 0x0
-      # bit_vth_cor[24:0]: 0x8
-      # ON_discri[24:0]: 0x1
-      # EN_hyst[24:0]: 0x1
-      # EN_trig_ext[24:0]: 0x0
-      # cBit_f_TOT[24:0]: 0x0
-      # cBit_c_TOT[24:0]: 0x0
-      # cBit_s_TOT[24:0]: 0x0
-      # cBit_s_TOA[24:0]: 0x0
-      # cBit_f_TOA[24:0]: 0x0
-      # EN_ck_SRAM[24:0]: 0x1
-      # cd[0]: 0x0
-      # cd[1]: 0x0
-      # cd[2]: 0x0
-      # cd[3]: 0x0
-      # cd[4]: 0x0
-      # PLL: 0x1
-      # dac_icpb: 0xa
-      # dac_CP_BWb: 0x20
-      # EN_Ext_Vin_VCO: 0x0
-      # setN: 0x3
-      # setProbe: 0x0
-      # EN_500: 0x0
-      # EN_1000: 0x0
-      # EN_2000: 0x1
-      # EN_4000: 0x0
-      # EN_200p: 0x0
-      # EN_LowKvco: 0x0
-      # delay: 0x0
-      # Ph: 0x0
-      # forcedown: 0x0
-      # inita: 0x1
-      # initb: 0x1
-      # initc: 0x1
-      # cpen: 0x1
-      # cp: 0x0
-      # En_40M: 0x1
-      # En_640M: 0x1
-      # rstL: 0x1
-    # AltirocProbe:
-      # en_probe_pa: 0x0
-      # en_probe_dig: 0x0
-      # EN_dout: 0x0
-      # probe_pa[:]: 0x0
-      # probe_vthc[:]: 0x0
-      # probe_dig_out_disc[:]: 0x0
-      # probe_toa[:]: 0x0
-      # probe_tot[:]: 0x0
-      # totf[:]: 0x0
-      # tot_overflow[:]: 0x0
-      # toa_busy[:]: 0x0
-      # toa_ready[:]: 0x0
-      # tot_busy[:]: 0x0
-      # tot_ready[:]: 0x0
-      # en_read[:]: 0x0
-      # rstL: 0x1
+    AltirocSlowControl:
+      enable: False # No ASIC board connected yet
+      dac: 0x0
+      ON_dac_LR: 0x1
+      Write_opt: 0x0
+      Precharge_opt: 0x0
+      ref_bg: 0x1
+      dac_pulser: 0x7
+      Ccomp_TZ: 0x0
+      Rin_Vpa: 0x0
+      Cp_Vpa: 0x0
+      dac_biaspa: 0xc
+      ON_dac_biaspa: 0x1
+      ON_ota_dac: 0x1
+      DAC10bit: 0x80
+      SatFVa: 0x0
+      IntFVa: 0x0
+      SatFTz: 0x0
+      IntFTz: 0x0
+      totf_satovfw: 0x0
+      totc_satovfw: 0x0
+      toa_satovfw: 0x0
+      ckw_choice: 0x0
+      cBitf: 0x0
+      DLL_ALockR_en: 0x1
+      CP_b: 0x3
+      ext_Vcrtlf_en: 0x0
+      cBits: 0x0
+      ext_Vcrtls_en: 0x0
+      cBitc: 0x0
+      ext_Vcrtlc_en: 0x0
+      en_8drivers: 0x0
+      EN_ck_SRAM[0:24]: 0x1
+      ON_Ctest[0:24]: 0x0
+      disable_pa[0:24]: 0x0
+      bit_vth_cor[0:24]: 0x8
+      ON_discri[0:24]: 0x1
+      EN_hyst[0:24]: 0x1
+      EN_trig_ext[0:24]: 0x0
+      cBit_f_TOT[0:24]: 0x0
+      cBit_c_TOT[0:24]: 0x0
+      cBit_s_TOT[0:24]: 0x0
+      cBit_s_TOA[0:24]: 0x0
+      cBit_f_TOA[0:24]: 0x0
+      EN_ck_SRAM[0:24]: 0x1
+      cd[0]: 0x0
+      cd[1]: 0x0
+      cd[2]: 0x0
+      cd[3]: 0x0
+      cd[4]: 0x0
+      PLL: 0x1
+      dac_icpb: 0xa
+      dac_CP_BWb: 0x20
+      EN_Ext_Vin_VCO: 0x0
+      setN: 0x3
+      setProbe: 0x0
+      EN_500: 0x0
+      EN_1000: 0x0
+      EN_2000: 0x1
+      EN_4000: 0x0
+      EN_200p: 0x0
+      EN_LowKvco: 0x0
+      delay: 0x0
+      Ph: 0x0
+      forcedown: 0x0
+      inita: 0x1
+      initb: 0x1
+      initc: 0x1
+      cpen: 0x1
+      cp: 0x0
+      En_40M: 0x1
+      En_640M: 0x1
+      rstL: 0x1
+    AltirocProbe:
+      enable: False # No ASIC board connected yet
+      en_probe_pa: 0x0
+      en_probe_dig: 0x0
+      EN_dout: 0x0
+      probe_pa[:]: 0x0
+      probe_vthc[:]: 0x0
+      probe_dig_out_disc[:]: 0x0
+      probe_toa[:]: 0x0
+      probe_tot[:]: 0x0
+      totf[:]: 0x0
+      tot_overflow[:]: 0x0
+      toa_busy[:]: 0x0
+      toa_ready[:]: 0x0
+      tot_busy[:]: 0x0
+      tot_ready[:]: 0x0
+      en_read[:]: 0x0
+      rstL: 0x1
