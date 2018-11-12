@@ -27,6 +27,10 @@ entity AtlasAltirocAsicDeser is
    generic (
       TPD_G : time := 1 ns);
    port (
+      -- Control Interface
+      dataEnable      : in  sl;
+      emuEnable       : in  sl;
+      emuTrig         : in  sl;
       -- Serial Interface
       deserClk        : in  sl;
       deserRst        : in  sl;
@@ -74,6 +78,11 @@ architecture rtl of AtlasAltirocAsicDeser is
    signal Q1 : sl;
    signal Q2 : sl;
 
+   signal runEnable       : sl;
+   signal emulationEnable : sl;
+   signal emulationTrig   : sl;
+   signal edgeSelect      : sl;
+
 begin
 
    U_RegisteredInput : entity work.InputBufferReg
@@ -87,7 +96,31 @@ begin
          Q1 => Q1,
          Q2 => Q2);
 
-   comb : process (Q1, Q2, deserRst, deserSampleEdge, r, txSlave) is
+   U_emuTrig : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => deserClk,
+         dataIn  => emuTrig,
+         dataOut => emulationTrig);
+
+   U_SyncVec : entity work.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 3)
+      port map (
+         clk        => deserClk,
+         -- Input
+         dataIn(0)  => deserSampleEdge,
+         dataIn(1)  => emuEnable,
+         dataIn(2)  => dataEnable,
+         -- Output
+         dataOut(0) => edgeSelect,
+         dataOut(1) => emulationEnable,
+         dataOut(2) => runEnable);
+
+   comb : process (Q1, Q2, deserRst, edgeSelect, emulationEnable,
+                   emulationTrig, r, runEnable, txSlave) is
       variable v      : RegType;
       variable i      : natural;
       variable sofDet : sl;
@@ -101,7 +134,7 @@ begin
       end if;
 
       -- Check if using rising_edge sample
-      if (deserSampleEdge = '0') then
+      if (edgeSelect = '0') then
          v.dout := Q1;
       -- Else using falling_edge sample
       else
@@ -112,10 +145,33 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Check for first start bit
-            if (r.dout = '1') then
-               -- Next state
-               v.state := START_S;
+            -- Emulation data taking mode
+            if (emulationEnable = '1') then
+
+               -- Check for trigger and ready to move data
+               if (emulationTrig = '1') then
+                  -- Check if ready to move data
+                  if (v.txMaster.tValid = '0') then
+                     -- Forward the data
+                     v.txMaster.tValid              := '1';
+                     v.txMaster.tData(31 downto 19) := r.seqCnt;
+                     v.txMaster.tData(18 downto 0)  := (others => '0');
+                     ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');  -- Tag as start of frame (SOF)
+                     v.txMaster.tLast               := '1';  -- Tag as end of frame (EOF)                     
+                  end if;
+                  -- Increment the sequence counter
+                  v.seqCnt := r.seqCnt + 1;
+               end if;
+
+            -- Else check the run enable for normal data taking
+            elsif (runEnable = '1') then
+
+               -- Check for first start bit
+               if (r.dout = '1') then
+                  -- Next state
+                  v.state := START_S;
+               end if;
+
             end if;
          ----------------------------------------------------------------------
          when START_S =>

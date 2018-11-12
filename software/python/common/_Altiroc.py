@@ -107,7 +107,24 @@ class Altiroc(pr.Device):
                 0x0: 'RisingEdge', 
                 0x1: 'FallingEdge',               
             },
-        ))        
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'EmuEnable', 
+            description  = 'Enables the emulation mode where a streaming data hit message will be generated for every pulse from the pulse generator',
+            offset       = 0x904,
+            bitSize      = 1, 
+            mode         = 'RW',
+        )) 
+
+
+        self.add(pr.RemoteVariable(
+            name         = 'RunEnable', 
+            description  = 'Enables the normal stream data taking mode.',
+            offset       = 0x908,
+            bitSize      = 1, 
+            mode         = 'RW',
+        ))         
         
         self.add(pr.RemoteVariable(
             name         = 'PulseCount', 

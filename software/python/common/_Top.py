@@ -51,7 +51,8 @@ class Top(pr.Root):
         elif (hwType == 'eth'):
             self.rudp       = pr.protocols.UdpRssiPack(host=ip,port=8192,packVer=2)        
             self.srpStream  = self.rudp.application(0)
-            self.dataStream = self.rudp.application(1)       
+            self.dataStream = self.rudp.application(1) 
+            # self.add(self.rudp)
         else:
             raise Exception(f'hwType={hwType} passed to common.Top() is invalid')        
                 
@@ -62,7 +63,7 @@ class Top(pr.Root):
         pr.streamConnectBiDir( self.memMap, self.srpStream )             
                 
         # Add data stream to file as channel to dataStream
-        pr.streamConnect(self.dataStream,self.dataWriter.getChannel(0))            
+        pr.streamConnect(self.dataStream,self.dataWriter.getChannel(0))   
             
         ######################################################################
         

@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocAsic.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-07
--- Last update: 2018-10-09
+-- Last update: 2018-11-09
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -113,6 +113,10 @@ architecture mapping of AtlasAltirocAsic is
    signal pulseWidth      : slv(15 downto 0);
    signal pulsePeriod     : slv(15 downto 0);
 
+   signal dataEnable : sl;
+   signal emuEnable : sl;
+   signal emuTrig   : sl;
+
 begin
 
    -----------------------
@@ -208,6 +212,8 @@ begin
          pulseCount      => pulseCount,
          pulseWidth      => pulseWidth,
          pulsePeriod     => pulsePeriod,
+         emuEnable       => emuEnable,
+         dataEnable      => dataEnable,
          -- AXI-Lite Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
@@ -233,6 +239,7 @@ begin
          pulseWidth  => pulseWidth,
          pulsePeriod => pulsePeriod,
          -- ASIC Ports
+         emuTrig     => emuTrig,
          cmdPulseP   => cmdPulseP,      -- CMD_PULSE_P
          cmdPulseN   => cmdPulseN,      -- CMD_PULSE_N
          extTrig     => extTrig);       -- EXT_TRIG    
@@ -244,6 +251,10 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
+         -- Control Interface
+         dataEnable       => dataEnable,
+         emuEnable       => emuEnable,
+         emuTrig         => emuTrig,
          -- Serial Interface
          deserClk        => deserClk,
          deserRst        => deserRst,

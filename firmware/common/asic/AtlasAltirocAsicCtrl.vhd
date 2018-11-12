@@ -42,6 +42,8 @@ entity AtlasAltirocAsicCtrl is
       pulseCount      : out slv(15 downto 0);
       pulseWidth      : out slv(15 downto 0);
       pulsePeriod     : out slv(15 downto 0);
+      emuEnable       : out sl;
+      dataEnable      : out sl;
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -68,6 +70,8 @@ architecture mapping of AtlasAltirocAsicCtrl is
       rstbTdc         : sl;
       rstbCounter     : sl;
       ckWrConfig      : slv(CK_WR_CONFIG_SIZE_C-1 downto 0);
+      emuEnable       : sl;
+      dataEnable      : sl;
       axilReadSlave   : AxiLiteReadSlaveType;
       axilWriteSlave  : AxiLiteWriteSlaveType;
    end record;
@@ -85,6 +89,8 @@ architecture mapping of AtlasAltirocAsicCtrl is
       rstbTdc         => '1',
       rstbCounter     => '1',
       ckWrConfig      => (others => '0'),
+      emuEnable       => '0',
+      dataEnable      => '0',
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -121,6 +127,8 @@ begin
       axiSlaveRegister(axilEp, x"814", 0, v.ckWrConfig);
 
       axiSlaveRegister(axilEp, x"900", 0, v.deserSampleEdge);
+      axiSlaveRegister(axilEp, x"904", 0, v.emuEnable);
+      axiSlaveRegister(axilEp, x"908", 0, v.dataEnable);
 
       axiSlaveRegister(axilEp, x"A00", 0, v.pulseCount);
       axiSlaveRegister(axilEp, x"A04", 0, v.pulseWidth);
@@ -142,6 +150,8 @@ begin
       -- Outputs
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;
+      emuEnable      <= r.emuEnable;
+      dataEnable     <= r.dataEnable;
 
    end process comb;
 

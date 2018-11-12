@@ -35,6 +35,7 @@ entity AtlasAltirocAsicPulseTrain is
       pulseWidth  : in  slv(15 downto 0);
       pulsePeriod : in  slv(15 downto 0);
       -- ASIC Ports
+      emuTrig     : out sl;
       cmdPulseP   : out sl;             -- CMD_PULSE_P
       cmdPulseN   : out sl;             -- CMD_PULSE_N
       extTrig     : out sl);            -- EXT_TRIG      
@@ -47,23 +48,23 @@ architecture rtl of AtlasAltirocAsicPulseTrain is
       RUN_S);
 
    type RegType is record
-      pulse       : sl;
-      continuous  : sl;
-      start       : sl;
-      stop        : sl;
-      cnt         : slv(15 downto 0);
-      pulseCnt    : slv(15 downto 0);
-      state       : StateType;
+      pulse      : sl;
+      continuous : sl;
+      start      : sl;
+      stop       : sl;
+      cnt        : slv(15 downto 0);
+      pulseCnt   : slv(15 downto 0);
+      state      : StateType;
    end record;
 
    constant REG_INIT_C : RegType := (
-      pulse       => '0',
-      continuous  => '0',
-      start       => '0',
-      stop        => '0',
-      cnt         => (others => '0'),
-      pulseCnt    => (others => '0'),
-      state       => IDLE_S);
+      pulse      => '0',
+      continuous => '0',
+      start      => '0',
+      stop       => '0',
+      cnt        => (others => '0'),
+      pulseCnt   => (others => '0'),
+      state      => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -104,8 +105,8 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the counter
-            v.cnt         := (others => '0');
-            v.pulseCnt    := (others => '0');
+            v.cnt      := (others => '0');
+            v.pulseCnt := (others => '0');
             -- Check for a non-zero pulse period
             if (pulsePeriod /= 0) then
                -- Check for start and a one-shot trigger with a non-zero pulse count
@@ -146,6 +147,9 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Outputs
+      emuTrig <= r.pulse;
 
       -- Reset
       if (rst160MHz = '1') then
