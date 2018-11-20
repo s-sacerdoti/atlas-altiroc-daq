@@ -25,15 +25,18 @@ class AltirocSlowControl(pr.Device):
         upToBitOrdering   = pr.UInt  
         
         def addReg(name,description,bitSize,bitOffset,value,base):
+            
+            remap = divmod((bitOffset-1),32)
+        
             self.add(pr.RemoteVariable(  
                 name        = name, 
                 description = description,
                 base        = base,
-                offset      = 0x000,
+                offset      = (remap[0]<<2),
                 mode        = 'RW', 
                 bitSize     = bitSize, 
-                bitOffset   = bitOffset-1,
-                value       = value, 
+                bitOffset   = remap[1],
+                # value       = value, 
             ))
         
         addReg(

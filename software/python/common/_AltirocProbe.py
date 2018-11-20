@@ -25,15 +25,18 @@ class AltirocProbe(pr.Device):
         upToBitOrdering   = pr.UInt        
         
         def addReg(name,description,bitSize,bitOffset):
+        
+            remap = divmod((bitOffset-1),32)
+            
             self.add(pr.RemoteVariable(  
                 name        = name, 
                 description = description,
                 base        = upToBitOrdering,
-                offset      = 0x000,
+                offset      = (remap[0]<<2),
                 mode        = 'RW', 
                 bitSize     = bitSize, 
-                bitOffset   = bitOffset-1,
-                value       = 0, # PROBES: Default value= all OFF (0)
+                bitOffset   = remap[1],
+                # value       = 0, # PROBES: Default value= all OFF (0)
             ))
         
         addReg(

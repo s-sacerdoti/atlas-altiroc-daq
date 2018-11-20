@@ -29,7 +29,7 @@ class Altiroc(pr.Device):
             name        = 'AltirocSlowControl', 
             description = 'This device contains Altiroc ASIC\'s slow control shift register interface',
             offset      = 0x00010000, 
-            expand      = False,
+            # expand      = False,
         ))    
 
         self.add(common.AltirocProbe(

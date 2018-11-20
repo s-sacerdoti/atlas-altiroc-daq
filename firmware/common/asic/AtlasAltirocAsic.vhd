@@ -81,6 +81,10 @@ end AtlasAltirocAsic;
 
 architecture mapping of AtlasAltirocAsic is
 
+   constant SCLK_PERIOD_C : real := ite(SIMULATION_G,
+      (4*6.4E-9), -- Super fast shift register clock for faster simulation
+      1.0E-6); -- 1MHz = 1/1.0E-6 for normal operation (non-simulation)
+
    constant NUM_AXIL_MASTERS_C : natural := 3;
 
    constant CTRL_INDEX_C  : natural := 0;
@@ -153,7 +157,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SHIFT_REG_SIZE_G => 965,
-         SCLK_PERIOD_G    => 1.0E-6)    -- 1MHz = 1/1.0E-6    
+         SCLK_PERIOD_G    => SCLK_PERIOD_C)
       port map (
          -- ASIC Ports
          srin            => srinSc,     -- SRIN_SC
@@ -175,7 +179,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SHIFT_REG_SIZE_G => 740,
-         SCLK_PERIOD_G    => 1.0E-6)      -- 1MHz = 1/1.0E-6    
+         SCLK_PERIOD_G    => SCLK_PERIOD_C)
       port map (
          -- ASIC Ports
          srin            => srinProbe,    -- SRIN_PROBE

@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocAsicShiftReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-07
--- Last update: 2018-09-14
+-- Last update: 2018-11-20
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -48,6 +48,8 @@ architecture mapping of AtlasAltirocAsicShiftReg is
 
    constant SCLK_HALF_PERIOD_C : positive := integer(SCLK_PERIOD_G / (2.0*CLK_PERIOD_G));
 
+   constant WRD_SIZE_C : natural := (SHIFT_REG_SIZE_G/32)+1;
+
    type StateType is (
       IDLE_S,
       SHIFT_S,
@@ -57,7 +59,7 @@ architecture mapping of AtlasAltirocAsicShiftReg is
    type RegType is record
       rstL           : sl;
       sclk           : sl;
-      data           : slv(SHIFT_REG_SIZE_G-1 downto 0);
+      data           : slv((32*WRD_SIZE_C) downto 0);
       shiftReg       : slv(SHIFT_REG_SIZE_G-1 downto 0);
       readback       : slv(SHIFT_REG_SIZE_G-1 downto 0);
       clkCnt         : natural range 0 to SCLK_HALF_PERIOD_C;
@@ -96,37 +98,52 @@ begin
          Q1 => shiftIn);
 
    comb : process (axilReadMaster, axilRst, axilWriteMaster, r, shiftIn) is
-      variable v         : RegType;
-      variable axilEp    : AxiLiteEndPointType;
-      variable rstCmdDet : sl;
+      variable v             : RegType;
+      variable axilStatus    : AxiLiteStatusType;
+      variable axilWriteResp : slv(1 downto 0);
+      variable axilReadResp  : slv(1 downto 0);
+      variable wrIdx         : natural;
+      variable rdIdx         : natural;
+
    begin
       -- Latch the current value
       v := r;
 
       -- Update the variables
-      rstCmdDet := '0';
+      axilWriteResp := AXI_RESP_OK_C;
+      axilReadResp  := AXI_RESP_OK_C;
+      wrIdx         := conv_integer(axilWriteMaster.awaddr(11 downto 2));
+      rdIdx         := conv_integer(axilReadMaster.araddr(11 downto 2));
+
+      -- Determine the transaction type
+      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
       -- State Machine      
       case (r.state) is
          ----------------------------------------------------------------------      
          when IDLE_S =>
-
-            -- Determine the transaction type
-            axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
-
-            axiSlaveRegister(axilEp, x"000", 0, v.data);
-            axiSlaveRegister(axilEp, x"FFC", 0, v.rstL);
-            axiWrDetect(axilEp, x"FFC", rstCmdDet);
-
-            -- Closeout the transaction
-            axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
-
-            -- Check for write transaction and not reset
-            if (axilEp.axiStatus.writeEnable = '1') and (rstCmdDet = '0') then
-               -- Cache the data bus
-               v.shiftReg := v.data;
-               -- Next state
-               v.state    := SAMPLE_S;
+            -- Check for a write request
+            if (axilStatus.writeEnable = '1') then
+               if (axilWriteMaster.awaddr(11 downto 0) = x"FFC") then
+                  v.rstL := axilWriteMaster.wdata(0);
+               else
+                  v.data((32*wrIdx)+31 downto (32*wrIdx)) := axilWriteMaster.wdata;
+                  -- Cache the data bus
+                  v.shiftReg                              := v.data(SHIFT_REG_SIZE_G-1 downto 0);
+                  -- Next state
+                  v.state                                 := SAMPLE_S;
+               end if;
+               -- Send AXI-Lite response
+               axiSlaveWriteResponse(v.axilWriteSlave, axilWriteResp);
+            -- Check for a read request            
+            elsif (axilStatus.readEnable = '1') then
+               if (axilReadMaster.araddr(11 downto 0) = x"FFC") then
+                  v.axilReadSlave.rdata(0) := r.rstL;
+               else
+                  v.axilReadSlave.rdata := r.data((32*rdIdx)+31 downto (32*rdIdx));
+               end if;
+               -- Send AXI-Lite Response
+               axiSlaveReadResponse(v.axilReadSlave, axilReadResp);
             end if;
          ----------------------------------------------------------------------      
          when SAMPLE_S =>
@@ -175,11 +192,11 @@ begin
             -- Wait half a clock period
             if (r.clkCnt = SCLK_HALF_PERIOD_C) then
                -- Reset the counter
-               v.clkCnt := 0;
+               v.clkCnt                            := 0;
                -- Update the data bus
-               v.data   := r.readback(SHIFT_REG_SIZE_G-1 downto 1) & shiftIn;
+               v.data(SHIFT_REG_SIZE_G-1 downto 0) := r.readback(SHIFT_REG_SIZE_G-1 downto 1) & shiftIn;
                -- Next state
-               v.state  := IDLE_S;
+               v.state                             := IDLE_S;
             else
                -- Increment the counter
                v.clkCnt := r.clkCnt + 1;
