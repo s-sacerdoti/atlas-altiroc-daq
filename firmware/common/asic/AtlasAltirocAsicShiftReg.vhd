@@ -193,8 +193,15 @@ begin
             if (r.clkCnt = SCLK_HALF_PERIOD_C) then
                -- Reset the counter
                v.clkCnt                            := 0;
-               -- Update the data bus
-               v.data(SHIFT_REG_SIZE_G-1 downto 0) := r.readback(SHIFT_REG_SIZE_G-1 downto 1) & shiftIn;
+               ----------------------------------------------------------------      
+               -- Appears to be a bug in the ASIC with feedback of the shift 
+               -- register output to update the firmware's local v.data cache.  
+               -- Commenting out this part of the code such that only the 
+               -- software can update the firmware's local v.data cache.  
+               ----------------------------------------------------------------      
+               -- -- Update the data bus
+               -- v.data(SHIFT_REG_SIZE_G-1 downto 0) := r.readback(SHIFT_REG_SIZE_G-1 downto 1) & shiftIn;
+               ----------------------------------------------------------------      
                -- Next state
                v.state                             := IDLE_S;
             else
