@@ -16,6 +16,7 @@
 *.ld
 *.a
 *.save
+data*
 
 # OS files
 .DS_Store

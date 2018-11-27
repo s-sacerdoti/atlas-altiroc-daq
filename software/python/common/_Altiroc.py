@@ -26,14 +26,14 @@ class Altiroc(pr.Device):
             **kwargs)
             
         self.add(common.AltirocSlowControl(
-            name        = 'AltirocSlowControl', 
+            name        = 'SlowControl', 
             description = 'This device contains Altiroc ASIC\'s slow control shift register interface',
             offset      = 0x00010000, 
             expand      = False,
         ))    
 
         self.add(common.AltirocProbe(
-            name        = 'AltirocProbe', 
+            name        = 'Probe', 
             description = 'This device contains Altiroc ASIC\'s probe shift register interface',
             offset      = 0x00020000, 
             expand      = False,

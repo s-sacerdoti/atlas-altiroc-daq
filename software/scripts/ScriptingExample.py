@@ -14,7 +14,6 @@ import rogue
 import time
 import random
 import argparse
-import numpy as np
 
 import pyrogue as pr
 import pyrogue.gui
@@ -43,35 +42,11 @@ args = parser.parse_args()
 
 #################################################################
 
-class EventReader(rogue.interfaces.stream.Slave):
-
-    def __init__(self):
-        rogue.interfaces.stream.Slave.__init__(self)
-
-    def _acceptFrame(self,frame):
-        # Get the payload data
-        p = bytearray(frame.getPayload())
-        # Return the buffer index
-        frame.read(p,0)
-        # Check for a 32-bit word
-        if len(p) == 4:
-            # Combine the byte array into single 32-bit word
-            hitWrd = np.frombuffer(p, dtype='uint32', count=1)
-            # Parse the 32-bit word
-            seqCnt = (hitWrd[0] >> 19) & 0x1FFF
-            tot    = (hitWrd[0] >>  9) & 0x3FF
-            toa    = (hitWrd[0] >>  1) & 0xFF
-            hit    = (hitWrd[0] >>  0) & 0x1
-            # Print the event
-            print( 'Event[seqCnt=0x%x]: tot = 0x%x, tot = 0x%x, hit=%d' % (seqCnt,tot,toa,hit) )
-
-#################################################################
-
 # Setup root class
 top = feb.Top(hwType='eth',ip= args.ip)    
 
 # Tap the streaming data interface (same interface that writes to file)
-dataStream = EventReader()    
+dataStream = feb.ExampleEventReader()    
 pyrogue.streamTap(top.dataStream, dataStream) 
 
 # Start the system
@@ -110,14 +85,22 @@ for i in range(2**16):
     if ( (i % 0x7) == 0 ):
         top.Dac.RawValue.set(i)
     if ( (i % 0xFFF) == 0 ):
-        print( f'DAC.Value[{i}]' )
-print( f'DAC.Value[{i}]' )
+        print( f'FPGA\'s DAC.Value[{i}]' )
+print( f'FPGA\'s DAC.Value[{i}]' )
 
 # Set a random number to scratch pad register
 randValue = random.randint(0, 0xFFFFFFFF)
 print( f'randValue.set[{randValue}]' )
 top.AxiVersion.ScratchPad.set(randValue)
 print( 'randValue.get(%d)' % top.AxiVersion.ScratchPad.get() )
+
+# Example of creating a pointer to a python device then ramping up the DAC
+sc = top.Asic.SlowControl
+for i in range(2**10):
+    sc.dac.set(i)
+    if ( (i % 0xFF) == 0 ):
+        print( f'ASIC\'s DAC.Value[{i}]' )
+print( f'ASIC\'s DAC.Value[{i}]' )
 
 # Close
 top.stop()

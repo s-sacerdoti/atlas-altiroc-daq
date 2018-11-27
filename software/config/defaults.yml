@@ -16,7 +16,7 @@ Top:
     PulseWidth: 0x1
     PulsePeriod: 0x1
     Continuous: 0x0 
-    AltirocSlowControl:
+    SlowControl:
       dac: 0x0
       ON_dac_LR: 0x1
       Write_opt: 0x0
@@ -88,7 +88,7 @@ Top:
       En_40M: 0x1
       En_640M: 0x1
       rstL: 0x1
-    AltirocProbe:
+    Probe:
       en_probe_pa: 0x0
       en_probe_dig: 0x0
       EN_dout: 0x0
