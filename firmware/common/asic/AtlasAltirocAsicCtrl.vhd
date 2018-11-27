@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AtlasAltirocAsicCtrl.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-09-14
--- Last update: 2018-11-01
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -27,9 +25,9 @@ entity AtlasAltirocAsicCtrl is
    generic (
       TPD_G : time := 1 ns);
    port (
-      -- ASIC Interface  (clk160MHz domain)
-      clk160MHz       : in  sl;
-      rst160MHz       : in  sl;
+      -- ASIC Interface  (clk40MHz domain)
+      clk40MHz        : in  sl;
+      rst40MHz        : in  sl;
       renable         : out sl;         -- RENABLE
       rstbRam         : out sl;         -- RSTB_RAM
       rstbRead        : out sl;         -- RSTB_READ
@@ -167,7 +165,7 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => 16)
       port map (
-         clk     => clk160MHz,
+         clk     => clk40MHz,
          dataIn  => r.pulseCount,
          dataOut => pulseCount);
 
@@ -176,7 +174,7 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => 16)
       port map (
-         clk     => clk160MHz,
+         clk     => clk40MHz,
          dataIn  => r.pulseWidth,
          dataOut => pulseWidth);
 
@@ -185,7 +183,7 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => 16)
       port map (
-         clk     => clk160MHz,
+         clk     => clk40MHz,
          dataIn  => r.pulsePeriod,
          dataOut => pulsePeriod);
 
@@ -193,7 +191,7 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => clk160MHz,
+         clk     => clk40MHz,
          dataIn  => r.continuous,
          dataOut => continuous);
 
@@ -201,7 +199,7 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => clk160MHz,
+         clk     => clk40MHz,
          dataIn  => r.oneShot,
          dataOut => oneShot);
 
@@ -209,7 +207,7 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => clk160MHz,
+         clk     => clk40MHz,
          dataIn  => r.deserSampleEdge,
          dataOut => deserSampleEdge);
 
@@ -217,7 +215,7 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => clk160MHz,
+         clk     => clk40MHz,
          dataIn  => r.renable,
          dataOut => renable);
 
@@ -228,7 +226,7 @@ begin
          OUT_POLARITY_G => '0',         -- 0 for active low
          OUT_REG_RST_G  => false)
       port map (
-         clk      => clk160MHz,
+         clk      => clk40MHz,
          asyncRst => r.rstbRam,
          syncRst  => rstbRam);
 
@@ -239,7 +237,7 @@ begin
          OUT_POLARITY_G => '0',         -- 0 for active low
          OUT_REG_RST_G  => false)
       port map (
-         clk      => clk160MHz,
+         clk      => clk40MHz,
          asyncRst => r.rstbRead,
          syncRst  => rstbRead);
 
@@ -250,7 +248,7 @@ begin
          OUT_POLARITY_G => '0',         -- 0 for active low
          OUT_REG_RST_G  => false)
       port map (
-         clk      => clk160MHz,
+         clk      => clk40MHz,
          asyncRst => r.rstbTdc,
          syncRst  => rstbTdc);
 
@@ -261,7 +259,7 @@ begin
          OUT_POLARITY_G => '0',         -- 0 for active low
          OUT_REG_RST_G  => false)
       port map (
-         clk      => clk160MHz,
+         clk      => clk40MHz,
          asyncRst => r.rstbCounter,
          syncRst  => rstbCounter);
 
@@ -270,13 +268,13 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => CK_WR_CONFIG_SIZE_C)
       port map (
-         clk     => clk160MHz,
+         clk     => clk40MHz,
          dataIn  => r.ckWrConfig,
          dataOut => ckWrConfig);
 
-   process(clk160MHz)
+   process(clk40MHz)
    begin
-      if rising_edge(clk160MHz) then
+      if rising_edge(clk40MHz) then
          if (ckWrConfig = 0) then
             ckWr <= '0' after TPD_G;
          else
@@ -290,7 +288,7 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         C => clk160MHz,
+         C => clk40MHz,
          I => ckWr,
          O => ckWriteAsic);
 

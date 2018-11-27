@@ -1,10 +1,8 @@
 -------------------------------------------------------------------------------
 -- File       : AtlasAltirocClk.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-09-07
--- Last update: 2018-11-01
 -------------------------------------------------------------------------------
--- Description: PLL Wrapper and 160 MHz clock MUX
+-- Description: PLL Wrapper and external 160 MHz clock MUX
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS ALTIROC DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -51,8 +49,8 @@ entity AtlasAltirocClk is
       -- Reference Clock/Reset Interface
       deserClk     : out sl;
       deserRst     : out sl;
-      clk160MHz    : out sl;
-      rst160MHz    : out sl);
+      clk40MHz     : out sl;
+      rst40MHz     : out sl);
 end AtlasAltirocClk;
 
 architecture mapping of AtlasAltirocClk is
@@ -118,7 +116,7 @@ begin
          I => pllClkIn(0),
          O => refClk);
 
-   clk160MHz <= refClk;
+   clk40MHz <= refClk;
 
    U_refRst : entity work.PwrUpRst
       generic map(
@@ -129,7 +127,7 @@ begin
       port map (
          arst   => pllLolL,
          clk    => refClk,
-         rstOut => rst160MHz);
+         rstOut => rst40MHz);
 
    ---------------------------
    -- Deserializer Clock/Reset

@@ -26,8 +26,8 @@ entity AtlasAltirocAsicPulseTrain is
       TPD_G : time := 1 ns);
    port (
       -- Clock and Reset
-      clk160MHz   : in  sl;
-      rst160MHz   : in  sl;
+      clk40MHz    : in  sl;
+      rst40MHz    : in  sl;
       -- Configuration Interface
       continuous  : in  sl;
       oneShot     : in  sl;
@@ -75,7 +75,7 @@ architecture rtl of AtlasAltirocAsicPulseTrain is
 begin
 
    comb : process (continuous, oneShot, pulseCount, pulsePeriod, pulseWidth, r,
-                   rst160MHz) is
+                   rst40MHz) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -152,7 +152,7 @@ begin
       emuTrig <= r.pulse;
 
       -- Reset
-      if (rst160MHz = '1') then
+      if (rst40MHz = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -161,9 +161,9 @@ begin
 
    end process comb;
 
-   seq : process (clk160MHz) is
+   seq : process (clk40MHz) is
    begin
-      if (rising_edge(clk160MHz)) then
+      if (rising_edge(clk40MHz)) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -176,7 +176,7 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         C => clk160MHz,
+         C => clk40MHz,
          I => r.pulse,
          O => extTrig);
 
@@ -185,7 +185,7 @@ begin
          TPD_G       => TPD_G,
          DIFF_PAIR_G => true)
       port map (
-         C  => clk160MHz,
+         C  => clk40MHz,
          I  => r.pulse,
          O  => cmdPulseP,
          OB => cmdPulseN);

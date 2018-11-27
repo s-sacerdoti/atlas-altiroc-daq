@@ -30,4 +30,31 @@ class Dac(pr.Device):
             bitSize     = 16,
             mode        = 'WO',
             units        = '1.024V/2^16',
-        ))   
+        ))  
+
+        self.add(pr.LinkVariable(
+            name         = 'FloatValue', 
+            mode         = 'RW', 
+            units        = 'V',
+            disp         = '{:1.3f}',
+            linkedGet    = self.getVoltage,
+            linkedSet    = self.setVoltage,
+            dependencies = [self.variables['RawValue']],
+        ))         
+
+    @staticmethod
+    def getVoltage(var):
+        value = var.dependencies[0].value()
+        return (value/2**16)*(1.024)
+
+    @staticmethod
+    def setVoltage(var, value, write):
+        # Check for a non-negative value
+        if (value>=0) and (value<1.024):
+            # Calculate the RAW value
+            newValue = (value/1.024)*(2**16)
+            # Update the register
+            var.dependencies[0].set(int(newValue),write)
+        else:
+            print( 'Fpga.Dac.setVoltage(): %f must be > 0V and < 1.024V' % value )        
+        

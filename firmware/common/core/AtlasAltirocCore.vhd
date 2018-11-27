@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AtlasAltirocCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-09-07
--- Last update: 2018-10-09
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -150,8 +148,8 @@ architecture mapping of AtlasAltirocCore is
    signal axilClk : sl;
    signal axilRst : sl;
 
-   signal clk160MHz : sl;
-   signal rst160MHz : sl;
+   signal clk40MHz : sl;
+   signal rst40MHz : sl;
 
    signal deserClk : sl;
    signal deserRst : sl;
@@ -164,7 +162,7 @@ begin
    led(0) <= rxLinkUp;
    led(1) <= txLinkUp;
    led(2) <= not(axilRst);
-   led(3) <= not(rst160MHz);
+   led(3) <= not(rst40MHz);
 
    dlyLen  <= '0';
    dlyData <= config.dlyData;
@@ -200,8 +198,8 @@ begin
          -- Reference Clock/Reset Interface
          deserClk     => deserClk,
          deserRst     => deserRst,
-         clk160MHz    => clk160MHz,
-         rst160MHz    => rst160MHz);
+         clk40MHz     => clk40MHz,
+         rst40MHz     => rst40MHz);
 
    ---------------
    -- PGPv3 Module
@@ -343,8 +341,8 @@ begin
          AXI_BASE_ADDR_G => XBAR_CONFIG_C(ASIC_INDEX_C).baseAddr)
       port map (
          -- Reference Clock/Reset Interface
-         clk160MHz       => clk160MHz,
-         rst160MHz       => rst160MHz,
+         clk40MHz        => clk40MHz,
+         rst40MHz        => rst40MHz,
          deserClk        => deserClk,
          deserRst        => deserRst,
          -- ASIC Ports

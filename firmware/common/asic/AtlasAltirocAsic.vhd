@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AtlasAltirocAsic.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-09-07
--- Last update: 2018-11-09
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -35,8 +33,8 @@ entity AtlasAltirocAsic is
       AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- Reference Clock/Reset Interface
-      clk160MHz       : in  sl;
-      rst160MHz       : in  sl;
+      clk40MHz        : in  sl;
+      rst40MHz        : in  sl;
       deserClk        : in  sl;
       deserRst        : in  sl;
       -- ASIC Ports
@@ -82,8 +80,8 @@ end AtlasAltirocAsic;
 architecture mapping of AtlasAltirocAsic is
 
    constant SCLK_PERIOD_C : real := ite(SIMULATION_G,
-      (4*6.4E-9), -- Super fast shift register clock for faster simulation
-      1.0E-6); -- 1MHz = 1/1.0E-6 for normal operation (non-simulation)
+                                        (4*6.4E-9),  -- Super fast shift register clock for faster simulation
+                                        1.0E-6);  -- 1MHz = 1/1.0E-6 for normal operation (non-simulation)
 
    constant NUM_AXIL_MASTERS_C : natural := 3;
 
@@ -118,8 +116,8 @@ architecture mapping of AtlasAltirocAsic is
    signal pulsePeriod     : slv(15 downto 0);
 
    signal dataEnable : sl;
-   signal emuEnable : sl;
-   signal emuTrig   : sl;
+   signal emuEnable  : sl;
+   signal emuTrig    : sl;
 
 begin
 
@@ -201,9 +199,9 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         -- ASIC Interface  (clk160MHz domain)
-         clk160MHz       => clk160MHz,
-         rst160MHz       => rst160MHz,
+         -- ASIC Interface  (clk40MHz domain)
+         clk40MHz        => clk40MHz,
+         rst40MHz        => rst40MHz,
          renable         => renable,      -- RENABLE
          rstbRam         => rstbRam,      -- RSTB_RAM
          rstbRead        => rstbRead,     -- RSTB_READ
@@ -234,8 +232,8 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Clock and Reset
-         clk160MHz   => clk160MHz,
-         rst160MHz   => rst160MHz,
+         clk40MHz    => clk40MHz,
+         rst40MHz    => rst40MHz,
          -- Configuration Interface
          continuous  => continuous,
          oneShot     => oneShot,
@@ -256,7 +254,7 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Control Interface
-         dataEnable       => dataEnable,
+         dataEnable      => dataEnable,
          emuEnable       => emuEnable,
          emuTrig         => emuTrig,
          -- Serial Interface

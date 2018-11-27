@@ -87,13 +87,11 @@ class Altiroc(pr.Device):
             mode         = 'RW',
             enum        = {
                 0x0: 'Disabled', 
-                0x1: '80MHz', 
-                0x2: '40MHz', 
-                0x3: '20MHz', 
-                0x4: '10MHz', 
-                0x5: '5MHz', 
-                0x6: '2.5MHz', 
-                0x7: '1.25MHz',                 
+                0x1: '20MHz', 
+                0x2: '10MHz', 
+                0x3: '5MHz', 
+                0x4: '2.5MHz', 
+                0x5: '1.25MHz',                 
             },
         ))
 
@@ -138,20 +136,30 @@ class Altiroc(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'PulseWidth', 
             description  = 'Pulse width of the pulses in the pulse train',
-            units        = '1/160MHz',
+            units        = '1/40MHz',
             offset       = 0xA04,
             bitSize      = 16, 
             mode         = 'RW',
-        ))  
-
+        ))
+        
         self.add(pr.RemoteVariable(
             name         = 'PulsePeriod', 
             description  = 'period between pusles in the pulse train',
-            units        = '1/160MHz',
+            units        = '1/40MHz',
             offset       = 0xA08,
             bitSize      = 16, 
             mode         = 'RW',
-        ))          
+        )) 
+
+        self.add(pr.LinkVariable(
+            name         = 'PulseFreq', 
+            description  = 'frequency of the pulse train',
+            mode         = 'RO', 
+            units        = 'Hz',
+            linkedGet    = self.convtFreq,
+            disp         = '{:.1e}',
+            dependencies = [self.variables['PulsePeriod']],
+        ))           
         
         self.add(pr.RemoteVariable(
             name         = 'Continuous', 
@@ -171,3 +179,13 @@ class Altiroc(pr.Device):
             function     = lambda cmd: cmd.post(1),
             hidden       = False,
         ))
+
+        
+    @staticmethod
+    def convtFreq(var):
+        value = int(var.dependencies[0].value())
+        if (value <= 0):
+            return 0.0
+        else:
+            value = 40.0E+6/float(value)
+            return value
