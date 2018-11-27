@@ -61,12 +61,14 @@ args = parser.parse_args()
 
 #################################################################
 
-# Create the File reader object
+# Create the File reader streaming interface
 dataReader = rogue.utilities.fileio.StreamReader()
 
-# Tap the streaming data interface (same interface that writes to file)
-dataStream = MyEventReader()    
-pr.streamTap(dataReader, dataStream) 
+# Create the Event reader streaming interface
+dataStream = MyEventReader()
+
+# Connect the file reader to the event reader
+pr.streamConnect(dataReader, dataStream) 
 
 # Open the file
 dataReader.open(args.dataFile)
