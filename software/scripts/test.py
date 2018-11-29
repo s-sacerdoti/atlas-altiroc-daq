@@ -44,10 +44,10 @@ class MyEventReader(rogue.interfaces.stream.Slave):
             tot    = (hitWrd[0] >>  9) & 0x3FF
             toa    = (hitWrd[0] >>  1) & 0xFF
             hit    = (hitWrd[0] >>  0) & 0x1
-            # print( 'Event[seqCnt=0x%x]: tot = 0x%x, tot = 0x%x, hit=%d' % (seqCnt,tot,toa,hit) )
+            # print( 'Event[seqCnt=0x%x]: tot = 0x%x, toa = 0x%x, hit=%d' % (seqCnt,tot,toa,hit) )
             if (hit > 0):
                 # Print the event
-                print( 'Event[seqCnt=0x%x]: tot = 0x%x, tot = 0x%x, hit=%d' % (seqCnt,tot,toa,hit) )
+                print( 'Event[seqCnt=0x%x]: tot = 0x%x, toa = 0x%x, hit=%d' % (seqCnt,tot,toa,hit) )
 
 #################################################################
 

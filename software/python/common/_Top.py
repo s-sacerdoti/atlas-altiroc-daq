@@ -51,7 +51,7 @@ class ExampleEventReader(rogue.interfaces.stream.Slave):
             toa    = (hitWrd[0] >>  1) & 0xFF
             hit    = (hitWrd[0] >>  0) & 0x1
             # Print the event
-            print( 'Event[seqCnt=0x%x]: tot = 0x%x, tot = 0x%x, hit=%d' % (seqCnt,tot,toa,hit) )
+            print( 'Event[seqCnt=0x%x]: tot = 0x%x, toa = 0x%x, hit=%d' % (seqCnt,tot,toa,hit) )
         
 class Top(pr.Root):
     def __init__(   self,       
