@@ -31,9 +31,11 @@ package AtlasAltirocPkg is
       clkSel  => "00");
 
    type AtlasAltirocStatusType is record
-      pllLocked : sl;
+      intPllLocked : sl;
+      extPllLocked : sl;
    end record;
    constant ALTIROC_STATUS_INIT_C : AtlasAltirocStatusType := (
-      pllLocked => '0');
+      intPllLocked => '0',
+      extPllLocked => '0');
 
 end package;

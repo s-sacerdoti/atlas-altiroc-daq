@@ -46,9 +46,9 @@ entity AtlasAltirocAsicCtrl is
       readDelay       : out slv(15 downto 0);
       readDuration    : out slv(15 downto 0);
       emuEnable       : out sl;
-      dataEnable      : out sl;
       dataWordDet     : in  sl;
       hitDet          : in  sl;
+      dataBus         : in  slv(31 downto 0);
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -79,7 +79,6 @@ architecture mapping of AtlasAltirocAsicCtrl is
       rstbTdc         : sl;
       ckWrConfig      : slv(CK_WR_CONFIG_SIZE_C-1 downto 0);
       emuEnable       : sl;
-      dataEnable      : sl;
       cntRst          : sl;
       axilReadSlave   : AxiLiteReadSlaveType;
       axilWriteSlave  : AxiLiteWriteSlaveType;
@@ -102,7 +101,6 @@ architecture mapping of AtlasAltirocAsicCtrl is
       rstbTdc         => '1',
       ckWrConfig      => (others => '0'),
       emuEnable       => '0',
-      dataEnable      => '0',
       cntRst          => '0',
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -119,8 +117,8 @@ architecture mapping of AtlasAltirocAsicCtrl is
 
 begin
 
-   comb : process (axilReadMaster, axilRst, axilWriteMaster, dataWordDet,
-                   hitDet, r) is
+   comb : process (axilReadMaster, axilRst, axilWriteMaster, dataBus,
+                   dataWordDet, hitDet, r) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -165,9 +163,10 @@ begin
 
       axiSlaveRegister (axilEp, x"900", 0, v.deserSampleEdge);
       axiSlaveRegister (axilEp, x"904", 0, v.emuEnable);
-      axiSlaveRegister (axilEp, x"908", 0, v.dataEnable);
+      -- axiSlaveRegister (axilEp, x"908", 0, v.dataEnable);
       axiSlaveRegisterR(axilEp, x"90C", 0, r.dataWordCnt);
       axiSlaveRegisterR(axilEp, x"910", 0, r.hitCnt);
+      axiSlaveRegisterR(axilEp, x"914", 0, dataBus);
 
       axiSlaveRegister(axilEp, x"A00", 0, v.pulseCount);
       axiSlaveRegister(axilEp, x"A04", 0, v.pulseWidth);
@@ -195,7 +194,6 @@ begin
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;
       emuEnable      <= r.emuEnable;
-      dataEnable     <= r.dataEnable;
 
    end process comb;
 

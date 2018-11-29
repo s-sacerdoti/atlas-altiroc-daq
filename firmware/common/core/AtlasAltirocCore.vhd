@@ -163,9 +163,9 @@ architecture mapping of AtlasAltirocCore is
 begin
 
    led(0) <= rxLinkUp;
-   led(1) <= status.pllLocked;
+   led(1) <= status.extPllLocked;
    led(2) <= not(axilRst);
-   led(3) <= not(rst40MHz);
+   led(3) <= status.intPllLocked;
 
    dlyLen  <= '0';
    dlyData <= config.dlyData;
@@ -197,7 +197,8 @@ begin
          oscOe        => oscOe,
          pwrSyncSclk  => pwrSyncSclk,
          pwrSyncFclk  => pwrSyncFclk,
-         pllLocked    => status.pllLocked,
+         extPllLocked => status.extPllLocked,
+         intPllLocked => status.intPllLocked,
          pllRst       => config.pllRst,
          -- Reference Clock/Reset Interface
          deserClk     => deserClk,

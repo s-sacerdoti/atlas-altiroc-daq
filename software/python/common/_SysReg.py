@@ -29,8 +29,8 @@ class SysReg(pr.Device):
         ##################
         
         self.add(pr.RemoteVariable(
-            name         = 'PllLockedCnt', 
-            description  = 'PLL Locked counter',
+            name         = 'ExtPllLockedCnt', 
+            description  = 'SiLab PLL Locked counter',
             offset       = 0x0,
             bitSize      = 32, 
             mode         = 'RO',
@@ -39,15 +39,36 @@ class SysReg(pr.Device):
         ))            
 
         self.add(pr.RemoteVariable(
-            name         = 'PllLocked', 
-            description  = 'PLL Locked status',
+            name         = 'ExtPllLocked', 
+            description  = 'SiLab PLL Locked status',
             offset       = 0x400,
             bitSize      = 1,
             bitOffset    = 0,  
             mode         = 'RO',
             base         = pr.UInt,
             pollInterval = pollInterval,
-        ))          
+        )) 
+
+        self.add(pr.RemoteVariable(
+            name         = 'IntPllLockedCnt', 
+            description  = 'FPGA PLL Locked counter',
+            offset       = 0x0,
+            bitSize      = 32, 
+            mode         = 'RO',
+            base         = pr.UInt,
+            pollInterval = pollInterval,
+        ))            
+
+        self.add(pr.RemoteVariable(
+            name         = 'IntPllLocked', 
+            description  = 'FPGA PLL Locked status',
+            offset       = 0x400,
+            bitSize      = 1,
+            bitOffset    = 1,  
+            mode         = 'RO',
+            base         = pr.UInt,
+            pollInterval = pollInterval,
+        ))         
                     
         ##################
         # Status Registers 

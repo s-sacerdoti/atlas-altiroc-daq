@@ -28,7 +28,7 @@ entity AtlasAltirocAsicDeser is
       TPD_G : time := 1 ns);
    port (
       -- Control Interface
-      dataEnable      : in  sl;
+      readoutEnable   : in  sl;
       emuEnable       : in  sl;
       emuTrig         : in  sl;
       -- Serial Interface
@@ -113,7 +113,7 @@ begin
          -- Input
          dataIn(0)  => deserSampleEdge,
          dataIn(1)  => emuEnable,
-         dataIn(2)  => dataEnable,
+         dataIn(2)  => readoutEnable,
          -- Output
          dataOut(0) => edgeSelect,
          dataOut(1) => emulationEnable,

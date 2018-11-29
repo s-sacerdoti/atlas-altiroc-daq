@@ -42,7 +42,7 @@ end AtlasAltirocSysReg;
 
 architecture rtl of AtlasAltirocSysReg is
 
-   constant STATUS_SIZE_C : positive := 1;
+   constant STATUS_SIZE_C : positive := 2;
 
    type RegType is record
       cntRst         : sl;
@@ -133,7 +133,8 @@ begin
          WIDTH_G        => STATUS_SIZE_C)
       port map (
          -- Input Status bit Signals (wrClk domain)
-         statusIn(0)  => status.pllLocked,
+         statusIn(1)  => status.intPllLocked,
+         statusIn(0)  => status.extPllLocked,
          -- Output Status bit Signals (rdClk domain)  
          statusOut    => statusOut,
          -- Status Bit Counters Signals (rdClk domain) 

@@ -121,12 +121,13 @@ architecture mapping of AtlasAltirocAsic is
    signal pulseDelay      : slv(15 downto 0);
    signal readDelay       : slv(15 downto 0);
    signal readDuration    : slv(15 downto 0);
+   signal dataBus         : slv(31 downto 0) := (others => '0');
 
-   signal dataEnable  : sl;
-   signal emuEnable   : sl;
-   signal emuTrig     : sl;
-   signal dataWordDet : sl;
-   signal hitDet      : sl;
+   signal readoutEnable : sl;
+   signal emuEnable     : sl;
+   signal emuTrig       : sl;
+   signal dataWordDet   : sl;
+   signal hitDet        : sl;
 
 begin
 
@@ -229,9 +230,9 @@ begin
          readDelay       => readDelay,
          readDuration    => readDuration,
          emuEnable       => emuEnable,
-         dataEnable      => dataEnable,
          dataWordDet     => dataWordDet,
          hitDet          => hitDet,
+         dataBus         => dataBus,
          -- AXI-Lite Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
@@ -248,26 +249,27 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Clock and Reset
-         clk40MHz     => clk40MHz,
-         rst40MHz     => rst40MHz,
-         clk160MHz    => clk160MHz,
-         rst160MHz    => rst160MHz,
+         clk40MHz      => clk40MHz,
+         rst40MHz      => rst40MHz,
+         clk160MHz     => clk160MHz,
+         rst160MHz     => rst160MHz,
          -- Configuration Interface
-         continuous   => continuous,
-         oneShot      => oneShot,
-         pulseCount   => pulseCount,
-         pulseWidth   => pulseWidth,
-         pulsePeriod  => pulsePeriod,
-         pulseDelay   => pulseDelay,
-         readDelay    => readDelay,
-         readDuration => readDuration,
-         emuTrig      => emuTrig,
+         continuous    => continuous,
+         oneShot       => oneShot,
+         pulseCount    => pulseCount,
+         pulseWidth    => pulseWidth,
+         pulsePeriod   => pulsePeriod,
+         pulseDelay    => pulseDelay,
+         readDelay     => readDelay,
+         readDuration  => readDuration,
+         emuTrig       => emuTrig,
+         readoutEnable => readoutEnable,
          -- ASIC Ports
-         renable      => renable,       -- RENABLE
-         rstbCounter  => rstbCounter,   -- RSTB_COUNTER
-         cmdPulseP    => cmdPulseP,     -- CMD_PULSE_P
-         cmdPulseN    => cmdPulseN,     -- CMD_PULSE_N
-         extTrig      => extTrig);      -- EXT_TRIG    
+         renable       => renable,      -- RENABLE
+         rstbCounter   => rstbCounter,  -- RSTB_COUNTER
+         cmdPulseP     => cmdPulseP,    -- CMD_PULSE_P
+         cmdPulseN     => cmdPulseN,    -- CMD_PULSE_N
+         extTrig       => extTrig);     -- EXT_TRIG    
 
    ----------------------
    -- Deserializer Module
@@ -277,7 +279,7 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Control Interface
-         dataEnable      => dataEnable,
+         readoutEnable   => readoutEnable,
          emuEnable       => emuEnable,
          emuTrig         => emuTrig,
          -- Serial Interface
@@ -295,5 +297,14 @@ begin
    mDataMaster <= dataMaster;
    dataWordDet <= dataMaster.tValid and mDataSlave.tReady;
    hitDet      <= dataWordDet and dataMaster.tData(0);
+
+   process(axilClk)
+   begin
+      if rising_edge(axilClk) then
+         if (dataWordDet = '1') then
+            dataBus <= dataMaster.tData(31 downto 0) after TPD_G;
+         end if;
+      end if;
+   end process;
 
 end mapping;

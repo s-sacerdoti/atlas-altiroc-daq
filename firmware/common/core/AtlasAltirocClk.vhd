@@ -45,7 +45,8 @@ entity AtlasAltirocClk is
       oscOe        : out slv(3 downto 0);
       pwrSyncSclk  : out sl;
       pwrSyncFclk  : out sl;
-      pllLocked    : out sl;
+      extPllLocked : out sl;
+      intPllLocked : out sl;
       pllRst       : in  sl;
       -- Reference Clock/Reset Interface
       deserClk     : out sl;
@@ -76,7 +77,7 @@ begin
       port map (
          clk     => axilClk,
          dataIn  => pllLolL,
-         dataOut => pllLocked);
+         dataOut => extPllLocked);
 
    --------------------------------------------   
    -- On-board 160 MHz reference for SI5345 PLL
@@ -156,7 +157,9 @@ begin
          clkOut(1) => clk40MHz,
          -- Reset Outputs
          rstOut(0) => rst160MHz,
-         rstOut(1) => rst40MHz);
+         rstOut(1) => rst40MHz,
+         -- Status
+         locked    => intPllLocked);
 
    ---------------------------
    -- Deserializer Clock/Reset

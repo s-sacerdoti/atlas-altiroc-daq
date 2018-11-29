@@ -28,26 +28,27 @@ entity AtlasAltirocAsicPulseTrain is
       TPD_G : time := 1 ns);
    port (
       -- Clock and Reset
-      clk40MHz     : in  sl;
-      rst40MHz     : in  sl;
-      clk160MHz    : in  sl;
-      rst160MHz    : in  sl;
+      clk40MHz      : in  sl;
+      rst40MHz      : in  sl;
+      clk160MHz     : in  sl;
+      rst160MHz     : in  sl;
       -- Configuration Interface
-      continuous   : in  sl;
-      oneShot      : in  sl;
-      pulseDelay   : in  slv(15 downto 0);
-      readDelay    : in  slv(15 downto 0);
-      readDuration : in  slv(15 downto 0);
-      pulseCount   : in  slv(15 downto 0);
-      pulseWidth   : in  slv(15 downto 0);
-      pulsePeriod  : in  slv(15 downto 0);
-      emuTrig      : out sl;
+      continuous    : in  sl;
+      oneShot       : in  sl;
+      pulseDelay    : in  slv(15 downto 0);
+      readDelay     : in  slv(15 downto 0);
+      readDuration  : in  slv(15 downto 0);
+      pulseCount    : in  slv(15 downto 0);
+      pulseWidth    : in  slv(15 downto 0);
+      pulsePeriod   : in  slv(15 downto 0);
+      emuTrig       : out sl;
+      readoutEnable : out sl;
       -- ASIC Ports
-      rstbCounter  : out sl;            -- RSTB_COUNTER
-      renable      : out sl;            -- RENABLE      
-      cmdPulseP    : out sl;            -- CMD_PULSE_P
-      cmdPulseN    : out sl;            -- CMD_PULSE_N
-      extTrig      : out sl);           -- EXT_TRIG      
+      rstbCounter   : out sl;           -- RSTB_COUNTER
+      renable       : out sl;           -- RENABLE      
+      cmdPulseP     : out sl;           -- CMD_PULSE_P
+      cmdPulseN     : out sl;           -- CMD_PULSE_N
+      extTrig       : out sl);          -- EXT_TRIG      
 end AtlasAltirocAsicPulseTrain;
 
 architecture rtl of AtlasAltirocAsicPulseTrain is
@@ -281,7 +282,8 @@ begin
       end case;
 
       -- Outputs
-      emuTrig <= r.pulse;
+      emuTrig       <= r.pulse;
+      readoutEnable <= r.renable;
 
       -- Reset
       if (rst40MHz = '1') then

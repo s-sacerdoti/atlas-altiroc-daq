@@ -60,8 +60,27 @@ class AltirocPulseTrain(pr.Device):
             name        = name,
             description = description,
             **kwargs)        
+            
+        self.add(pr.RemoteCommand(   
+            name         = 'OneShot',
+            description  = 'One shot trigger for pulse train',
+            offset       = 0xA10,
+            bitSize      = 1,
+            bitOffset    = 0,
+            base         = pr.UInt,
+            function     = lambda cmd: cmd.post(1),
+            hidden       = False,
+        ))            
 
-
+        self.add(pr.RemoteVariable(
+            name         = 'OneShotReg', 
+            description  = 'One shot trigger for pulse train',
+            offset       = 0xA10,
+            bitSize      = 1, 
+            mode         = 'WO',
+            value        = 0x1,
+        ))         
+        
         self.add(pr.RemoteVariable(
             name         = 'Continuous', 
             description  = 'Sets the pulse train module into continuous mode',
@@ -96,17 +115,6 @@ class AltirocPulseTrain(pr.Device):
             bitSize      = 16, 
             mode         = 'RW',
         ))     
-        
-        self.add(pr.RemoteCommand(   
-            name         = 'OneShot',
-            description  = 'One shot trigger for pulse train',
-            offset       = 0xA10,
-            bitSize      = 1,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            function     = lambda cmd: cmd.post(1),
-            hidden       = False,
-        ))
 
         self.add(pr.RemoteVariable(
             name         = 'PulseDelay', 
@@ -185,14 +193,6 @@ class Altiroc(pr.Device):
         )) 
         
         self.add(pr.RemoteVariable(
-            name         = 'RunEnable', 
-            description  = 'Enables the normal stream data taking mode.',
-            offset       = 0x908,
-            bitSize      = 1, 
-            mode         = 'RW',
-        ))         
-
-        self.add(pr.RemoteVariable(
             name         = 'DataWordCnt', 
             description  = 'Increment every time a data word is sent to the DAQ PC',
             offset       = 0x90C,
@@ -210,7 +210,37 @@ class Altiroc(pr.Device):
             mode         = 'RO',
             base         = pr.UInt,
             pollInterval = 1,
-        ))           
+        ))     
+
+        self.add(pr.RemoteVariable(
+            name         = 'LastSeqCnt', 
+            description  = """
+                Read only register to present the streaming data bus 
+                DataBus(31:19) = sequence counter (increments once per deserialized word
+                DataBus(18:00) = AXIS's 19-bit deserialized data output """,
+            offset       = 0x914,
+            bitSize      = 13,  
+            bitOffset    = 19,
+            mode         = 'RO',
+            base         = pr.UInt,
+            pollInterval = 1,
+        )) 
+        
+        downToBitOrdering = pr.UInt
+        upToBitOrdering   = pr.UIntReversed 
+        self.add(pr.RemoteVariable(
+            name         = 'LastAsicDout', 
+            description  = """
+                Read only register to present the streaming data bus 
+                DataBus(31:19) = sequence counter (increments once per deserialized word
+                DataBus(18:00) = AXIS's 19-bit deserialized data output """,
+            offset       = 0x914,
+            bitSize      = 19,  
+            bitOffset    = 0,
+            mode         = 'RO',
+            base         = downToBitOrdering,
+            pollInterval = 1,
+        ))         
             
         self.add(AltirocGpio(
             name        = 'Gpio', 

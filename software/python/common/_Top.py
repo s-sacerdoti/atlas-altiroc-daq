@@ -28,6 +28,7 @@ import surf.devices.silabs as silabs
 
 import common
 
+import time
 import numpy as np
 
 class ExampleEventReader(rogue.interfaces.stream.Slave):
@@ -64,7 +65,8 @@ class Top(pr.Root):
         super().__init__(name=name, description=description, **kwargs)
         
         # Update the default PLL configuration
-        self.pllConfig = pllConfig
+        self.pllConfig  = pllConfig
+        self.configProm = configProm
         
         # File writer
         self.dataWriter = pr.utilities.fileio.StreamWriter()
@@ -110,7 +112,7 @@ class Top(pr.Root):
             hidden  = True, # Hidden in GUI because indented for scripting
         ))
         
-        if (configProm):
+        if self.configProm is True:
             self.add(prom.AxiMicronN25Q(
                 name    = 'AxiMicronN25Q', 
                 memBase = self.memMap, 
@@ -180,5 +182,25 @@ class Top(pr.Root):
         
     def start(self,**kwargs):
         super(Top, self).start(**kwargs)  
-        self.Pll.LoadCsvFile(arg=self.pllConfig)
-      
+        
+        # Check if not PROM loading 
+        if self.configProm is False:
+        
+            # Load the PLL configurations
+            self.Pll.LoadCsvFile(arg=self.pllConfig)
+            
+            # Wait for the PLL to lock
+            print ("Waiting for PLLs (SiLab and FPGA) to lock")
+            retry = 0
+            while (retry<100):
+                if (self.SysReg.IntPllLocked.get() == 0x1):
+                    break
+                else:
+                    retry = retry + 1
+                    time.sleep(0.1)
+                    
+            # Print the results
+            if (retry<100):
+                print ("PLL locks established")
+            else:
+                print ("Failed to establish PLL locking after 10 seconds")

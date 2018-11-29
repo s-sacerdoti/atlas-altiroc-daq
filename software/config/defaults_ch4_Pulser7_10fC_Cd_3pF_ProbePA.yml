@@ -8,7 +8,6 @@ Top:
     CK_WRITE: Disabled
     DeserSampleEdge: RisingEdge
     EmuEnable: 0x0
-    RunEnable: 0x1
     PulseTrain:
       Continuous: 0x0 
       PulseCount: 4
