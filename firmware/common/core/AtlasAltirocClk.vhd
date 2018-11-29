@@ -128,8 +128,7 @@ begin
       generic map(
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '1',
-         SIM_SPEEDUP_G  => SIMULATION_G)
+         OUT_POLARITY_G => '1')
       port map (
          clk      => axilClk,
          asyncRst => refReset,
