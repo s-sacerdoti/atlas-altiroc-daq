@@ -124,16 +124,16 @@ begin
 
    refReset <= pllRst or not(pllLolL);
 
-   U_refRst : entity work.PwrUpRst
+   U_refRst : entity work.RstSync
       generic map(
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
          OUT_POLARITY_G => '1',
          SIM_SPEEDUP_G  => SIMULATION_G)
       port map (
-         arst   => refReset,
-         clk    => axilClk,
-         rstOut => refRst);
+         clk      => axilClk,
+         asyncRst => refReset,
+         syncRst  => refRst);
 
    U_PLL : entity work.ClockManager7
       generic map(
