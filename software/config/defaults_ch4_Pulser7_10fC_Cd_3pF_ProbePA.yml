@@ -1,65 +1,26 @@
 Top:
-  enable: True
-  ForceWrite: False
-  StreamWriter:
-    enable: True
-    dataFile: ''
-    open: False
-    bufferSize: 0
-    maxFileSize: 0
-  AxiVersion:
-    enable: True
-    ScratchPad: 0x000000
-    FpgaReloadHalt: 0x0
-    FpgaReloadAddress: 0x0
-    UserReset: 0x0
-  Xadc:
-    enable: True
   SysReg:
-    enable: True
     DlyData: 0x0
     RefClkSel: IntClk
-    RollOverEn: 0x0
-  BoardTemp:
-    enable: True
-    AlertMask: False
-    Stop: False
-    RcritMask: False
-    LcritMask: False
-    FaultQueue: False
-    ConvertRate: '16'
-    LocalHighSetpoint: 70
-    LocalLowSetpoint: 0
-    RemoteHighSetpoint: 70
-    RemoteLowSetpoint: 0
-    RemoteTcritSetpoint: 85
-    LocalTcritSetpoint: 85
-    TcritHysteresis: 10
-    AlertMode: False
-  BoardPwr:
-    enable: True
-    Control: 0xc
-  DelayIcTemp:
-    enable: True
-    AlertMask: True
-    Stop: False
-    RcritMask: False
-    LcritMask: False
-    FaultQueue: False
-    ConvertRate: '16'
-    LocalHighSetpoint: 70
-    LocalLowSetpoint: 0
-    RemoteHighSetpoint: 70
-    RemoteLowSetpoint: 0
-    RemoteTcritSetpoint: 85
-    LocalTcritSetpoint: 85
-    TcritHysteresis: 10
-    AlertMode: False
   Dac:
-    enable: True
-    FloatValue: 0.000
+    RawValue:  0x8000
   Asic:
-    enable: True
+    CK_WRITE: Disabled
+    DeserSampleEdge: RisingEdge
+    EmuEnable: 0x0
+    RunEnable: 0x1
+    PulseTrain:
+      Continuous: 0x0 
+      PulseCount: 4
+      PulseWidth: 1
+      PulsePeriod: 4
+      PulseDelay: 10
+      ReadDelay: 10
+      ReadDuration: 10000
+    Gpio:
+      RSTB_RAM: 0x1
+      RSTB_READ:  0x1
+      RSTB_TDC:  0x1
     SlowControl:
       enable: True
       dac: 0x0
@@ -726,16 +687,3 @@ Top:
       tot_ready[24]: 0x0
       en_read[24]: 0x0
       rstL: 0x1
-    RENABLE: 0x0
-    RSTB_RAM: 0x1
-    RSTB_READ: 0x1
-    RSTB_TDC: 0x1
-    RSTB_COUNTER: 0x1
-    CK_WRITE: Disabled
-    DeserSampleEdge: RisingEdge
-    EmuEnable: 0x0
-    RunEnable: 0x1
-    PulseCount: 0x1
-    PulseWidth: 0x7d0
-    PulsePeriod: 0xfa0
-    Continuous: 0x1

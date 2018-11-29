@@ -46,9 +46,12 @@ entity AtlasAltirocClk is
       pwrSyncSclk  : out sl;
       pwrSyncFclk  : out sl;
       pllLocked    : out sl;
+      pllRst       : in  sl;
       -- Reference Clock/Reset Interface
       deserClk     : out sl;
       deserRst     : out sl;
+      clk160MHz    : out sl;
+      rst160MHz    : out sl;
       clk40MHz     : out sl;
       rst40MHz     : out sl);
 end AtlasAltirocClk;
@@ -59,6 +62,8 @@ architecture mapping of AtlasAltirocClk is
    signal localRefClk   : sl;
    signal pllClkIn      : slv(3 downto 0);
    signal refClk        : sl;
+   signal refRst        : sl;
+   signal refReset      : sl;
    signal deserClock    : sl;
 
 begin
@@ -116,18 +121,42 @@ begin
          I => pllClkIn(0),
          O => refClk);
 
-   clk40MHz <= refClk;
+   refReset <= pllRst or not(pllLolL);
 
    U_refRst : entity work.PwrUpRst
       generic map(
          TPD_G          => TPD_G,
-         IN_POLARITY_G  => '0',
+         IN_POLARITY_G  => '1',
          OUT_POLARITY_G => '1',
          SIM_SPEEDUP_G  => SIMULATION_G)
       port map (
-         arst   => pllLolL,
-         clk    => refClk,
-         rstOut => rst40MHz);
+         arst   => refReset,
+         clk    => axilClk,
+         rstOut => refRst);
+
+   U_PLL : entity work.ClockManager7
+      generic map(
+         TPD_G            => TPD_G,
+         SIMULATION_G     => SIMULATION_G,
+         TYPE_G           => "PLL",
+         BANDWIDTH_G      => "HIGH",
+         INPUT_BUFG_G     => false,
+         FB_BUFG_G        => true,
+         NUM_CLOCKS_G     => 2,
+         CLKIN_PERIOD_G   => 25.0,      -- 40 MHz
+         DIVCLK_DIVIDE_G  => 1,         -- 40 MHz = 40 MHz/1
+         CLKFBOUT_MULT_G  => 32,        -- 1.28 GHz = 40 MHz x 32
+         CLKOUT0_DIVIDE_G => 8,         -- 160 MHz = 1.28 GHz/8
+         CLKOUT1_DIVIDE_G => 32)        -- 40 MHz = 1.28 GHz/32
+      port map(
+         clkIn     => refClk,
+         rstIn     => refRst,
+         -- Clock Outputs
+         clkOut(0) => clk160MHz,
+         clkOut(1) => clk40MHz,
+         -- Reset Outputs
+         rstOut(0) => rst160MHz,
+         rstOut(1) => rst40MHz);
 
    ---------------------------
    -- Deserializer Clock/Reset
@@ -169,6 +198,15 @@ begin
    -----------------------------------------------------
    -- Reset SPI interface with respect to AXI-Lite reset
    -----------------------------------------------------
-   pllSpiRstL <= not(axilRst);
+   U_pllSpiRstL : entity work.PwrUpRst
+      generic map(
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '1',
+         OUT_POLARITY_G => '0',
+         SIM_SPEEDUP_G  => SIMULATION_G)
+      port map (
+         clk    => axilClk,
+         arst   => axilRst,
+         rstOut => pllSpiRstL);
 
 end mapping;

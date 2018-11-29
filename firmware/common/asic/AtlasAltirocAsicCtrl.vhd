@@ -25,14 +25,16 @@ entity AtlasAltirocAsicCtrl is
    generic (
       TPD_G : time := 1 ns);
    port (
-      -- ASIC Interface  (clk40MHz domain)
+      -- ASIC Interface
       clk40MHz        : in  sl;
       rst40MHz        : in  sl;
-      renable         : out sl;         -- RENABLE
+      clk160MHz       : in  sl;
+      rst160MHz       : in  sl;
+      deserClk        : in  sl;
+      deserRst        : in  sl;
       rstbRam         : out sl;         -- RSTB_RAM
       rstbRead        : out sl;         -- RSTB_READ
       rstbTdc         : out sl;         -- RSTB_TDC
-      rstbCounter     : out sl;         -- RSTB_COUNTER
       ckWriteAsic     : out sl;         -- CK_WRITE_ASIC
       deserSampleEdge : out sl;
       continuous      : out sl;
@@ -40,8 +42,13 @@ entity AtlasAltirocAsicCtrl is
       pulseCount      : out slv(15 downto 0);
       pulseWidth      : out slv(15 downto 0);
       pulsePeriod     : out slv(15 downto 0);
+      pulseDelay      : out slv(15 downto 0);
+      readDelay       : out slv(15 downto 0);
+      readDuration    : out slv(15 downto 0);
       emuEnable       : out sl;
       dataEnable      : out sl;
+      dataWordDet     : in  sl;
+      hitDet          : in  sl;
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -56,39 +63,47 @@ architecture mapping of AtlasAltirocAsicCtrl is
    constant CK_WR_CONFIG_SIZE_C : positive := 3;
 
    type RegType is record
+      dataWordCnt     : slv(31 downto 0);
+      hitCnt          : slv(31 downto 0);
       continuous      : sl;
       oneShot         : sl;
       pulseCount      : slv(15 downto 0);
       pulseWidth      : slv(15 downto 0);
       pulsePeriod     : slv(15 downto 0);
+      pulseDelay      : slv(15 downto 0);
+      readDelay       : slv(15 downto 0);
+      readDuration    : slv(15 downto 0);
       deserSampleEdge : sl;
-      renable         : sl;
       rstbRam         : sl;
       rstbRead        : sl;
       rstbTdc         : sl;
-      rstbCounter     : sl;
       ckWrConfig      : slv(CK_WR_CONFIG_SIZE_C-1 downto 0);
       emuEnable       : sl;
       dataEnable      : sl;
+      cntRst          : sl;
       axilReadSlave   : AxiLiteReadSlaveType;
       axilWriteSlave  : AxiLiteWriteSlaveType;
    end record;
 
    constant REG_INIT_C : RegType := (
+      dataWordCnt     => (others => '0'),
+      hitCnt          => (others => '0'),
       continuous      => '0',
       oneShot         => '0',
       pulseCount      => toSlv(1, 16),
       pulseWidth      => toSlv(1, 16),
       pulsePeriod     => toSlv(2, 16),
+      pulseDelay      => toSlv(4, 16),
+      readDelay       => toSlv(8, 16),
+      readDuration    => toSlv(1024, 16),
       deserSampleEdge => '0',
-      renable         => '0',
       rstbRam         => '1',
       rstbRead        => '1',
       rstbTdc         => '1',
-      rstbCounter     => '1',
       ckWrConfig      => (others => '0'),
       emuEnable       => '0',
       dataEnable      => '0',
+      cntRst          => '0',
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -104,7 +119,8 @@ architecture mapping of AtlasAltirocAsicCtrl is
 
 begin
 
-   comb : process (axilReadMaster, axilRst, axilWriteMaster, r) is
+   comb : process (axilReadMaster, axilRst, axilWriteMaster, dataWordDet,
+                   hitDet, r) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -112,27 +128,57 @@ begin
       v := r;
 
       -- Reset strobes
+      v.cntRst  := '0';
       v.oneShot := '0';
+
+
+      -- Check for counter reset
+      if (r.cntRst = '1') then
+
+         -- Reset the counters
+         v.dataWordCnt := (others => '0');
+         v.hitCnt      := (others => '0');
+
+      else
+
+         if (dataWordDet = '1') then
+            -- Increment the counter
+            v.dataWordCnt := r.dataWordCnt + 1;
+         end if;
+
+         if (hitDet = '1') then
+            -- Increment the counter
+            v.hitCnt := r.hitCnt + 1;
+         end if;
+
+      end if;
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      axiSlaveRegister(axilEp, x"800", 0, v.renable);
+      -- axiSlaveRegister(axilEp, x"800", 0, v.renable);
       axiSlaveRegister(axilEp, x"804", 0, v.rstbRam);
       axiSlaveRegister(axilEp, x"808", 0, v.rstbRead);
       axiSlaveRegister(axilEp, x"80C", 0, v.rstbTdc);
-      axiSlaveRegister(axilEp, x"810", 0, v.rstbCounter);
+      -- axiSlaveRegister(axilEp, x"810", 0, v.rstbCounter);
       axiSlaveRegister(axilEp, x"814", 0, v.ckWrConfig);
 
-      axiSlaveRegister(axilEp, x"900", 0, v.deserSampleEdge);
-      axiSlaveRegister(axilEp, x"904", 0, v.emuEnable);
-      axiSlaveRegister(axilEp, x"908", 0, v.dataEnable);
+      axiSlaveRegister (axilEp, x"900", 0, v.deserSampleEdge);
+      axiSlaveRegister (axilEp, x"904", 0, v.emuEnable);
+      axiSlaveRegister (axilEp, x"908", 0, v.dataEnable);
+      axiSlaveRegisterR(axilEp, x"90C", 0, r.dataWordCnt);
+      axiSlaveRegisterR(axilEp, x"910", 0, r.hitCnt);
 
       axiSlaveRegister(axilEp, x"A00", 0, v.pulseCount);
       axiSlaveRegister(axilEp, x"A04", 0, v.pulseWidth);
       axiSlaveRegister(axilEp, x"A08", 0, v.pulsePeriod);
       axiSlaveRegister(axilEp, x"A0C", 0, v.continuous);
       axiSlaveRegister(axilEp, x"A10", 0, v.oneShot);
+      axiSlaveRegister(axilEp, x"A14", 0, v.pulseDelay);
+      axiSlaveRegister(axilEp, x"A18", 0, v.readDelay);
+      axiSlaveRegister(axilEp, x"A1C", 0, v.readDuration);
+
+      axiSlaveRegister(axilEp, x"FFC", 0, v.cntRst);
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -160,32 +206,65 @@ begin
       end if;
    end process seq;
 
-   U_pulseCount : entity work.SynchronizerVector
+   U_pulseCount : entity work.SynchronizerFifo
       generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => 16)
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 16)
       port map (
-         clk     => clk40MHz,
-         dataIn  => r.pulseCount,
-         dataOut => pulseCount);
+         wr_clk => axilClk,
+         din    => r.pulseCount,
+         rd_clk => clk40MHz,
+         dout   => pulseCount);
 
-   U_pulseWidth : entity work.SynchronizerVector
+   U_pulseWidth : entity work.SynchronizerFifo
       generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => 16)
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 16)
       port map (
-         clk     => clk40MHz,
-         dataIn  => r.pulseWidth,
-         dataOut => pulseWidth);
+         wr_clk => axilClk,
+         din    => r.pulseWidth,
+         rd_clk => clk160MHz,
+         dout   => pulseWidth);
 
-   U_pulsePeriod : entity work.SynchronizerVector
+   U_pulsePeriod : entity work.SynchronizerFifo
       generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => 16)
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 16)
       port map (
-         clk     => clk40MHz,
-         dataIn  => r.pulsePeriod,
-         dataOut => pulsePeriod);
+         wr_clk => axilClk,
+         din    => r.pulsePeriod,
+         rd_clk => clk40MHz,
+         dout   => pulsePeriod);
+
+   U_pulseDelay : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 16)
+      port map (
+         wr_clk => axilClk,
+         din    => r.pulseDelay,
+         rd_clk => clk40MHz,
+         dout   => pulseDelay);
+
+   U_readDelay : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 16)
+      port map (
+         wr_clk => axilClk,
+         din    => r.readDelay,
+         rd_clk => clk40MHz,
+         dout   => readDelay);
+
+   U_readDuration : entity work.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 16)
+      port map (
+         wr_clk => axilClk,
+         din    => r.readDuration,
+         rd_clk => clk40MHz,
+         dout   => readDuration);
 
    U_continuous : entity work.Synchronizer
       generic map (
@@ -207,17 +286,9 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => clk40MHz,
+         clk     => deserClk,
          dataIn  => r.deserSampleEdge,
          dataOut => deserSampleEdge);
-
-   U_renable : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => clk40MHz,
-         dataIn  => r.renable,
-         dataOut => renable);
 
    U_rstbRam : entity work.RstSync
       generic map (
@@ -251,17 +322,6 @@ begin
          clk      => clk40MHz,
          asyncRst => r.rstbTdc,
          syncRst  => rstbTdc);
-
-   U_rstbCounter : entity work.RstSync
-      generic map (
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '0',         -- 0 for active low
-         OUT_POLARITY_G => '0',         -- 0 for active low
-         OUT_REG_RST_G  => false)
-      port map (
-         clk      => clk40MHz,
-         asyncRst => r.rstbCounter,
-         syncRst  => rstbCounter);
 
    U_ckWrConfig : entity work.SynchronizerVector
       generic map (

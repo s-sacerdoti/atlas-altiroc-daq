@@ -21,6 +21,7 @@ class SysReg(pr.Device):
         super().__init__(
             name        = name,
             description = description,
+            size        = (0x1 << 12), 
             **kwargs)
 
         ##################
@@ -74,6 +75,15 @@ class SysReg(pr.Device):
             },
         ))        
            
+        # self.add(pr.RemoteVariable(
+            # name         = 'FpgaPllRst', 
+            # description  = 'FPGA\'s PLL reset',
+            # offset       = 0x80C,
+            # bitSize      = 1, 
+            # mode         = 'RW',
+            # base         = pr.UInt,
+        # ))               
+           
         self.add(pr.RemoteVariable(
             name         = 'RollOverEn', 
             description  = 'Rollover enable for status counters',
@@ -83,13 +93,6 @@ class SysReg(pr.Device):
             base         = pr.UInt,
         ))        
         
-        self.add(pr.RemoteCommand(   
-            name         = 'CntRst',
-            description  = 'Status counter reset',
-            offset       = 0xFFC,
-            bitSize      = 1,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            function     = lambda cmd: cmd.post(1),
-            hidden       = False,
-        ))  
+    def countReset(self):
+        self._rawWrite(offset=0xFFC,data=0x1)          
+        

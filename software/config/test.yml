@@ -5,19 +5,22 @@ Top:
   Dac:
     RawValue:  0x8000
   Asic:
-    RENABLE: 0x0
-    RSTB_RAM: 0x1
-    RSTB_READ: 0x1
-    RSTB_TDC: 0x1
-    RSTB_COUNTER: 0x1
-    CK_WRITE: 10MHz
+    CK_WRITE: Disabled
     DeserSampleEdge: RisingEdge
-    PulseCount: 4
-    PulseWidth: 1
-    PulsePeriod: 40000 # 1 kHz pulse frequency
-    Continuous: 0x0 
     EmuEnable: 0x0
-    RunEnable: 0x0
+    RunEnable: 0x1
+    PulseTrain:
+      Continuous: 0x0 
+      PulseCount: 4
+      PulseWidth: 1
+      PulsePeriod: 4
+      PulseDelay: 10
+      ReadDelay: 10
+      ReadDuration: 10000
+    Gpio:
+      RSTB_RAM: 0x1
+      RSTB_READ:  0x1
+      RSTB_TDC:  0x1
     SlowControl:
       dac: 10
       ON_dac_LR: 0x1

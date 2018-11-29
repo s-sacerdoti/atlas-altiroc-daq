@@ -16,9 +16,12 @@ create_clock -name pllClkIn1   -period  3.118 [get_ports { pllClkInP[1] }]; # 32
 create_generated_clock -name iprogClk  [get_pins {U_Core/U_System/U_AxiVersion/GEN_ICAP.Iprog_1/GEN_7SERIES.Iprog7Series_Inst/DIVCLK_GEN.BUFR_ICPAPE2/O}] 
 create_generated_clock -name dnaClk    [get_pins {U_Core/U_System/U_AxiVersion/GEN_DEVICE_DNA.DeviceDna_1/GEN_7SERIES.DeviceDna7Series_Inst/BUFR_Inst/O}] 
 create_generated_clock -name dnaClkInv [get_pins {U_Core/U_System/U_AxiVersion/GEN_DEVICE_DNA.DeviceDna_1/GEN_7SERIES.DeviceDna7Series_Inst/DNA_CLK_INV_BUFR/O}] 
+create_generated_clock -name clk160MHz [get_pins {U_Core/U_Clk/U_PLL/PllGen.U_Pll/CLKOUT0}]
+create_generated_clock -name clk40MHz  [get_pins {U_Core/U_Clk/U_PLL/PllGen.U_Pll/CLKOUT1}]
 
 set_clock_groups -asynchronous \ 
    -group [get_clocks -include_generated_clocks {gtClkP}] \
    -group [get_clocks -include_generated_clocks {localRefClk}] \
    -group [get_clocks -include_generated_clocks {pllClkIn0}] \
    -group [get_clocks -include_generated_clocks {pllClkIn1}]
+   

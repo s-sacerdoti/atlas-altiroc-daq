@@ -21,17 +21,19 @@ use work.StdRtlPkg.all;
 package AtlasAltirocPkg is
 
    type AtlasAltirocConfigType is record
+      pllRst  : sl;
       dlyData : slv(9 downto 0);
       clkSel  : slv(1 downto 0);
    end record;
    constant ALTIROC_CONFIG_INIT_C : AtlasAltirocConfigType := (
+      pllRst  => '0',
       dlyData => (others => '0'),
       clkSel  => "00");
 
    type AtlasAltirocStatusType is record
-      pllLocked     : sl;
+      pllLocked : sl;
    end record;
    constant ALTIROC_STATUS_INIT_C : AtlasAltirocStatusType := (
-      pllLocked     => '0');
+      pllLocked => '0');
 
 end package;

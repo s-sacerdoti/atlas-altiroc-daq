@@ -60,25 +60,23 @@ top.AxiVersion.printStatus()
 
 # Use the emulation mode to generate for "fake" hit messages
 top.Asic.EmuEnable.set(0x1)
-top.Asic.PulseCount.set(0x4)
-top.Asic.PulseWidth.set(0x1)
-top.Asic.PulsePeriod.set(0x10)
-top.Asic.Continuous.set(0x0)
-top.Asic.OneShot()
+top.Asic.PulseTrain.PulseCount.set(0x4)
+top.Asic.PulseTrain.PulseWidth.set(0x1)
+top.Asic.PulseTrain.PulsePeriod.set(0x10)
+top.Asic.PulseTrain.Continuous.set(0x0)
+top.Asic.PulseTrain.OneShot()
 top.Asic.EmuEnable.set(0x0)
 time.sleep(0.1)
 
 # Reset the ASIC
 print ('Send a 1 second Reset pulse to all ASIC reset lines')
-top.Asic.RSTB_RAM.set(0x0)
-top.Asic.RSTB_READ.set(0x0)
-top.Asic.RSTB_TDC.set(0x0)
-top.Asic.RSTB_COUNTER.set(0x0)
+top.Asic.Gpio.RSTB_RAM.set(0x0)
+top.Asic.Gpio.RSTB_READ.set(0x0)
+top.Asic.Gpio.RSTB_TDC.set(0x0)
 time.sleep(1.0)
-top.Asic.RSTB_RAM.set(0x1)
-top.Asic.RSTB_READ.set(0x1)
-top.Asic.RSTB_TDC.set(0x1)
-top.Asic.RSTB_COUNTER.set(0x1)
+top.Asic.Gpio.RSTB_RAM.set(0x1)
+top.Asic.Gpio.RSTB_READ.set(0x1)
+top.Asic.Gpio.RSTB_TDC.set(0x1)
 
 # Ramp up the DAC
 for i in range(2**16):

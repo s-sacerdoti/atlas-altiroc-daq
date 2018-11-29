@@ -113,21 +113,3 @@ $ python3 scripts/ReprogramFpga.py --ip <DHCP_IP_ADDRESS> --mcs <PATH_TO_MCS_FIL
 ```
 
 <!--- ########################################################################################### -->
-
-# How to Reprogram the SiLab PLL's NVM
-
-```
-# Go to software directory
-$ cd atlas-altiroc-daq/software
-
-# Activate Rogue conda Environment 
-$ source /path/to/my/anaconda3/etc/profile.d/conda.sh
-
-# Setup the Python Environment
-$ source setup_env.sh
-
-# Update the PLL"s NVM (configuration sotred in config/pll-config/Si5345-RevD-Registers.csv)
-$ python3 scripts/BurnPllNvm.py --ip <DHCP_IP_ADDRESS>
-```
-
-<!--- ########################################################################################### -->

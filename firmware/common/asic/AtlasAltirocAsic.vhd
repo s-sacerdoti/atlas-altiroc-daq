@@ -35,6 +35,8 @@ entity AtlasAltirocAsic is
       -- Reference Clock/Reset Interface
       clk40MHz        : in  sl;
       rst40MHz        : in  sl;
+      clk160MHz       : in  sl;
+      rst160MHz       : in  sl;
       deserClk        : in  sl;
       deserRst        : in  sl;
       -- ASIC Ports
@@ -108,16 +110,23 @@ architecture mapping of AtlasAltirocAsic is
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
 
+   signal dataMaster : AxiStreamMasterType;
+
    signal deserSampleEdge : sl;
    signal continuous      : sl;
    signal oneShot         : sl;
    signal pulseCount      : slv(15 downto 0);
    signal pulseWidth      : slv(15 downto 0);
    signal pulsePeriod     : slv(15 downto 0);
+   signal pulseDelay      : slv(15 downto 0);
+   signal readDelay       : slv(15 downto 0);
+   signal readDuration    : slv(15 downto 0);
 
-   signal dataEnable : sl;
-   signal emuEnable  : sl;
-   signal emuTrig    : sl;
+   signal dataEnable  : sl;
+   signal emuEnable   : sl;
+   signal emuTrig     : sl;
+   signal dataWordDet : sl;
+   signal hitDet      : sl;
 
 begin
 
@@ -199,14 +208,16 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         -- ASIC Interface  (clk40MHz domain)
+         -- ASIC Interface
          clk40MHz        => clk40MHz,
          rst40MHz        => rst40MHz,
-         renable         => renable,      -- RENABLE
+         clk160MHz       => clk160MHz,
+         rst160MHz       => rst160MHz,
+         deserClk        => deserClk,
+         deserRst        => deserRst,
          rstbRam         => rstbRam,      -- RSTB_RAM
          rstbRead        => rstbRead,     -- RSTB_READ
          rstbTdc         => rstbTdc,      -- RSTB_TDC
-         rstbCounter     => rstbCounter,  -- RSTB_COUNTER
          ckWriteAsic     => ckWriteAsic,  -- CK_WRITE_ASIC
          deserSampleEdge => deserSampleEdge,
          continuous      => continuous,
@@ -214,8 +225,13 @@ begin
          pulseCount      => pulseCount,
          pulseWidth      => pulseWidth,
          pulsePeriod     => pulsePeriod,
+         pulseDelay      => pulseDelay,
+         readDelay       => readDelay,
+         readDuration    => readDuration,
          emuEnable       => emuEnable,
          dataEnable      => dataEnable,
+         dataWordDet     => dataWordDet,
+         hitDet          => hitDet,
          -- AXI-Lite Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
@@ -232,19 +248,26 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Clock and Reset
-         clk40MHz    => clk40MHz,
-         rst40MHz    => rst40MHz,
+         clk40MHz     => clk40MHz,
+         rst40MHz     => rst40MHz,
+         clk160MHz    => clk160MHz,
+         rst160MHz    => rst160MHz,
          -- Configuration Interface
-         continuous  => continuous,
-         oneShot     => oneShot,
-         pulseCount  => pulseCount,
-         pulseWidth  => pulseWidth,
-         pulsePeriod => pulsePeriod,
+         continuous   => continuous,
+         oneShot      => oneShot,
+         pulseCount   => pulseCount,
+         pulseWidth   => pulseWidth,
+         pulsePeriod  => pulsePeriod,
+         pulseDelay   => pulseDelay,
+         readDelay    => readDelay,
+         readDuration => readDuration,
+         emuTrig      => emuTrig,
          -- ASIC Ports
-         emuTrig     => emuTrig,
-         cmdPulseP   => cmdPulseP,      -- CMD_PULSE_P
-         cmdPulseN   => cmdPulseN,      -- CMD_PULSE_N
-         extTrig     => extTrig);       -- EXT_TRIG    
+         renable      => renable,       -- RENABLE
+         rstbCounter  => rstbCounter,   -- RSTB_COUNTER
+         cmdPulseP    => cmdPulseP,     -- CMD_PULSE_P
+         cmdPulseN    => cmdPulseN,     -- CMD_PULSE_N
+         extTrig      => extTrig);      -- EXT_TRIG    
 
    ----------------------
    -- Deserializer Module
@@ -266,7 +289,11 @@ begin
          -- Master AXI Stream Interface
          mAxisClk        => axilClk,
          mAxisRst        => axilRst,
-         mAxisMaster     => mDataMaster,
+         mAxisMaster     => dataMaster,
          mAxisSlave      => mDataSlave);
+
+   mDataMaster <= dataMaster;
+   dataWordDet <= dataMaster.tValid and mDataSlave.tReady;
+   hitDet      <= dataWordDet and dataMaster.tData(0);
 
 end mapping;

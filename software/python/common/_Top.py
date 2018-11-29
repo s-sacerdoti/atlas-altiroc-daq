@@ -58,10 +58,13 @@ class Top(pr.Root):
             description = "Container for FEB FPGA",
             hwType      = 'eth',
             ip          = '10.0.0.1',
-            configPll   = False,
             configProm  = False,
+            pllConfig   = 'config/pll-config/Si5345-RevD-Registers.csv',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
+        
+        # Update the default PLL configuration
+        self.pllConfig = pllConfig
         
         # File writer
         self.dataWriter = pr.utilities.fileio.StreamWriter()
@@ -104,6 +107,7 @@ class Top(pr.Root):
             memBase = self.memMap,
             offset  = 0x00010000, 
             expand  = False,
+            hidden  = True, # Hidden in GUI because indented for scripting
         ))
         
         if (configProm):
@@ -154,15 +158,15 @@ class Top(pr.Root):
             offset      = 0x00060000, 
             expand      = False,
         ))        
-        
-        if (configPll):
-            self.add(silabs.Si5345(      
-                name        = 'Pll', 
-                description = 'This device contains Jitter cleaner PLL', 
-                memBase     = self.memMap, 
-                offset      = 0x00070000, 
-                expand      = True,
-            ))     
+    
+        self.add(silabs.Si5345(      
+            name        = 'Pll', 
+            description = 'This device contains Jitter cleaner PLL', 
+            memBase     = self.memMap, 
+            offset      = 0x00070000, 
+            expand      = True,
+            hidden      = True, # Hidden in GUI because indented for scripting
+        ))     
 
         self.add(common.Altiroc(
             name        = 'Asic', 
@@ -174,3 +178,7 @@ class Top(pr.Root):
 
         ######################################################################
         
+    def start(self,**kwargs):
+        super(Top, self).start(**kwargs)  
+        self.Pll.LoadCsvFile(arg=self.pllConfig)
+      

@@ -151,6 +151,9 @@ architecture mapping of AtlasAltirocCore is
    signal clk40MHz : sl;
    signal rst40MHz : sl;
 
+   signal clk160MHz : sl;
+   signal rst160MHz : sl;
+
    signal deserClk : sl;
    signal deserRst : sl;
 
@@ -160,7 +163,7 @@ architecture mapping of AtlasAltirocCore is
 begin
 
    led(0) <= rxLinkUp;
-   led(1) <= txLinkUp;
+   led(1) <= status.pllLocked;
    led(2) <= not(axilRst);
    led(3) <= not(rst40MHz);
 
@@ -195,9 +198,12 @@ begin
          pwrSyncSclk  => pwrSyncSclk,
          pwrSyncFclk  => pwrSyncFclk,
          pllLocked    => status.pllLocked,
+         pllRst       => config.pllRst,
          -- Reference Clock/Reset Interface
          deserClk     => deserClk,
          deserRst     => deserRst,
+         clk160MHz    => clk160MHz,
+         rst160MHz    => rst160MHz,
          clk40MHz     => clk40MHz,
          rst40MHz     => rst40MHz);
 
@@ -343,6 +349,8 @@ begin
          -- Reference Clock/Reset Interface
          clk40MHz        => clk40MHz,
          rst40MHz        => rst40MHz,
+         clk160MHz       => clk160MHz,
+         rst160MHz       => rst160MHz,
          deserClk        => deserClk,
          deserRst        => deserRst,
          -- ASIC Ports

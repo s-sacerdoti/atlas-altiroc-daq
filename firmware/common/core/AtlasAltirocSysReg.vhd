@@ -93,6 +93,7 @@ begin
       -- Map the write registers
       axiSlaveRegister(regCon, x"804", 0, v.config.dlyData);
       axiSlaveRegister(regCon, x"808", 0, v.config.clkSel);
+      axiSlaveRegister(regCon, x"80C", 0, v.config.pllRst);
 
       axiSlaveRegister(regCon, x"FF8", 0, v.rollOverEn);
       axiSlaveRegister(regCon, x"FFC", 0, v.cntRst);

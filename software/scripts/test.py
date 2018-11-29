@@ -84,39 +84,28 @@ top.start(initRead=True)
 top.ReadConfig(arg='config/test.yml')
 
 # Setup the pulser generator 
-top.Asic.PulseCount.set(0x1)
-top.Asic.PulseWidth.set(0x1)
-top.Asic.PulsePeriod.set(0x10)
-top.Asic.Continuous.set(0x0)
+top.Asic.PulseTrain.PulseCount.set(0x1)
+top.Asic.PulseTrain.PulseWidth.set(0x1)
+top.Asic.PulseTrain.PulsePeriod.set(0x10)
+top.Asic.PulseTrain.Continuous.set(0x0)
 
 for i in range(1024):
     if (i%0x10 == 0):
         print (i)
 
     # Initializing the ASIC
-    top.Asic.RunEnable.set(0x1)
-    top.Asic.RENABLE.set(0x0)
-    top.Asic.RSTB_RAM.set(0x0)
-    top.Asic.RSTB_READ.set(0x0)
-    top.Asic.RSTB_TDC.set(0x0)
-    top.Asic.RSTB_COUNTER.set(0x0)
-    top.Asic.RSTB_RAM.set(0x1)
-    top.Asic.RSTB_READ.set(0x1)
-    top.Asic.RSTB_TDC.set(0x1)
-    top.Asic.RSTB_COUNTER.set(0x1)
-    
-    # top.Asic.SlowControl.DAC10bit.set(i)
+    top.Asic.Gpio.RSTB_RAM.set(0x0)
+    top.Asic.Gpio.RSTB_READ.set(0x0)
+    top.Asic.Gpio.RSTB_TDC.set(0x0)
+    top.Asic.Gpio.RSTB_RAM.set(0x1)
+    top.Asic.Gpio.RSTB_READ.set(0x1)
+    top.Asic.Gpio.RSTB_TDC.set(0x1)
     
     # Update the programmable delay
     top.SysReg.DlyData.set(i)
 
     # Send the CMD_PULSE/EXT_TRIG
-    top.Asic.OneShot()
-
-    # Assert readout enable 
-    top.Asic.RENABLE.set(0x1)
-    top.Asic.RSTB_COUNTER.set(0x0)
-    top.Asic.RSTB_COUNTER.set(0x1)
+    top.Asic.PulseTrain.OneShot()
 
 # Wait for the data
 time.sleep(1)
