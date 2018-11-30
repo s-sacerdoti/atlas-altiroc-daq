@@ -70,31 +70,32 @@ class SysReg(pr.Device):
             pollInterval = pollInterval,
         ))         
         
+        self.rdVar = [None for x in range(4)]
+        
         for i in range(4):
 
             nameRaw  =  f'FpgaInputClkFreqRaw[{i}]'
-            nameLink =  f'PllToFpgaClkFreq[{i}]'
         
             self.add(pr.RemoteVariable(
                 name         = nameRaw,
-                offset       = 0x10C, 
+                offset       = (0x500 + (i*4)), 
                 bitSize      = 32, 
                 bitOffset    = 0, 
                 mode         = 'RO', 
                 base         = pr.UInt,
-                hidden       = True,
+                # hidden       = True,
                 pollInterval = 1,
             ))        
             
-            rdVar = self.variables[nameRaw]
+            self.rdVar[i] = self.variables[nameRaw]
                     
             self.add(pr.LinkVariable(
-                name         = nameLink,
+                name         = f'PllToFpgaClkFreq[{i}]',
                 description  = 'Input clock to the FPGA from the PLL',
                 units        = "MHz",
                 mode         = 'RO',
-                dependencies = [rdVar], 
-                linkedGet    = lambda: rdVar.value() * 1.0e-6,
+                dependencies = [self.rdVar[i]], 
+                linkedGet    = lambda: self.rdVar[i].value() * 1.0e-6,
                 disp         = '{:0.3f}',
             ))
                     
