@@ -64,9 +64,10 @@ class Top(pr.Root):
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
-        # Update the default PLL configuration
+        # Cache the parameters
         self.pllConfig  = pllConfig
         self.configProm = configProm
+        self.hwType     = hwType
         
         # File writer
         self.dataWriter = pr.utilities.fileio.StreamWriter()
@@ -184,10 +185,14 @@ class Top(pr.Root):
         super(Top, self).start(**kwargs)  
         
         # Check if not PROM loading 
-        if self.configProm is False:
+        if not self.configProm and (self.hwType != 'simulation'):
         
             # Load the PLL configurations
             self.Pll.LoadCsvFile(arg=self.pllConfig)
+            
+            # Hide all the "enable" variables
+            for enableList in self.find(typ=pr.EnableVariable):
+                enableList.hidden = True
             
             # Wait for the PLL to lock
             print ("Waiting for PLLs (SiLab and FPGA) to lock")
@@ -204,3 +209,8 @@ class Top(pr.Root):
                 print ("PLL locks established")
             else:
                 print ("Failed to establish PLL locking after 10 seconds")
+        else:
+            # Hide all the "enable" variables
+            for enableList in self.find(typ=pr.EnableVariable):
+                enableList.hidden = True        
+                

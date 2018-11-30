@@ -15,7 +15,7 @@ import pyrogue as pr
 import pyrogue.gui
 import common as feb
 
-rogue.Logging.setLevel(rogue.Logging.Info)
+# rogue.Logging.setLevel(rogue.Logging.Info)
 
 #################################################################
 
@@ -25,7 +25,7 @@ top = feb.Top(hwType='simulation')
 # Start the system
 top.start(
     pollEn   = False,
-    initRead = True,    
+    initRead = False,    
     timeout  = 5.0,    
 )
 
