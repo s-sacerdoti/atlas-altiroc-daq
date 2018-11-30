@@ -70,8 +70,8 @@ architecture rtl of AtlasAltirocSysReg is
 
 begin
 
-   comb : process (axilReadMaster, axilRst, axilWriteMaster, r, statusCnt,
-                   statusOut) is
+   comb : process (axilReadMaster, axilRst, axilWriteMaster, r, status,
+                   statusCnt, statusOut) is
       variable v      : RegType;
       variable regCon : AxiLiteEndPointType;
    begin
@@ -89,6 +89,10 @@ begin
          axiSlaveRegisterR(regCon, toSlv((4*i), 12), 0, muxSlVectorArray(statusCnt, i));
       end loop;
       axiSlaveRegisterR(regCon, x"400", 0, statusOut);
+      axiSlaveRegisterR(regCon, x"500", 0, status.pllClkFreq(0));
+      axiSlaveRegisterR(regCon, x"504", 0, status.pllClkFreq(1));
+      axiSlaveRegisterR(regCon, x"508", 0, status.pllClkFreq(2));
+      axiSlaveRegisterR(regCon, x"50C", 0, status.pllClkFreq(3));
 
       -- Map the write registers
       axiSlaveRegister(regCon, x"804", 0, v.config.dlyData);

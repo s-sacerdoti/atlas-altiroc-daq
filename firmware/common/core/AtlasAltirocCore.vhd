@@ -199,6 +199,7 @@ begin
          pwrSyncFclk  => pwrSyncFclk,
          extPllLocked => status.extPllLocked,
          intPllLocked => status.intPllLocked,
+         pllClkFreq   => status.pllClkFreq,
          pllRst       => config.pllRst,
          -- Reference Clock/Reset Interface
          deserClk     => deserClk,

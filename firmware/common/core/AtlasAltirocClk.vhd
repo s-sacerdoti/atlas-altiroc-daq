@@ -47,6 +47,7 @@ entity AtlasAltirocClk is
       pwrSyncFclk  : out sl;
       extPllLocked : out sl;
       intPllLocked : out sl;
+      pllClkFreq   : out Slv32Array(3 downto 0);
       pllRst       : in  sl;
       -- Reference Clock/Reset Interface
       deserClk     : out sl;
@@ -62,10 +63,9 @@ architecture mapping of AtlasAltirocClk is
    signal localRefClock : sl;
    signal localRefClk   : sl;
    signal pllClkIn      : slv(3 downto 0);
-   signal refClk        : sl;
+   signal pllClkInBufg  : slv(3 downto 0);
    signal refRst        : sl;
    signal refReset      : sl;
-   signal deserClock    : sl;
 
 begin
 
@@ -112,16 +112,31 @@ begin
             I  => pllClkInP(i),
             IB => pllClkInN(i),
             O  => pllClkIn(i));
+
+      U_BUFG : BUFG
+         port map (
+            I => pllClkIn(i),
+            O => pllClkInBufg(i));
+
+      U_SyncClockFreq : entity work.SyncClockFreq
+         generic map (
+            TPD_G          => TPD_G,
+            REF_CLK_FREQ_G => 156.25E+6,
+            REFRESH_RATE_G => 1.0,
+            CNT_WIDTH_G    => 32)
+         port map (
+            -- Frequency Measurement (locClk domain)
+            freqOut => pllClkFreq(i),
+            -- Clocks
+            clkIn   => pllClkInBufg(i),
+            locClk  => axilClk,
+            refClk  => axilClk);
+
    end generate GEN_VEC;
 
    -----------------------------------------   
    -- External Trigger/CMD Pulse Clock/Reset
    -----------------------------------------   
-   U_refClk : BUFG
-      port map (
-         I => pllClkIn(0),
-         O => refClk);
-
    refReset <= pllRst or not(pllLolL);
 
    U_refRst : entity work.RstSync
@@ -149,7 +164,7 @@ begin
          CLKOUT0_DIVIDE_G => 8,         -- 160 MHz = 1.28 GHz/8
          CLKOUT1_DIVIDE_G => 32)        -- 40 MHz = 1.28 GHz/32
       port map(
-         clkIn     => refClk,
+         clkIn     => pllClkInBufg(0),
          rstIn     => refRst,
          -- Clock Outputs
          clkOut(0) => clk160MHz,
@@ -163,12 +178,7 @@ begin
    ---------------------------
    -- Deserializer Clock/Reset
    ---------------------------
-   U_deserClock : BUFG
-      port map (
-         I => pllClkIn(1),
-         O => deserClock);
-
-   deserClk <= deserClock;
+   deserClk <= pllClkInBufg(1);
 
    U_deserRst : entity work.PwrUpRst
       generic map(
@@ -178,7 +188,7 @@ begin
          SIM_SPEEDUP_G  => SIMULATION_G)
       port map (
          arst   => pllLolL,
-         clk    => deserClock,
+         clk    => pllClkInBufg(1),
          rstOut => deserRst);
 
    ----------------------------------------------

@@ -186,8 +186,8 @@ class Altiroc(pr.Device):
         )) 
 
         self.add(pr.RemoteVariable(
-            name         = 'DeserSampleEdge', 
-            description  = 'Selects whether the rising edge or falling edge sample is used in the deserializer',
+            name         = 'DeserInvertDout', 
+            description  = 'Selects whether the dout is inverted before the serializer (used in case of a layout polarity inversion)',
             offset       = 0x900,
             bitSize      = 1, 
             bitOffset    = 1,

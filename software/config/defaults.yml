@@ -96,16 +96,17 @@ Top:
       en_probe_pa: 0x0
       en_probe_dig: 0x0
       EN_dout: 0x0
-      probe_pa[:]: 0x0
-      probe_vthc[:]: 0x0
-      probe_dig_out_disc[:]: 0x0
-      probe_toa[:]: 0x0
-      probe_tot[:]: 0x0
-      totf[:]: 0x0
-      tot_overflow[:]: 0x0
-      toa_busy[:]: 0x0
-      toa_ready[:]: 0x0
-      tot_busy[:]: 0x0
-      tot_ready[:]: 0x0
-      en_read[:]: 0x0
       rstL: 0x1
+      pix[0:24]:
+        probe_pa: 0x0
+        probe_vthc: 0x0
+        probe_dig_out_disc: 0x0
+        probe_toa: 0x0
+        probe_tot: 0x0
+        totf: 0x0
+        tot_overflow: 0x0
+        toa_busy: 0x0
+        toa_ready: 0x0
+        tot_busy: 0x0
+        tot_ready: 0x0
+        en_read: 0x0

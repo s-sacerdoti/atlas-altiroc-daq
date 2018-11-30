@@ -69,6 +69,34 @@ class SysReg(pr.Device):
             base         = pr.UInt,
             pollInterval = pollInterval,
         ))         
+        
+        for i in range(4):
+
+            nameRaw  =  f'FpgaInputClkFreqRaw[{i}]'
+            nameLink =  f'PllToFpgaClkFreq[{i}]'
+        
+            self.add(pr.RemoteVariable(
+                name         = nameRaw,
+                offset       = 0x10C, 
+                bitSize      = 32, 
+                bitOffset    = 0, 
+                mode         = 'RO', 
+                base         = pr.UInt,
+                hidden       = True,
+                pollInterval = 1,
+            ))        
+            
+            rdVar = self.variables[nameRaw]
+                    
+            self.add(pr.LinkVariable(
+                name         = nameLink,
+                description  = 'Input clock to the FPGA from the PLL',
+                units        = "MHz",
+                mode         = 'RO',
+                dependencies = [rdVar], 
+                linkedGet    = lambda: rdVar.value() * 1.0e-6,
+                disp         = '{:0.3f}',
+            ))
                     
         ##################
         # Status Registers 

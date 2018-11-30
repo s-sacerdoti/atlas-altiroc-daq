@@ -31,10 +31,12 @@ package AtlasAltirocPkg is
       clkSel  => "00");
 
    type AtlasAltirocStatusType is record
+      pllClkFreq   : Slv32Array(3 downto 0);
       intPllLocked : sl;
       extPllLocked : sl;
    end record;
    constant ALTIROC_STATUS_INIT_C : AtlasAltirocStatusType := (
+      pllClkFreq   => (others => (others => '0')),
       intPllLocked => '0',
       extPllLocked => '0');
 
