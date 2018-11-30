@@ -11,7 +11,8 @@
 create_clock -name gtClkP      -period  3.200 [get_ports { gtClkP }];       # 315.25 MHz
 create_clock -name localRefClk -period  6.250 [get_ports { localRefClkP }]; # 160 MHz    (on-board reference)
 create_clock -name pllClkIn0   -period 24.950 [get_ports { pllClkInP[0] }]; #  40.08 MHz (1 x 40.08 MHz LHC clock)
-create_clock -name pllClkIn1   -period  3.118 [get_ports { pllClkInP[1] }]; # 320.64 MHz (8 x 40.08 MHz LHC clock)
+# create_clock -name pllClkIn1   -period  3.118 [get_ports { pllClkInP[1] }]; # 320.64 MHz (8 x 40.08 MHz LHC clock)
+create_clock -name pllClkIn1   -period 12.475 [get_ports { pllClkInP[1] }]; #  80.16 MHz (8 x 40.08 MHz LHC clock)
 create_clock -name pllClkIn2   -period  3.118 [get_ports { pllClkInP[2] }]; # Undefined
 create_clock -name pllClkIn3   -period  3.118 [get_ports { pllClkInP[3] }]; # Undefined
 

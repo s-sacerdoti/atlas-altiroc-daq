@@ -41,6 +41,7 @@ entity AtlasAltirocAsicPulseTrain is
       pulseCount    : in  slv(15 downto 0);
       pulseWidth    : in  slv(15 downto 0);
       pulsePeriod   : in  slv(15 downto 0);
+      rstCntMask    : in  slv(1 downto 0);
       emuTrig       : out sl;
       readoutEnable : out sl;
       -- ASIC Ports
@@ -98,7 +99,7 @@ architecture rtl of AtlasAltirocAsicPulseTrain is
 begin
 
    comb : process (continuous, oneShot, pulseCount, pulseDelay, pulsePeriod, r,
-                   readDelay, readDuration, rst40MHz) is
+                   readDelay, readDuration, rst40MHz, rstCntMask) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -134,7 +135,7 @@ begin
                if (continuous = '1') or ((oneShot = '1') and (pulseCount /= 0)) then
 
                   -- Set the flag (active LOW)
-                  v.rstbCounter := '0';
+                  v.rstbCounter := not(rstCntMask(0));
 
                   -- Check for zero pulse delay
                   if (pulseDelay = 0) then
@@ -193,7 +194,7 @@ begin
                   -- Check for zero read delay
                   if (r.readDelay = 0) then
                      -- Set the flag (active LOW)
-                     v.rstbCounter := '0';
+                     v.rstbCounter := not(rstCntMask(1));
                      -- Next state
                      v.state       := READ_S;
                   else
@@ -215,7 +216,7 @@ begin
                v.cnt := (others => '0');
 
                -- Set the flag (active LOW)
-               v.rstbCounter := '0';
+               v.rstbCounter := not(rstCntMask(1));
 
                -- Next state
                v.state := READ_S;
@@ -261,7 +262,7 @@ begin
                   v.pulsePeriod  := pulsePeriod;
 
                   -- Set the flag (active LOW)
-                  v.rstbCounter := '0';
+                  v.rstbCounter := not(rstCntMask(0));
 
                   -- Check for zero pulse delay
                   if (pulseDelay = 0) then

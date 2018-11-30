@@ -14,8 +14,8 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_env_var.tcl
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
-# Bypass the debug chipscope generation
-return
+# # Bypass the debug chipscope generation
+# return
 
 ############################
 ## Open the synthesis design
@@ -40,24 +40,22 @@ set_property C_DATA_DEPTH 1024 [get_debug_cores ${ilaName}]
 #################################
 ## Set the clock for the ILA core
 #################################
-SetDebugCoreClk ${ilaName} {U_Core/U_Asic/U_PulseTrain/clk160MHz}
+SetDebugCoreClk ${ilaName} {U_Core/U_Asic/U_Deser/deserClk}
 
 #######################
 ## Set the debug Probes
 #######################
 
-ConfigProbe ${ilaName} {U_Core/U_Asic/U_PulseTrain/pulseCount[*]}
-ConfigProbe ${ilaName} {U_Core/U_Asic/U_PulseTrain/pulsePeriod[*]}
-ConfigProbe ${ilaName} {U_Core/U_Asic/U_PulseTrain/pulseWidth[*]}
-ConfigProbe ${ilaName} {U_Core/U_Asic/U_PulseTrain/r[cnt][*]}
-ConfigProbe ${ilaName} {U_Core/U_Asic/U_PulseTrain/r[pulseCnt][*]}
-ConfigProbe ${ilaName} {U_Core/U_Asic/U_PulseTrain/continuous}
-ConfigProbe ${ilaName} {U_Core/U_Asic/U_PulseTrain/oneShot}
-ConfigProbe ${ilaName} {U_Core/U_Asic/U_PulseTrain/r[continuous]}
-ConfigProbe ${ilaName} {U_Core/U_Asic/U_PulseTrain/r[pulse]}
-ConfigProbe ${ilaName} {U_Core/U_Asic/U_PulseTrain/r[start]}
-ConfigProbe ${ilaName} {U_Core/U_Asic/U_PulseTrain/r[state]}
-ConfigProbe ${ilaName} {U_Core/U_Asic/U_PulseTrain/r[stop]}
+ConfigProbe ${ilaName} {U_Core/U_Asic/U_Deser/Q1}
+ConfigProbe ${ilaName} {U_Core/U_Asic/U_Deser/Q2}
+ConfigProbe ${ilaName} {U_Core/U_Asic/U_Deser/runEnable}
+ConfigProbe ${ilaName} {U_Core/U_Asic/U_Deser/r[dout]}
+ConfigProbe ${ilaName} {U_Core/U_Asic/U_Deser/r[doutArray][*]}
+ConfigProbe ${ilaName} {U_Core/U_Asic/U_Deser/r[aligned][*]}
+ConfigProbe ${ilaName} {U_Core/U_Asic/U_Deser/r[cnt][*]}
+ConfigProbe ${ilaName} {U_Core/U_Asic/U_Deser/r[seqCnt][*]}
+ConfigProbe ${ilaName} {U_Core/U_Asic/U_Deser/r[txMaster][tValid]}
+ConfigProbe ${ilaName} {U_Core/U_Asic/U_Deser/r[tData][*]}
 
 ##########################
 ## Write the port map file

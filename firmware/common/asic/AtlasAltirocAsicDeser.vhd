@@ -49,27 +49,23 @@ architecture rtl of AtlasAltirocAsicDeser is
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- 32-bit AXI stream interface
 
-   type StateType is (
-      IDLE_S,
-      DESER_S);
-
    type RegType is record
-      dout     : sl;
-      doutDly  : sl;
-      cnt      : natural range 0 to 18;
-      shiftReg : slv(18 downto 0);
-      seqCnt   : slv(12 downto 0);
-      txMaster : AxiStreamMasterType;
-      state    : StateType;
+      dout      : sl;
+      doutArray : slv(22 downto 0);
+      aligned   : slv(3 downto 0);
+      cnt       : natural range 0 to 22;
+      seqCnt    : slv(12 downto 0);
+      tData     : slv(31 downto 0);
+      txMaster  : AxiStreamMasterType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      dout     => '0',
-      doutDly  => '0',
-      cnt      => 0,
-      shiftReg => (others => '0'),
-      seqCnt   => (others => '0'),
-      txMaster => AXI_STREAM_MASTER_INIT_C,
-      state    => IDLE_S);
+      dout      => '0',
+      doutArray => (others => '0'),
+      aligned   => (others => '0'),
+      cnt       => 0,
+      seqCnt    => (others => '0'),
+      tData     => (others => '0'),
+      txMaster  => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -85,6 +81,15 @@ architecture rtl of AtlasAltirocAsicDeser is
    signal emulationTrig   : sl;
    signal edgeSelect      : sl;
    signal invertData      : sl;
+
+   attribute dont_touch                    : string;
+   attribute dont_touch of r               : signal is "TRUE";
+   attribute dont_touch of Q1              : signal is "TRUE";
+   attribute dont_touch of Q2              : signal is "TRUE";
+   attribute dont_touch of runEnable       : signal is "TRUE";
+   attribute dont_touch of emulationEnable : signal is "TRUE";
+   attribute dont_touch of emulationTrig   : signal is "TRUE";
+   attribute dont_touch of invertData      : signal is "TRUE";
 
 begin
 
@@ -146,79 +151,91 @@ begin
          v.dout := Q2 xor invertData;
       end if;
 
-      -- Make delay copy for start pattern detection
-      v.doutDly := r.dout;
+      -- Create a shift register array
+      v.doutArray := r.dout & r.doutArray(22 downto 1);
 
-      -- State Machine
-      case r.state is
-         ----------------------------------------------------------------------
-         when IDLE_S =>
-            -- Emulation data taking mode
-            if (emulationEnable = '1') then
+      -- Emulation data taking mode
+      if (emulationEnable = '1') then
 
-               -- Check for trigger and ready to move data
-               if (emulationTrig = '1') then
+         -- Check for trigger and ready to move data
+         if (emulationTrig = '1') then
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then
+               -- Forward the data
+               v.txMaster.tValid              := '1';
+               v.txMaster.tData(31 downto 19) := r.seqCnt;
+               v.txMaster.tData(18 downto 0)  := (others => '0');
+            end if;
+            -- Increment the sequence counter
+            v.seqCnt := r.seqCnt + 1;
+         end if;
+
+         -- Reset the flags
+         v.aligned := x"0";
+
+         -- Reset the counter
+         v.cnt := 0;
+
+      else
+
+        -------------------------------------------------------------------
+        -- 21 bits of each pixel SRAM are read and serialized at 320 MHz, 
+        -- the serial data will be transmitted at a max. freq. of 320 MHz.
+        -------------------------------------------------------------------
+        -- The start of the frame is identified by the first two bits, 
+        -- which are "1 0 " followed by the 19 bits corresponding to: 
+        --       TOA<0:6>,
+        --       TOA<7> = overflow
+        --       TOT<0:8>
+        --       TOT<9> = overflow
+        -------------------------------------------------------------------
+
+         -- Check for the last bit of the frame
+         if (r.cnt = 20) then
+
+            -- Check for two SOF markers 22 cycles apart
+            if (r.doutArray(22 downto 21) = "01") and (r.doutArray(1 downto 0) = "01") then
+
+               -- Reset the counter
+               v.cnt := 0;
+
+               -- Alignment detected
+               v.aligned := r.aligned(2 downto 0) & '1';
+
+               -- Check for Readout Enable (RENABLE) and alignment detected 4 times or more
+               if (runEnable = '1') and (r.aligned = x"F") then
+
                   -- Check if ready to move data
                   if (v.txMaster.tValid = '0') then
                      -- Forward the data
                      v.txMaster.tValid              := '1';
                      v.txMaster.tData(31 downto 19) := r.seqCnt;
-                     v.txMaster.tData(18 downto 0)  := (others => '0');
-                     ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');  -- Tag as start of frame (SOF)
-                     v.txMaster.tLast               := '1';  -- Tag as end of frame (EOF)                     
+                     v.txMaster.tData(18 downto 0)  := r.doutArray(20 downto 2);
                   end if;
+
                   -- Increment the sequence counter
                   v.seqCnt := r.seqCnt + 1;
+
                end if;
 
-            -- Else check the run enable for normal data taking
-            elsif (runEnable = '1') then
-
-               -- Check for start pattern ("10")
-               if (r.doutDly = '1') and (r.dout = '0') then
-                  -- Next state
-                  v.state := DESER_S;
-               end if;
-
-            end if;
-         ----------------------------------------------------------------------
-         when DESER_S =>
-            -------------------------------------------------------------------
-            -- 21 bits of each pixel SRAM are read and serialized at 320 MHz, 
-            -- the serial data will be transmitted at a max. freq. of 320 MHz.
-            -------------------------------------------------------------------
-            -- The start of the frame is identified by the first two bits, 
-            -- which are "1 0 " followed by the 19 bits corresponding to: 
-            --       TOA<0:6>,
-            --       TOA<7> = overflow
-            --       TOT<0:8>
-            --       TOT<9> = overflow
-            -------------------------------------------------------------------
-            -- Update the shift register
-            v.shiftReg := r.dout & r.shiftReg(18 downto 1);
-            -- Check for last shift
-            if (r.cnt = 18) then
-               -- Reset the counter
-               v.cnt := 0;
-               -- Check if ready to move data
-               if (v.txMaster.tValid = '0') then
-                  -- Forward the data
-                  v.txMaster.tValid              := '1';
-                  v.txMaster.tData(31 downto 19) := r.seqCnt;
-                  v.txMaster.tData(18 downto 0)  := v.shiftReg;
-                  ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');  -- Tag as start of frame (SOF)
-                  v.txMaster.tLast               := '1';  -- Tag as end of frame (EOF)
-               end if;
-               -- Increment the sequence counter
-               v.seqCnt := r.seqCnt + 1;
-               -- Next state
-               v.state  := IDLE_S;
             else
-               -- Increment the counter
-               v.cnt := r.cnt + 1;
+               -- Reset the flags
+               v.aligned := x"0";
             end if;
-      ----------------------------------------------------------------------
-      end case;
+
+         else
+            -- Increment the counter
+            v.cnt := r.cnt + 1;
+         end if;
+
+      end if;
+
+      -- Only Sending 1 word frames
+      ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');  -- Tag as start of frame (SOF)
+      v.txMaster.tLast := '1';          -- Tag as end of frame (EOF)
+
+      -- Tap for chipscope debugging signal
+      v.tData := v.txMaster.tData(31 downto 0);
 
       -- Outputs       
       txMaster <= r.txMaster;

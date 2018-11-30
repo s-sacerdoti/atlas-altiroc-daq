@@ -46,6 +46,7 @@ entity AtlasAltirocAsicCtrl is
       pulseDelay      : out slv(15 downto 0);
       readDelay       : out slv(15 downto 0);
       readDuration    : out slv(15 downto 0);
+      rstCntMask      : out slv(1 downto 0);
       emuEnable       : out sl;
       dataWordDet     : in  sl;
       hitDet          : in  sl;
@@ -74,6 +75,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       pulseDelay      : slv(15 downto 0);
       readDelay       : slv(15 downto 0);
       readDuration    : slv(15 downto 0);
+      rstCntMask      : slv(1 downto 0);
       deserSampleEdge : sl;
       deserInvert     : sl;
       rstbRam         : sl;
@@ -97,6 +99,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       pulseDelay      => toSlv(4, 16),
       readDelay       => toSlv(8, 16),
       readDuration    => toSlv(1024, 16),
+      rstCntMask      => "11",
       deserSampleEdge => '0',
       deserInvert     => '0',
       rstbRam         => '1',
@@ -180,6 +183,7 @@ begin
       axiSlaveRegister(axilEp, x"A14", 0, v.pulseDelay);
       axiSlaveRegister(axilEp, x"A18", 0, v.readDelay);
       axiSlaveRegister(axilEp, x"A1C", 0, v.readDuration);
+      axiSlaveRegister(axilEp, x"A20", 0, v.rstCntMask);
 
       axiSlaveRegister(axilEp, x"FFC", 0, v.cntRst);
 
@@ -268,6 +272,15 @@ begin
          rd_clk => clk40MHz,
          dout   => readDuration);
 
+   U_rstCntMask : entity work.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 2)
+      port map (
+         clk     => clk40MHz,
+         dataIn  => r.rstCntMask,
+         dataOut => rstCntMask);
+
    U_continuous : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
@@ -291,14 +304,14 @@ begin
          clk     => deserClk,
          dataIn  => r.deserSampleEdge,
          dataOut => deserSampleEdge);
-         
+
    U_deserInvert : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
          clk     => deserClk,
          dataIn  => r.deserInvert,
-         dataOut => deserInvert);         
+         dataOut => deserInvert);
 
    U_rstbRam : entity work.RstSync
       generic map (

@@ -141,7 +141,15 @@ class AltirocPulseTrain(pr.Device):
             offset       = 0xA1C,
             bitSize      = 16, 
             mode         = 'RW',
-        ))        
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'ResetCounterMask', 
+            description  = 'BIT0 enables the 1st RST_COUNTER_B strobe, BIT0 enables the 2nd RST_COUNTER_B strobe',
+            offset       = 0xA20,
+            bitSize      = 2, 
+            mode         = 'RW',
+        ))          
         
 class Altiroc(pr.Device):
     def __init__(   

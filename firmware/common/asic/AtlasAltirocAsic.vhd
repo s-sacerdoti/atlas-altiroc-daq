@@ -122,6 +122,7 @@ architecture mapping of AtlasAltirocAsic is
    signal pulseDelay      : slv(15 downto 0);
    signal readDelay       : slv(15 downto 0);
    signal readDuration    : slv(15 downto 0);
+   signal rstCntMask      : slv(1 downto 0);
    signal dataBus         : slv(31 downto 0) := (others => '0');
 
    signal readoutEnable : sl;
@@ -231,6 +232,7 @@ begin
          pulseDelay      => pulseDelay,
          readDelay       => readDelay,
          readDuration    => readDuration,
+         rstCntMask      => rstCntMask,
          emuEnable       => emuEnable,
          dataWordDet     => dataWordDet,
          hitDet          => hitDet,
@@ -264,6 +266,7 @@ begin
          pulseDelay    => pulseDelay,
          readDelay     => readDelay,
          readDuration  => readDuration,
+         rstCntMask    => rstCntMask,
          emuTrig       => emuTrig,
          readoutEnable => readoutEnable,
          -- ASIC Ports
