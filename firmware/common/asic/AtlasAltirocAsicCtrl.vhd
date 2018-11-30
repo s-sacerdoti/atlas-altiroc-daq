@@ -51,6 +51,7 @@ entity AtlasAltirocAsicCtrl is
       dataWordDet     : in  sl;
       hitDet          : in  sl;
       dataBus         : in  slv(31 downto 0);
+      dataDropped     : in  sl;
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -65,6 +66,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
    constant CK_WR_CONFIG_SIZE_C : positive := 3;
 
    type RegType is record
+      dataDropCnt     : slv(31 downto 0);
       dataWordCnt     : slv(31 downto 0);
       hitCnt          : slv(31 downto 0);
       continuous      : sl;
@@ -89,6 +91,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
    end record;
 
    constant REG_INIT_C : RegType := (
+      dataDropCnt     => (others => '0'),
       dataWordCnt     => (others => '0'),
       hitCnt          => (others => '0'),
       continuous      => '0',
@@ -114,17 +117,26 @@ architecture mapping of AtlasAltirocAsicCtrl is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal ckWr       : sl                                       := '0';
-   signal ckWrConfig : slv(CK_WR_CONFIG_SIZE_C-1 downto 0)      := (others => '0');
-   signal ckWrCnt    : slv((2**CK_WR_CONFIG_SIZE_C)-1 downto 0) := (others => '0');
+   signal dataDropDet : sl;
+   signal ckWr        : sl                                       := '0';
+   signal ckWrConfig  : slv(CK_WR_CONFIG_SIZE_C-1 downto 0)      := (others => '0');
+   signal ckWrCnt     : slv((2**CK_WR_CONFIG_SIZE_C)-1 downto 0) := (others => '0');
 
    -- attribute dont_touch         : string;
    -- attribute dont_touch of ckWr : signal is "TRUE";   
 
 begin
 
+   U_dataDropped : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => dataDropped,
+         dataOut => dataDropDet);
+
    comb : process (axilReadMaster, axilRst, axilWriteMaster, dataBus,
-                   dataWordDet, hitDet, r) is
+                   dataDropDet, dataWordDet, hitDet, r) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -142,6 +154,7 @@ begin
          -- Reset the counters
          v.dataWordCnt := (others => '0');
          v.hitCnt      := (others => '0');
+         v.dataDropCnt := (others => '0');
 
       else
 
@@ -153,6 +166,11 @@ begin
          if (hitDet = '1') then
             -- Increment the counter
             v.hitCnt := r.hitCnt + 1;
+         end if;
+
+         if (dataDropDet = '1') then
+            -- Increment the counter
+            v.dataDropCnt := r.dataDropCnt + 1;
          end if;
 
       end if;
@@ -174,6 +192,7 @@ begin
       axiSlaveRegisterR(axilEp, x"90C", 0, r.dataWordCnt);
       axiSlaveRegisterR(axilEp, x"910", 0, r.hitCnt);
       axiSlaveRegisterR(axilEp, x"914", 0, dataBus);
+      axiSlaveRegisterR(axilEp, x"918", 0, r.dataDropCnt);
 
       axiSlaveRegister(axilEp, x"A00", 0, v.pulseCount);
       axiSlaveRegister(axilEp, x"A04", 0, v.pulseWidth);

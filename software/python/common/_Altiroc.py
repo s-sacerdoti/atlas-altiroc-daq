@@ -264,6 +264,16 @@ class Altiroc(pr.Device):
             pollInterval = 1,
         ))         
             
+        self.add(pr.RemoteVariable(
+            name         = 'DataDropCnt', 
+            description  = 'Increment every time a data word is dropped due to backpressure',
+            offset       = 0x918,
+            bitSize      = 32,  
+            mode         = 'RO',
+            base         = pr.UInt,
+            pollInterval = 1,
+        ))             
+            
         self.add(AltirocGpio(
             name        = 'Gpio', 
             offset      = 0x0, 

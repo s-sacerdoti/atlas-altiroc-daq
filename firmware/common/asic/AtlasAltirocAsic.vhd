@@ -130,6 +130,7 @@ architecture mapping of AtlasAltirocAsic is
    signal emuTrig       : sl;
    signal dataWordDet   : sl;
    signal hitDet        : sl;
+   signal dataDropped   : sl;
 
 begin
 
@@ -234,6 +235,7 @@ begin
          readDuration    => readDuration,
          rstCntMask      => rstCntMask,
          emuEnable       => emuEnable,
+         dataDropped     => dataDropped,
          dataWordDet     => dataWordDet,
          hitDet          => hitDet,
          dataBus         => dataBus,
@@ -287,6 +289,7 @@ begin
          readoutEnable   => readoutEnable,
          emuEnable       => emuEnable,
          emuTrig         => emuTrig,
+         dataDropped     => dataDropped,
          -- Serial Interface
          deserClk        => deserClk,
          deserRst        => deserRst,

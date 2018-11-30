@@ -31,6 +31,7 @@ entity AtlasAltirocAsicDeser is
       readoutEnable   : in  sl;
       emuEnable       : in  sl;
       emuTrig         : in  sl;
+      dataDropped     : out sl;
       -- Serial Interface
       deserClk        : in  sl;
       deserRst        : in  sl;
@@ -50,22 +51,24 @@ architecture rtl of AtlasAltirocAsicDeser is
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- 32-bit AXI stream interface
 
    type RegType is record
-      dout      : sl;
-      doutArray : slv(22 downto 0);
-      aligned   : slv(3 downto 0);
-      cnt       : natural range 0 to 22;
-      seqCnt    : slv(12 downto 0);
-      tData     : slv(31 downto 0);
-      txMaster  : AxiStreamMasterType;
+      dataDropped : sl;
+      dout        : sl;
+      doutArray   : slv(22 downto 0);
+      aligned     : slv(3 downto 0);
+      cnt         : natural range 0 to 22;
+      seqCnt      : slv(12 downto 0);
+      tData       : slv(31 downto 0);
+      txMaster    : AxiStreamMasterType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      dout      => '0',
-      doutArray => (others => '0'),
-      aligned   => (others => '0'),
-      cnt       => 0,
-      seqCnt    => (others => '0'),
-      tData     => (others => '0'),
-      txMaster  => AXI_STREAM_MASTER_INIT_C);
+      dataDropped => '0',
+      dout        => '0',
+      doutArray   => (others => '0'),
+      aligned     => (others => '0'),
+      cnt         => 0,
+      seqCnt      => (others => '0'),
+      tData       => (others => '0'),
+      txMaster    => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -138,6 +141,9 @@ begin
       -- Latch the current value
       v := r;
 
+      -- Reset strobes
+      v.dataDropped := '0';
+
       -- Check the flow control
       if txSlave.tReady = '1' then
          v.txMaster.tValid := '0';
@@ -165,6 +171,9 @@ begin
                v.txMaster.tValid              := '1';
                v.txMaster.tData(31 downto 19) := r.seqCnt;
                v.txMaster.tData(18 downto 0)  := (others => '0');
+            else
+               -- Drop data due to back pressure
+               v.dataDropped := '1';
             end if;
             -- Increment the sequence counter
             v.seqCnt := r.seqCnt + 1;
@@ -178,17 +187,17 @@ begin
 
       else
 
-        -------------------------------------------------------------------
-        -- 21 bits of each pixel SRAM are read and serialized at 320 MHz, 
-        -- the serial data will be transmitted at a max. freq. of 320 MHz.
-        -------------------------------------------------------------------
-        -- The start of the frame is identified by the first two bits, 
-        -- which are "1 0 " followed by the 19 bits corresponding to: 
-        --       TOA<0:6>,
-        --       TOA<7> = overflow
-        --       TOT<0:8>
-        --       TOT<9> = overflow
-        -------------------------------------------------------------------
+         -------------------------------------------------------------------
+         -- 21 bits of each pixel SRAM are read and serialized at 320 MHz, 
+         -- the serial data will be transmitted at a max. freq. of 320 MHz.
+         -------------------------------------------------------------------
+         -- The start of the frame is identified by the first two bits, 
+         -- which are "1 0 " followed by the 19 bits corresponding to: 
+         --       TOA<0:6>,
+         --       TOA<7> = overflow
+         --       TOT<0:8>
+         --       TOT<9> = overflow
+         -------------------------------------------------------------------
 
          -- Check for the last bit of the frame
          if (r.cnt = 20) then
@@ -211,6 +220,9 @@ begin
                      v.txMaster.tValid              := '1';
                      v.txMaster.tData(31 downto 19) := r.seqCnt;
                      v.txMaster.tData(18 downto 0)  := r.doutArray(20 downto 2);
+                  else
+                     -- Drop data due to back pressure
+                     v.dataDropped := '1';
                   end if;
 
                   -- Increment the sequence counter
@@ -238,7 +250,8 @@ begin
       v.tData := v.txMaster.tData(31 downto 0);
 
       -- Outputs       
-      txMaster <= r.txMaster;
+      txMaster    <= r.txMaster;
+      dataDropped <= r.dataDropped;
 
       -- Reset
       if (deserRst = '1') then
@@ -264,9 +277,9 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => false,
+         BRAM_EN_G           => true,
          GEN_SYNC_FIFO_G     => false,
-         FIFO_ADDR_WIDTH_G   => 4,
+         FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => PGP3_AXIS_CONFIG_C)
