@@ -177,19 +177,33 @@ class Altiroc(pr.Device):
             description  = 'Selects whether the rising edge or falling edge sample is used in the deserializer',
             offset       = 0x900,
             bitSize      = 1, 
+            bitOffset    = 0,
             mode         = 'RW',
             enum        = {
                 0x0: 'RisingEdge', 
                 0x1: 'FallingEdge',               
             },
-        ))  
+        )) 
+
+        self.add(pr.RemoteVariable(
+            name         = 'DeserSampleEdge', 
+            description  = 'Selects whether the rising edge or falling edge sample is used in the deserializer',
+            offset       = 0x900,
+            bitSize      = 1, 
+            bitOffset    = 1,
+            mode         = 'RW',
+            enum        = {
+                0x0: 'NonInverted', 
+                0x1: 'Inverted',               
+            },
+        ))         
             
         self.add(pr.RemoteVariable(
             name         = 'EmuEnable', 
             description  = 'Enables the emulation mode where a streaming data hit message will be generated for every pulse from the pulse generator',
             offset       = 0x904,
             bitSize      = 1, 
-            mode         = 'RW',
+            mode         = 'RW',        
         )) 
         
         self.add(pr.RemoteVariable(

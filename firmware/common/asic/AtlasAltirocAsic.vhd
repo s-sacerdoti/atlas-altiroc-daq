@@ -113,6 +113,7 @@ architecture mapping of AtlasAltirocAsic is
    signal dataMaster : AxiStreamMasterType;
 
    signal deserSampleEdge : sl;
+   signal deserInvert     : sl;
    signal continuous      : sl;
    signal oneShot         : sl;
    signal pulseCount      : slv(15 downto 0);
@@ -221,6 +222,7 @@ begin
          rstbTdc         => rstbTdc,      -- RSTB_TDC
          ckWriteAsic     => ckWriteAsic,  -- CK_WRITE_ASIC
          deserSampleEdge => deserSampleEdge,
+         deserInvert     => deserInvert,
          continuous      => continuous,
          oneShot         => oneShot,
          pulseCount      => pulseCount,
@@ -286,6 +288,7 @@ begin
          deserClk        => deserClk,
          deserRst        => deserRst,
          deserSampleEdge => deserSampleEdge,
+         deserInvert     => deserInvert,
          doutP           => doutP,
          doutN           => doutN,
          -- Master AXI Stream Interface

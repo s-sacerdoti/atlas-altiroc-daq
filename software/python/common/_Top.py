@@ -31,6 +31,25 @@ import common
 import time
 import numpy as np
 
+class EventValue(object):
+  def __init__(self, SeqCnt, TotOverflow, TotData, ToaOverflow, ToaData, Hit):
+     self.SeqCnt      = SeqCnt
+     self.TotOverflow = TotOverflow
+     self.TotData     = TotData
+     self.ToaOverflow = ToaOverflow
+     self.ToaData     = ToaData
+     self.Hit         = Hit
+
+def ParseDataWord(dataWord):
+    # Parse the 32-bit word
+    SeqCnt      = (dataWord >> 19) & 0x1FFF
+    TotOverflow = (dataWord >> 18) & 0x1
+    TotData     = (dataWord >>  9) & 0x1FF
+    ToaOverflow = (dataWord >>  8) & 0x1
+    ToaData     = (dataWord >>  1) & 0x7F
+    Hit         = (dataWord >>  0) & 0x1
+    return EventValue(SeqCnt, TotOverflow, TotData, ToaOverflow, ToaData, Hit)
+
 class ExampleEventReader(rogue.interfaces.stream.Slave):
 
     def __init__(self):
@@ -46,12 +65,16 @@ class ExampleEventReader(rogue.interfaces.stream.Slave):
             # Combine the byte array into single 32-bit word
             hitWrd = np.frombuffer(p, dtype='uint32', count=1)
             # Parse the 32-bit word
-            seqCnt = (hitWrd[0] >> 19) & 0x1FFF
-            tot    = (hitWrd[0] >>  9) & 0x3FF
-            toa    = (hitWrd[0] >>  1) & 0xFF
-            hit    = (hitWrd[0] >>  0) & 0x1
+            dat = ParseDataWord(hitWrd[0])
             # Print the event
-            print( 'Event[seqCnt=0x%x]: tot = 0x%x, toa = 0x%x, hit=%d' % (seqCnt,tot,toa,hit) )
+            print( 'Event[SeqCnt=0x%x]: (TotOverflow = %r, TotData = 0x%x), (ToaOverflow = %r, ToaData = 0x%x), hit=%r' % (
+                    dat.SeqCnt,
+                    dat.TotOverflow,
+                    dat.TotData,
+                    dat.ToaOverflow,
+                    dat.ToaData,
+                    dat.Hit,
+            ))
         
 class Top(pr.Root):
     def __init__(   self,       

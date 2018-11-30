@@ -37,6 +37,7 @@ entity AtlasAltirocAsicCtrl is
       rstbTdc         : out sl;         -- RSTB_TDC
       ckWriteAsic     : out sl;         -- CK_WRITE_ASIC
       deserSampleEdge : out sl;
+      deserInvert     : out sl;
       continuous      : out sl;
       oneShot         : out sl;
       pulseCount      : out slv(15 downto 0);
@@ -74,6 +75,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       readDelay       : slv(15 downto 0);
       readDuration    : slv(15 downto 0);
       deserSampleEdge : sl;
+      deserInvert     : sl;
       rstbRam         : sl;
       rstbRead        : sl;
       rstbTdc         : sl;
@@ -96,6 +98,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       readDelay       => toSlv(8, 16),
       readDuration    => toSlv(1024, 16),
       deserSampleEdge => '0',
+      deserInvert     => '0',
       rstbRam         => '1',
       rstbRead        => '1',
       rstbTdc         => '1',
@@ -162,6 +165,7 @@ begin
       axiSlaveRegister(axilEp, x"814", 0, v.ckWrConfig);
 
       axiSlaveRegister (axilEp, x"900", 0, v.deserSampleEdge);
+      axiSlaveRegister (axilEp, x"900", 1, v.deserInvert);
       axiSlaveRegister (axilEp, x"904", 0, v.emuEnable);
       -- axiSlaveRegister (axilEp, x"908", 0, v.dataEnable);
       axiSlaveRegisterR(axilEp, x"90C", 0, r.dataWordCnt);
@@ -287,6 +291,14 @@ begin
          clk     => deserClk,
          dataIn  => r.deserSampleEdge,
          dataOut => deserSampleEdge);
+         
+   U_deserInvert : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => deserClk,
+         dataIn  => r.deserInvert,
+         dataOut => deserInvert);         
 
    U_rstbRam : entity work.RstSync
       generic map (

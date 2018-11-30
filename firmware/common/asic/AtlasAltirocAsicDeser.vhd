@@ -35,6 +35,7 @@ entity AtlasAltirocAsicDeser is
       deserClk        : in  sl;
       deserRst        : in  sl;
       deserSampleEdge : in  sl;  -- '0' = rising_edge, '1' = falling_edge          
+      deserInvert     : in  sl;
       doutP           : in  sl;         -- DOUT_P
       doutN           : in  sl;         -- DOUT_N      
       -- Master AXI Stream Interface
@@ -50,11 +51,11 @@ architecture rtl of AtlasAltirocAsicDeser is
 
    type StateType is (
       IDLE_S,
-      START_S,
-      DATA_S);
+      DESER_S);
 
    type RegType is record
       dout     : sl;
+      doutDly  : sl;
       cnt      : natural range 0 to 18;
       shiftReg : slv(18 downto 0);
       seqCnt   : slv(12 downto 0);
@@ -63,6 +64,7 @@ architecture rtl of AtlasAltirocAsicDeser is
    end record RegType;
    constant REG_INIT_C : RegType := (
       dout     => '0',
+      doutDly  => '0',
       cnt      => 0,
       shiftReg => (others => '0'),
       seqCnt   => (others => '0'),
@@ -82,6 +84,7 @@ architecture rtl of AtlasAltirocAsicDeser is
    signal emulationEnable : sl;
    signal emulationTrig   : sl;
    signal edgeSelect      : sl;
+   signal invertData      : sl;
 
 begin
 
@@ -107,20 +110,22 @@ begin
    U_SyncVec : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
-         WIDTH_G => 3)
+         WIDTH_G => 4)
       port map (
          clk        => deserClk,
          -- Input
          dataIn(0)  => deserSampleEdge,
          dataIn(1)  => emuEnable,
          dataIn(2)  => readoutEnable,
+         dataIn(3)  => deserInvert,
          -- Output
          dataOut(0) => edgeSelect,
          dataOut(1) => emulationEnable,
-         dataOut(2) => runEnable);
+         dataOut(2) => runEnable,
+         dataOut(3) => invertData);
 
    comb : process (Q1, Q2, deserRst, edgeSelect, emulationEnable,
-                   emulationTrig, r, runEnable, txSlave) is
+                   emulationTrig, invertData, r, runEnable, txSlave) is
       variable v      : RegType;
       variable i      : natural;
       variable sofDet : sl;
@@ -135,11 +140,14 @@ begin
 
       -- Check if using rising_edge sample
       if (edgeSelect = '0') then
-         v.dout := Q1;
+         v.dout := Q1 xor invertData;
       -- Else using falling_edge sample
       else
-         v.dout := Q2;
+         v.dout := Q2 xor invertData;
       end if;
+
+      -- Make delay copy for start pattern detection
+      v.doutDly := r.dout;
 
       -- State Machine
       case r.state is
@@ -166,26 +174,15 @@ begin
             -- Else check the run enable for normal data taking
             elsif (runEnable = '1') then
 
-               -- Check for first start bit
-               if (r.dout = '1') then
+               -- Check for start pattern ("10")
+               if (r.doutDly = '1') and (r.dout = '0') then
                   -- Next state
-                  v.state := START_S;
+                  v.state := DESER_S;
                end if;
 
             end if;
          ----------------------------------------------------------------------
-         when START_S =>
-            -- Check for second start bit
-            if (r.dout = '0') then
-               -- Next state
-               v.state := DATA_S;
-            -- Else return back to IDLE (false start)
-            else
-               -- Next state
-               v.state := IDLE_S;
-            end if;
-         ----------------------------------------------------------------------
-         when DATA_S =>
+         when DESER_S =>
             -------------------------------------------------------------------
             -- 21 bits of each pixel SRAM are read and serialized at 320 MHz, 
             -- the serial data will be transmitted at a max. freq. of 320 MHz.
