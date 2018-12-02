@@ -40,6 +40,7 @@ entity AtlasAltirocAsicCtrl is
       deserInvert     : out sl;
       continuous      : out sl;
       oneShot         : out sl;
+      invRstCnt       : out sl;
       pulseCount      : out slv(15 downto 0);
       pulseWidth      : out slv(15 downto 0);
       pulsePeriod     : out slv(15 downto 0);
@@ -71,6 +72,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       hitCnt          : slv(31 downto 0);
       continuous      : sl;
       oneShot         : sl;
+      invRstCnt       : sl;
       pulseCount      : slv(15 downto 0);
       pulseWidth      : slv(15 downto 0);
       pulsePeriod     : slv(15 downto 0);
@@ -96,6 +98,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       hitCnt          => (others => '0'),
       continuous      => '0',
       oneShot         => '0',
+      invRstCnt       => '0',
       pulseCount      => toSlv(1, 16),
       pulseWidth      => toSlv(1, 16),
       pulsePeriod     => toSlv(2, 16),
@@ -203,6 +206,7 @@ begin
       axiSlaveRegister(axilEp, x"A18", 0, v.readDelay);
       axiSlaveRegister(axilEp, x"A1C", 0, v.readDuration);
       axiSlaveRegister(axilEp, x"A20", 0, v.rstCntMask);
+      axiSlaveRegister(axilEp, x"A24", 0, v.invRstCnt);
 
       axiSlaveRegister(axilEp, x"FFC", 0, v.cntRst);
 
@@ -299,6 +303,14 @@ begin
          clk     => clk40MHz,
          dataIn  => r.rstCntMask,
          dataOut => rstCntMask);
+
+   U_invRstCnt : entity work.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => clk40MHz,
+         dataIn  => r.invRstCnt,
+         dataOut => invRstCnt);
 
    U_continuous : entity work.Synchronizer
       generic map (

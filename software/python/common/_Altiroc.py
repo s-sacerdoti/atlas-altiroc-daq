@@ -149,7 +149,19 @@ class AltirocPulseTrain(pr.Device):
             offset       = 0xA20,
             bitSize      = 2, 
             mode         = 'RW',
-        ))          
+        ))   
+
+        self.add(pr.RemoteVariable(
+            name         = 'ResetCounterPolarity', 
+            description  = 'Selects whether the reset_counter is inverted polarity',
+            offset       = 0xA24,
+            bitSize      = 1, 
+            mode         = 'RW',
+            enum        = {
+                0x0: 'NonInverted', 
+                0x1: 'Inverted',               
+            },
+        ))        
         
 class Altiroc(pr.Device):
     def __init__(   

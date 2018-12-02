@@ -35,6 +35,7 @@ entity AtlasAltirocAsicPulseTrain is
       -- Configuration Interface
       continuous    : in  sl;
       oneShot       : in  sl;
+      invRstCnt     : in  sl;
       pulseDelay    : in  slv(15 downto 0);
       readDelay     : in  slv(15 downto 0);
       readDuration  : in  slv(15 downto 0);
@@ -67,7 +68,7 @@ architecture rtl of AtlasAltirocAsicPulseTrain is
       readDuration : slv(15 downto 0);
       pulseCount   : slv(15 downto 0);
       pulsePeriod  : slv(15 downto 0);
-      rstbCounter  : sl;
+      rstCounter   : sl;
       renable      : sl;
       pulse        : sl;
       cnt          : slv(15 downto 0);
@@ -81,7 +82,7 @@ architecture rtl of AtlasAltirocAsicPulseTrain is
       readDuration => (others => '0'),
       pulseCount   => (others => '0'),
       pulsePeriod  => (others => '0'),
-      rstbCounter  => '1',
+      rstCounter   => '0',
       renable      => '0',
       pulse        => '0',
       cnt          => (others => '0'),
@@ -91,15 +92,17 @@ architecture rtl of AtlasAltirocAsicPulseTrain is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal pulse : sl;
+   signal pulse  : sl;
+   signal rstCnt : sl;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 
-   comb : process (continuous, oneShot, pulseCount, pulseDelay, pulsePeriod, r,
-                   readDelay, readDuration, rst40MHz, rstCntMask) is
+   comb : process (continuous, invRstCnt, oneShot, pulseCount, pulseDelay,
+                   pulsePeriod, r, readDelay, readDuration, rst40MHz,
+                   rstCntMask) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -114,8 +117,8 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset flags
-            v.rstbCounter := '1';
-            v.renable     := '0';
+            v.rstCounter := '0';
+            v.renable    := '0';
 
             -- Reset the counter
             v.cnt      := (others => '0');
@@ -134,8 +137,8 @@ begin
                -- Check for start and a one-shot trigger with a non-zero pulse count
                if (continuous = '1') or ((oneShot = '1') and (pulseCount /= 0)) then
 
-                  -- Set the flag (active LOW)
-                  v.rstbCounter := not(rstCntMask(0));
+                  -- Set the flag (active HIGH)
+                  v.rstCounter := rstCntMask(0);
 
                   -- Check for zero pulse delay
                   if (pulseDelay = 0) then
@@ -151,8 +154,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when START_DLY_S =>
-            -- Reset the flag (active LOW)
-            v.rstbCounter := '1';
+            -- Reset the flag (active HIGH)
+            v.rstCounter := '0';
 
             -- Increment the counter
             v.cnt := r.cnt + 1;
@@ -165,8 +168,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when RUN_S =>
-            -- Reset the flag (active LOW)
-            v.rstbCounter := '1';
+            -- Reset the flag (active HIGH)
+            v.rstCounter := '0';
 
             -- Increment the counter
             v.cnt := r.cnt + 1;
@@ -193,10 +196,10 @@ begin
 
                   -- Check for zero read delay
                   if (r.readDelay = 0) then
-                     -- Set the flag (active LOW)
-                     v.rstbCounter := not(rstCntMask(1));
+                     -- Set the flag (active HIGH)
+                     v.rstCounter := rstCntMask(1);
                      -- Next state
-                     v.state       := READ_S;
+                     v.state      := READ_S;
                   else
                      -- Next state
                      v.state := READ_DLY_S;
@@ -215,8 +218,8 @@ begin
                -- Reset the counter
                v.cnt := (others => '0');
 
-               -- Set the flag (active LOW)
-               v.rstbCounter := not(rstCntMask(1));
+               -- Set the flag (active HIGH)
+               v.rstCounter := rstCntMask(1);
 
                -- Next state
                v.state := READ_S;
@@ -235,8 +238,8 @@ begin
 
             -- Check if need to deassert the reset
             if (r.cnt = 1) then
-               -- Set the flag (active LOW)
-               v.rstbCounter := '1';
+               -- Reset the flag (active HIGH)
+               v.rstCounter := '0';
             end if;
 
             -- Check the end of the period
@@ -248,8 +251,8 @@ begin
                -- Set the flag
                v.renable := '0';
 
-               -- Set the flag (active LOW)
-               v.rstbCounter := '1';
+               -- Reset the flag (active HIGH)
+               v.rstCounter := '0';
 
                -- Check if doing another iteration
                if (continuous = '1') and (pulsePeriod /= 0) and (pulseCount /= 0) then
@@ -261,8 +264,8 @@ begin
                   v.pulseCount   := pulseCount;
                   v.pulsePeriod  := pulsePeriod;
 
-                  -- Set the flag (active LOW)
-                  v.rstbCounter := not(rstCntMask(0));
+                  -- Set the flag (active HIGH)
+                  v.rstCounter := rstCntMask(0);
 
                   -- Check for zero pulse delay
                   if (pulseDelay = 0) then
@@ -285,6 +288,7 @@ begin
       -- Outputs
       emuTrig       <= r.pulse;
       readoutEnable <= r.renable;
+      rstCnt        <= r.rstCounter xor invRstCnt;
 
       -- Reset
       if (rst40MHz = '1') then
@@ -308,7 +312,7 @@ begin
          TPD_G => TPD_G)
       port map (
          C => clk40MHz,
-         I => r.rstbCounter,
+         I => rstCnt,
          O => rstbCounter);
 
    U_renable : entity work.OutputBufferReg

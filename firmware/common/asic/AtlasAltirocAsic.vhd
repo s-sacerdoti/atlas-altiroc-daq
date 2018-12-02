@@ -116,6 +116,7 @@ architecture mapping of AtlasAltirocAsic is
    signal deserInvert     : sl;
    signal continuous      : sl;
    signal oneShot         : sl;
+   signal invRstCnt       : sl;
    signal pulseCount      : slv(15 downto 0);
    signal pulseWidth      : slv(15 downto 0);
    signal pulsePeriod     : slv(15 downto 0);
@@ -227,6 +228,7 @@ begin
          deserInvert     => deserInvert,
          continuous      => continuous,
          oneShot         => oneShot,
+         invRstCnt       => invRstCnt,
          pulseCount      => pulseCount,
          pulseWidth      => pulseWidth,
          pulsePeriod     => pulsePeriod,
@@ -262,6 +264,7 @@ begin
          -- Configuration Interface
          continuous    => continuous,
          oneShot       => oneShot,
+         invRstCnt     => invRstCnt,
          pulseCount    => pulseCount,
          pulseWidth    => pulseWidth,
          pulsePeriod   => pulsePeriod,
