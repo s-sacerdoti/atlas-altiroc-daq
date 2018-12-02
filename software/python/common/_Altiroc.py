@@ -161,7 +161,135 @@ class AltirocPulseTrain(pr.Device):
                 0x0: 'NonInverted', 
                 0x1: 'Inverted',               
             },
+        ))  
+
+class AltirocDoutDebug(pr.Device):
+    def __init__(   
+        self,       
+        name        = "AltirocDoutDebug",
+        description = "Container for Altiroc ASIC\'s DOUT debugging",
+            **kwargs):
+        
+        super().__init__(
+            name        = name,
+            description = description,
+            **kwargs)
+            
+        # self.doutFormat  = """
+            # Read only register to present the streaming data bus 
+            # DataBus(31:19) = sequence counter (increments once per deserialized word
+            # DataBus(18:00) = AXIS's 19-bit deserialized data output """,            
+            
+        self.add(pr.RemoteVariable(
+            name         = 'DeserSampleEdge', 
+            description  = 'Selects whether the rising edge or falling edge sample is used in the deserializer',
+            offset       = 0x900,
+            bitSize      = 1, 
+            bitOffset    = 0,
+            mode         = 'RW',
+            enum        = {
+                0x0: 'RisingEdge', 
+                0x1: 'FallingEdge',               
+            },
+        )) 
+
+        self.add(pr.RemoteVariable(
+            name         = 'DeserInvertDout', 
+            description  = 'Selects whether the dout is inverted before the serializer (used in case of a layout polarity inversion)',
+            offset       = 0x900,
+            bitSize      = 1, 
+            bitOffset    = 1,
+            mode         = 'RW',
+            enum        = {
+                0x0: 'NonInverted', 
+                0x1: 'Inverted',               
+            },
+        ))             
+        
+        self.add(pr.RemoteVariable(
+            name         = 'DataWordCnt', 
+            description  = 'Increment every time a data word is sent to the DAQ PC',
+            offset       = 0x90C,
+            bitSize      = 32,  
+            mode         = 'RO',
+            base         = pr.UInt,
+            pollInterval = 1,
+        ))   
+
+        self.add(pr.RemoteVariable(
+            name         = 'HitDetCnt', 
+            description  = 'Increment every time a data word is sent to the DAQ PC with a hit',
+            offset       = 0x910,
+            bitSize      = 32,  
+            mode         = 'RO',
+            base         = pr.UInt,
+            pollInterval = 1,
+        ))     
+
+        self.add(pr.RemoteVariable(
+            name         = 'LastSeqCnt', 
+            offset       = 0x914,
+            bitSize      = 13,  
+            bitOffset    = 19,
+            mode         = 'RO',
+            base         = pr.UInt,
+            pollInterval = 1,
+        )) 
+        
+        self.add(pr.RemoteVariable(
+            name         = 'LastDeserWord_TotOverflow', 
+            offset       = 0x914,
+            bitSize      = 1,  
+            bitOffset    = 18,
+            mode         = 'RO',
+            pollInterval = 1,
         ))        
+        
+        self.add(pr.RemoteVariable(
+            name         = 'LastDeserWord_TotData', 
+            offset       = 0x914,
+            bitSize      = 9,  
+            bitOffset    = 9,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))         
+        
+        self.add(pr.RemoteVariable(
+            name         = 'LastDeserWord_ToaOverflow', 
+            offset       = 0x914,
+            bitSize      = 8,  
+            bitOffset    = 1,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))         
+        
+        self.add(pr.RemoteVariable(
+            name         = 'LastDeserWord_ToaData', 
+            offset       = 0x914,
+            bitSize      = 7,  
+            bitOffset    = 1,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))         
+        
+        self.add(pr.RemoteVariable(
+            name         = 'LastDeserWord_Hit', 
+            offset       = 0x914,
+            bitSize      = 1,  
+            bitOffset    = 0,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))         
+            
+        self.add(pr.RemoteVariable(
+            name         = 'DataDropCnt', 
+            description  = 'Increment every time a data word is dropped due to backpressure',
+            offset       = 0x918,
+            bitSize      = 32,  
+            mode         = 'RO',
+            base         = pr.UInt,
+            pollInterval = 1,
+        ))                   
         
 class Altiroc(pr.Device):
     def __init__(   
@@ -191,33 +319,7 @@ class Altiroc(pr.Device):
                 0x5: '1.25MHz',                 
             },
         ))              
-        
-        self.add(pr.RemoteVariable(
-            name         = 'DeserSampleEdge', 
-            description  = 'Selects whether the rising edge or falling edge sample is used in the deserializer',
-            offset       = 0x900,
-            bitSize      = 1, 
-            bitOffset    = 0,
-            mode         = 'RW',
-            enum        = {
-                0x0: 'RisingEdge', 
-                0x1: 'FallingEdge',               
-            },
-        )) 
-
-        self.add(pr.RemoteVariable(
-            name         = 'DeserInvertDout', 
-            description  = 'Selects whether the dout is inverted before the serializer (used in case of a layout polarity inversion)',
-            offset       = 0x900,
-            bitSize      = 1, 
-            bitOffset    = 1,
-            mode         = 'RW',
-            enum        = {
-                0x0: 'NonInverted', 
-                0x1: 'Inverted',               
-            },
-        ))         
-            
+                    
         self.add(pr.RemoteVariable(
             name         = 'EmuEnable', 
             description  = 'Enables the emulation mode where a streaming data hit message will be generated for every pulse from the pulse generator',
@@ -225,67 +327,7 @@ class Altiroc(pr.Device):
             bitSize      = 1, 
             mode         = 'RW',        
         )) 
-        
-        self.add(pr.RemoteVariable(
-            name         = 'DataWordCnt', 
-            description  = 'Increment every time a data word is sent to the DAQ PC',
-            offset       = 0x90C,
-            bitSize      = 32,  
-            mode         = 'RO',
-            base         = pr.UInt,
-            pollInterval = 1,
-        ))   
-
-        self.add(pr.RemoteVariable(
-            name         = 'HitDetCnt', 
-            description  = 'Increment every time a data word is sent to the DAQ PC with a hit',
-            offset       = 0x910,
-            bitSize      = 32,  
-            mode         = 'RO',
-            base         = pr.UInt,
-            pollInterval = 1,
-        ))     
-
-        self.add(pr.RemoteVariable(
-            name         = 'LastSeqCnt', 
-            description  = """
-                Read only register to present the streaming data bus 
-                DataBus(31:19) = sequence counter (increments once per deserialized word
-                DataBus(18:00) = AXIS's 19-bit deserialized data output """,
-            offset       = 0x914,
-            bitSize      = 13,  
-            bitOffset    = 19,
-            mode         = 'RO',
-            base         = pr.UInt,
-            pollInterval = 1,
-        )) 
-        
-        downToBitOrdering = pr.UInt
-        upToBitOrdering   = pr.UIntReversed 
-        self.add(pr.RemoteVariable(
-            name         = 'LastAsicDout', 
-            description  = """
-                Read only register to present the streaming data bus 
-                DataBus(31:19) = sequence counter (increments once per deserialized word
-                DataBus(18:00) = AXIS's 19-bit deserialized data output """,
-            offset       = 0x914,
-            bitSize      = 19,  
-            bitOffset    = 0,
-            mode         = 'RO',
-            base         = downToBitOrdering,
-            pollInterval = 1,
-        ))         
-            
-        self.add(pr.RemoteVariable(
-            name         = 'DataDropCnt', 
-            description  = 'Increment every time a data word is dropped due to backpressure',
-            offset       = 0x918,
-            bitSize      = 32,  
-            mode         = 'RO',
-            base         = pr.UInt,
-            pollInterval = 1,
-        ))             
-            
+                   
         self.add(AltirocGpio(
             name        = 'Gpio', 
             offset      = 0x0, 
@@ -296,7 +338,13 @@ class Altiroc(pr.Device):
             name        = 'PulseTrain', 
             offset      = 0x0, 
             expand      = False,
-        ))              
+        ))
+
+        self.add(AltirocDoutDebug(
+            name        = 'DoutDebug', 
+            offset      = 0x0, 
+            expand      = False,
+        ))        
         
         self.add(common.AltirocSlowControl(
             name        = 'SlowControl', 
