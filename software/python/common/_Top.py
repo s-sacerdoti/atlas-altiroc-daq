@@ -78,6 +78,8 @@ class ExampleEventReader(rogue.interfaces.stream.Slave):
                         dat.ToaData,
                         dat.Hit,
                 ))
+        else:
+            print ('Event dumped')
         
 class Top(pr.Root):
     def __init__(   self,       
@@ -105,7 +107,7 @@ class Top(pr.Root):
             self.srpStream  = pr.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=12, ssi=True)
             self.dataStream = pr.interfaces.simulation.StreamSim(host='localhost', dest=1, uid=12, ssi=True)      
         elif (hwType == 'eth'):
-            self.rudp       = pr.protocols.UdpRssiPack(host=ip,port=8192,packVer=2)        
+            self.rudp       = pr.protocols.UdpRssiPack(host=ip,port=8192,packVer=2,jumbo=False)        
             self.srpStream  = self.rudp.application(0)
             self.dataStream = self.rudp.application(1) 
             # self.add(self.rudp)
@@ -220,18 +222,28 @@ class Top(pr.Root):
             for enableList in self.find(typ=pr.EnableVariable):
                 enableList.hidden = True
             
-            # Wait for the PLL to lock
+            # Wait for the SiLab PLL to lock
             print ("Waiting for PLLs (SiLab and FPGA) to lock")
             retry = 0
             while (retry<100):
-                if (self.SysReg.IntPllLocked.get() == 0x1):
+                if (self.SysReg.ExtPllLocked.get() == 0x1):
                     break
                 else:
                     retry = retry + 1
                     time.sleep(0.1)
                     
+            # Wait for the FPGA PLL to lock
+            while (retry<100):
+                if (self.SysReg.IntPllLocked.get() == 0x1):
+                    break
+                else:
+                    retry = retry + 1
+                    time.sleep(0.1)                    
+                    
             # Print the results
             if (retry<100):
+                # Wait for system to settle down (unclear why I need this sleep)
+                time.sleep(3.0)
                 print ("PLL locks established")
             else:
                 print ("Failed to establish PLL locking after 10 seconds")

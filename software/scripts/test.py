@@ -44,7 +44,7 @@ class MyEventReader(rogue.interfaces.stream.Slave):
             # Loop through each 32-bit word
             for i in range(count):
                 # Parse the 32-bit word
-                dat = ParseDataWord(hitWrd[i])
+                dat = feb.ParseDataWord(hitWrd[i])
                 # Print the event if hit
                 if (dat.Hit > 0):                
                     # Print the event
@@ -91,6 +91,9 @@ top.start(initRead=True)
 # Load the default YAML file
 top.ReadConfig(arg='config/test.yml')
 
+# Open a file to dump the streaming data
+top.dataWriter._writer.open('test.dat')
+
 # Setup the pulser generator 
 top.Asic.PulseTrain.PulseCount.set(0x1)
 top.Asic.PulseTrain.PulseWidth.set(0x1)
@@ -119,4 +122,5 @@ for i in range(1024):
 time.sleep(1)
 
 # Close
+top.dataWriter._writer.close()
 top.stop()

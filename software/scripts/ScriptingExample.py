@@ -55,18 +55,20 @@ top.start(initRead=True)
 # Load the default YAML file
 top.ReadConfig(arg='config/defaults.yml')
 
+# Open a file to dump the streaming data
+top.dataWriter._writer.open('test.dat')
+
 # Print the AXI Version build information
 top.AxiVersion.printStatus()
 
 # Use the emulation mode to generate for "fake" hit messages
-top.Asic.EmuEnable.set(0x1)
+top.Asic.PulseTrain.Continuous.set(0x0)
 top.Asic.PulseTrain.PulseCount.set(0x4)
 top.Asic.PulseTrain.PulseWidth.set(0x1)
 top.Asic.PulseTrain.PulsePeriod.set(0x10)
-top.Asic.PulseTrain.Continuous.set(0x0)
+top.Asic.EmuEnable.set(0x1)
 top.Asic.PulseTrain.OneShot()
 top.Asic.EmuEnable.set(0x0)
-time.sleep(0.1)
 
 # Reset the ASIC
 print ('Send a 1 second Reset pulse to all ASIC reset lines')
@@ -101,4 +103,5 @@ for i in range(2**10):
 print( f'ASIC\'s DAC.Value[{i}]' )
 
 # Close
+top.dataWriter._writer.close()
 top.stop()
