@@ -38,6 +38,7 @@ entity AtlasAltirocAsicCtrl is
       ckWriteAsic     : out sl;         -- CK_WRITE_ASIC
       deserSampleEdge : out sl;
       deserInvert     : out sl;
+      deserSlip       : out sl;
       continuous      : out sl;
       oneShot         : out sl;
       invRstCnt       : out sl;
@@ -82,6 +83,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       rstCntMask      : slv(1 downto 0);
       deserSampleEdge : sl;
       deserInvert     : sl;
+      deserSlip       : sl;
       rstbRam         : sl;
       rstbRead        : sl;
       rstbTdc         : sl;
@@ -108,6 +110,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       rstCntMask      => "11",
       deserSampleEdge => '0',
       deserInvert     => '0',
+      deserSlip       => '0',
       rstbRam         => '1',
       rstbRead        => '1',
       rstbTdc         => '1',
@@ -147,8 +150,9 @@ begin
       v := r;
 
       -- Reset strobes
-      v.cntRst  := '0';
-      v.oneShot := '0';
+      v.cntRst    := '0';
+      v.oneShot   := '0';
+      v.deserSlip := '0';
 
 
       -- Check for counter reset
@@ -188,6 +192,7 @@ begin
       -- axiSlaveRegister(axilEp, x"810", 0, v.rstbCounter);
       axiSlaveRegister(axilEp, x"814", 0, v.ckWrConfig);
 
+      axiSlaveRegister (axilEp, x"8FC", 0, v.deserSlip);
       axiSlaveRegister (axilEp, x"900", 0, v.deserSampleEdge);
       axiSlaveRegister (axilEp, x"900", 1, v.deserInvert);
       axiSlaveRegister (axilEp, x"904", 0, v.emuEnable);
@@ -343,6 +348,14 @@ begin
          clk     => deserClk,
          dataIn  => r.deserInvert,
          dataOut => deserInvert);
+
+   U_deserSlip : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => deserClk,
+         dataIn  => r.deserSlip,
+         dataOut => deserSlip);
 
    U_rstbRam : entity work.RstSync
       generic map (

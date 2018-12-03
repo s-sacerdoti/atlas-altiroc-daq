@@ -114,6 +114,7 @@ architecture mapping of AtlasAltirocAsic is
 
    signal deserSampleEdge : sl;
    signal deserInvert     : sl;
+   signal deserSlip       : sl;
    signal continuous      : sl;
    signal oneShot         : sl;
    signal invRstCnt       : sl;
@@ -226,6 +227,7 @@ begin
          ckWriteAsic     => ckWriteAsic,  -- CK_WRITE_ASIC
          deserSampleEdge => deserSampleEdge,
          deserInvert     => deserInvert,
+         deserSlip       => deserSlip,
          continuous      => continuous,
          oneShot         => oneShot,
          invRstCnt       => invRstCnt,
@@ -298,6 +300,7 @@ begin
          deserRst        => deserRst,
          deserSampleEdge => deserSampleEdge,
          deserInvert     => deserInvert,
+         deserSlip       => deserSlip,
          doutP           => doutP,
          doutN           => doutN,
          -- Master AXI Stream Interface

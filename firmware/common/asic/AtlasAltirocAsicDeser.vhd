@@ -37,6 +37,7 @@ entity AtlasAltirocAsicDeser is
       deserRst        : in  sl;
       deserSampleEdge : in  sl;  -- '0' = rising_edge, '1' = falling_edge          
       deserInvert     : in  sl;
+      deserSlip       : in  sl;
       doutP           : in  sl;         -- DOUT_P
       doutN           : in  sl;         -- DOUT_N      
       -- Master AXI Stream Interface
@@ -51,6 +52,7 @@ architecture rtl of AtlasAltirocAsicDeser is
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- 32-bit AXI stream interface
 
    type RegType is record
+      runEnable   : sl;
       dataDropped : sl;
       dout        : sl;
       doutArray   : slv(22 downto 0);
@@ -61,6 +63,7 @@ architecture rtl of AtlasAltirocAsicDeser is
       txMaster    : AxiStreamMasterType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      runEnable   => '0',
       dataDropped => '0',
       dout        => '0',
       doutArray   => (others => '0'),
@@ -82,17 +85,14 @@ architecture rtl of AtlasAltirocAsicDeser is
    signal runEnable       : sl;
    signal emulationEnable : sl;
    signal emulationTrig   : sl;
-   signal edgeSelect      : sl;
-   signal invertData      : sl;
 
-   attribute dont_touch                    : string;
-   attribute dont_touch of r               : signal is "TRUE";
-   attribute dont_touch of Q1              : signal is "TRUE";
-   attribute dont_touch of Q2              : signal is "TRUE";
-   attribute dont_touch of runEnable       : signal is "TRUE";
-   attribute dont_touch of emulationEnable : signal is "TRUE";
-   attribute dont_touch of emulationTrig   : signal is "TRUE";
-   attribute dont_touch of invertData      : signal is "TRUE";
+   -- attribute dont_touch                    : string;
+   -- attribute dont_touch of r               : signal is "TRUE";
+   -- attribute dont_touch of Q1              : signal is "TRUE";
+   -- attribute dont_touch of Q2              : signal is "TRUE";
+   -- attribute dont_touch of runEnable       : signal is "TRUE";
+   -- attribute dont_touch of emulationEnable : signal is "TRUE";
+   -- attribute dont_touch of emulationTrig   : signal is "TRUE";
 
 begin
 
@@ -118,22 +118,18 @@ begin
    U_SyncVec : entity work.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
-         WIDTH_G => 4)
+         WIDTH_G => 2)
       port map (
          clk        => deserClk,
          -- Input
-         dataIn(0)  => deserSampleEdge,
-         dataIn(1)  => emuEnable,
-         dataIn(2)  => readoutEnable,
-         dataIn(3)  => deserInvert,
+         dataIn(0)  => emuEnable,
+         dataIn(1)  => readoutEnable,
          -- Output
-         dataOut(0) => edgeSelect,
-         dataOut(1) => emulationEnable,
-         dataOut(2) => runEnable,
-         dataOut(3) => invertData);
+         dataOut(0) => emulationEnable,
+         dataOut(1) => runEnable);
 
-   comb : process (Q1, Q2, deserRst, edgeSelect, emulationEnable,
-                   emulationTrig, invertData, r, runEnable, txSlave) is
+   comb : process (Q1, Q2, deserInvert, deserRst, deserSampleEdge, deserSlip,
+                   emulationEnable, emulationTrig, r, runEnable, txSlave) is
       variable v      : RegType;
       variable i      : natural;
       variable sofDet : sl;
@@ -147,14 +143,16 @@ begin
       -- Check the flow control
       if txSlave.tReady = '1' then
          v.txMaster.tValid := '0';
+         v.txMaster.tLast  := '0';
+         v.txMaster.tUser  := (others => '0');
       end if;
 
       -- Check if using rising_edge sample
-      if (edgeSelect = '0') then
-         v.dout := Q1 xor invertData;
+      if (deserSampleEdge = '0') then
+         v.dout := Q1 xor deserInvert;
       -- Else using falling_edge sample
       else
-         v.dout := Q2 xor invertData;
+         v.dout := Q2 xor deserInvert;
       end if;
 
       -- Create a shift register array
@@ -165,6 +163,7 @@ begin
 
          -- Check for trigger and ready to move data
          if (emulationTrig = '1') then
+
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                -- Forward the data
@@ -175,8 +174,10 @@ begin
                -- Drop data due to back pressure
                v.dataDropped := '1';
             end if;
+
             -- Increment the sequence counter
             v.seqCnt := r.seqCnt + 1;
+
          end if;
 
          -- Reset the flags
@@ -185,7 +186,15 @@ begin
          -- Reset the counter
          v.cnt := 0;
 
-      else
+         -- Reset cache
+         v.runEnable := '0';
+
+         -- Only Sending 1 word frames
+         ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');  -- Tag as start of frame (SOF)
+         v.txMaster.tLast := '1';       -- Tag as end of frame (EOF)         
+
+      -- Check if not bit slipping
+      elsif (deserSlip = '0') then
 
          -------------------------------------------------------------------
          -- 21 bits of each pixel SRAM are read and serialized at 320 MHz, 
@@ -211,28 +220,50 @@ begin
                -- Alignment detected
                v.aligned := r.aligned(2 downto 0) & '1';
 
-               -- Check for Readout Enable (RENABLE) and alignment detected 4 times or more
-               if (runEnable = '1') and (r.aligned = x"F") then
+               -- Check for alignment detected 4 times or more
+               if (r.aligned = x"F") then
 
-                  -- Check if ready to move data
-                  if (v.txMaster.tValid = '0') then
-                     -- Forward the data
-                     v.txMaster.tValid              := '1';
-                     v.txMaster.tData(31 downto 19) := r.seqCnt;
-                     v.txMaster.tData(18 downto 0)  := r.doutArray(20 downto 2);
-                  else
-                     -- Drop data due to back pressure
-                     v.dataDropped := '1';
+                  -- Make delayed copy cache
+                  v.runEnable := runEnable;
+
+                  -- Check for Readout Enable (RENABLE)
+                  if (runEnable = '1') or (r.runEnable = '1') then
+
+                     -- Check if ready to move data
+                     if (v.txMaster.tValid = '0') then
+
+                        -- Forward the data
+                        v.txMaster.tValid              := '1';
+                        v.txMaster.tData(31 downto 19) := r.seqCnt;
+                        v.txMaster.tData(18 downto 0)  := r.doutArray(20 downto 2);
+
+                        -- Check for SOF condition
+                        if (r.runEnable = '0') and (runEnable = '1') then
+                           ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');
+                        end if;
+
+                        -- Check for EOF condition
+                        if (r.runEnable = '1') and (runEnable = '0') then
+                           v.txMaster.tLast := '1';
+                        end if;
+
+                     else
+                        -- Drop data due to back pressure
+                        v.dataDropped := '1';
+                     end if;
+
+                     -- Increment the sequence counter
+                     v.seqCnt := r.seqCnt + 1;
+
                   end if;
-
-                  -- Increment the sequence counter
-                  v.seqCnt := r.seqCnt + 1;
 
                end if;
 
             else
                -- Reset the flags
-               v.aligned := x"0";
+               v.aligned   := x"0";
+               -- Reset cache
+               v.runEnable := '0';
             end if;
 
          else
@@ -241,10 +272,6 @@ begin
          end if;
 
       end if;
-
-      -- Only Sending 1 word frames
-      ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');  -- Tag as start of frame (SOF)
-      v.txMaster.tLast := '1';          -- Tag as end of frame (EOF)
 
       -- Tap for chipscope debugging signal
       v.tData := v.txMaster.tData(31 downto 0);

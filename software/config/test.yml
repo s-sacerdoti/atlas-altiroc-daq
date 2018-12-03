@@ -6,8 +6,9 @@ Top:
     RawValue:  0x8000
   Asic:
     CK_WRITE: Disabled
-    DeserSampleEdge: RisingEdge
     EmuEnable: 0x0
+    DoutDebug:
+      DeserSampleEdge: RisingEdge
     PulseTrain:
       Continuous: 0x0 
       PulseCount: 4

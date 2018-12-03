@@ -21,34 +21,6 @@ import os
 
 #################################################################
 
-class MyEventReader(rogue.interfaces.stream.Slave):
-
-    def __init__(self):
-        rogue.interfaces.stream.Slave.__init__(self)
-
-    def _acceptFrame(self,frame):
-        # Get the payload data
-        p = bytearray(frame.getPayload())
-        # Return the buffer index
-        frame.read(p,0)
-        # Check for a 32-bit word
-        if len(p) == 4:
-            # Combine the byte array into single 32-bit word
-            hitWrd = np.frombuffer(p, dtype='uint32', count=1)
-            # Parse the 32-bit word
-            dat = feb.ParseDataWord(hitWrd[0])
-            # Print the event
-            print( 'Event[SeqCnt=0x%x]: (TotOverflow = %r, TotData = 0x%x), (ToaOverflow = %r, ToaData = 0x%x), hit=%r' % (
-                    dat.SeqCnt,
-                    dat.TotOverflow,
-                    dat.TotData,
-                    dat.ToaOverflow,
-                    dat.ToaData,
-                    dat.Hit,
-            ))            
-
-#################################################################
-
 # Set the argument parser
 parser = argparse.ArgumentParser()
 
@@ -69,7 +41,7 @@ args = parser.parse_args()
 dataReader = rogue.utilities.fileio.StreamReader()
 
 # Create the Event reader streaming interface
-dataStream = MyEventReader()
+dataStream = feb.ExampleEventReader()
 
 # Connect the file reader to the event reader
 pr.streamConnect(dataReader, dataStream) 
