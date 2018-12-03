@@ -222,6 +222,15 @@ class AltirocDoutDebug(pr.Device):
         ))             
         
         self.add(pr.RemoteVariable(
+            name         = 'ForwardData', 
+            description  = '1: Forwards data to the computer, 0: blows off the data stream',
+            offset       = 0x908,
+            bitSize      = 1, 
+            bitOffset    = 0,
+            mode         = 'RW',
+        ))        
+        
+        self.add(pr.RemoteVariable(
             name         = 'DataWordCnt', 
             description  = 'Increment every time a data word is sent to the DAQ PC',
             offset       = 0x90C,

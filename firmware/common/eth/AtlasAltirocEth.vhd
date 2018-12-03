@@ -246,24 +246,25 @@ begin
    ------------------------------------------
    U_RssiServer : entity work.RssiCoreWrapper
       generic map (
-         TPD_G               => TPD_G,
-         APP_ILEAVE_EN_G     => true,    -- Interleaved RSSI (PackVer = 2)
-         MAX_SEG_SIZE_G      => 1024,
-         SEGMENT_ADDR_SIZE_G => 7,
-         APP_STREAMS_G       => APP_STREAMS_C,
-         APP_STREAM_ROUTES_G => (
-            0                => X"00",   -- SRPv3
-            1                => X"01"),  -- Data[0]          
-         CLK_FREQUENCY_G     => CLK_FREQUENCY_C,
-         TIMEOUT_UNIT_G      => 1.0E-3,  -- In units of seconds
-         SERVER_G            => true,
-         RETRANSMIT_ENABLE_G => true,
-         BYPASS_CHUNKER_G    => false,
-         WINDOW_ADDR_SIZE_G  => 3,
-         PIPE_STAGES_G       => 1,
-         APP_AXIS_CONFIG_G   => APP_AXIS_CONFIG_C,
-         TSP_AXIS_CONFIG_G   => EMAC_AXIS_CONFIG_C,
-         INIT_SEQ_N_G        => 16#80#)
+         TPD_G                => TPD_G,
+         APP_ILEAVE_EN_G      => true,    -- Interleaved RSSI (PackVer = 2)
+         ILEAVE_ON_NOTVALID_G => true,
+         MAX_SEG_SIZE_G       => 1024,
+         SEGMENT_ADDR_SIZE_G  => 7,
+         APP_STREAMS_G        => APP_STREAMS_C,
+         APP_STREAM_ROUTES_G  => (
+            0                 => X"00",   -- SRPv3
+            1                 => X"01"),  -- Data[0]          
+         CLK_FREQUENCY_G      => CLK_FREQUENCY_C,
+         TIMEOUT_UNIT_G       => 1.0E-3,  -- In units of seconds
+         SERVER_G             => true,
+         RETRANSMIT_ENABLE_G  => true,
+         BYPASS_CHUNKER_G     => false,
+         WINDOW_ADDR_SIZE_G   => 3,
+         PIPE_STAGES_G        => 1,
+         APP_AXIS_CONFIG_G    => APP_AXIS_CONFIG_C,
+         TSP_AXIS_CONFIG_G    => EMAC_AXIS_CONFIG_C,
+         INIT_SEQ_N_G         => 16#80#)
       port map (
          clk_i             => ethClk,
          rst_i             => ethRst,

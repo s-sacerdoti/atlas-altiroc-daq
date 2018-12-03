@@ -118,6 +118,7 @@ architecture mapping of AtlasAltirocAsic is
    signal continuous      : sl;
    signal oneShot         : sl;
    signal invRstCnt       : sl;
+   signal forwardData     : sl;
    signal pulseCount      : slv(15 downto 0);
    signal pulseWidth      : slv(15 downto 0);
    signal pulsePeriod     : slv(15 downto 0);
@@ -243,6 +244,7 @@ begin
          dataWordDet     => dataWordDet,
          hitDet          => hitDet,
          dataBus         => dataBus,
+         forwardData     => forwardData,
          -- AXI-Lite Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
@@ -309,9 +311,18 @@ begin
          mAxisMaster     => dataMaster,
          mAxisSlave      => mDataSlave);
 
-   mDataMaster <= dataMaster;
-   dataWordDet <= dataMaster.tValid and mDataSlave.tReady;
-   hitDet      <= dataWordDet and dataMaster.tData(0);
+
+   process(dataMaster, dataWordDet, forwardData, mDataSlave)
+      variable data : AxiStreamMasterType;
+   begin
+      data        := dataMaster;
+      dataWordDet <= dataMaster.tValid and mDataSlave.tReady;
+      hitDet      <= dataWordDet and dataMaster.tData(0);
+      if (forwardData = '0') then
+         data.tValid := '0';
+      end if;
+      mDataMaster <= data;
+   end process;
 
    process(axilClk)
    begin

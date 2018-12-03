@@ -54,6 +54,7 @@ entity AtlasAltirocAsicCtrl is
       hitDet          : in  sl;
       dataBus         : in  slv(31 downto 0);
       dataDropped     : in  sl;
+      forwardData     : out sl;
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -89,6 +90,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       rstbTdc         : sl;
       ckWrConfig      : slv(CK_WR_CONFIG_SIZE_C-1 downto 0);
       emuEnable       : sl;
+      forwardData     : sl;
       cntRst          : sl;
       axilReadSlave   : AxiLiteReadSlaveType;
       axilWriteSlave  : AxiLiteWriteSlaveType;
@@ -116,6 +118,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       rstbTdc         => '1',
       ckWrConfig      => (others => '0'),
       emuEnable       => '0',
+      forwardData     => '1',
       cntRst          => '0',
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -196,7 +199,7 @@ begin
       axiSlaveRegister (axilEp, x"900", 0, v.deserSampleEdge);
       axiSlaveRegister (axilEp, x"900", 1, v.deserInvert);
       axiSlaveRegister (axilEp, x"904", 0, v.emuEnable);
-      -- axiSlaveRegister (axilEp, x"908", 0, v.dataEnable);
+      axiSlaveRegister (axilEp, x"908", 0, v.forwardData);
       axiSlaveRegisterR(axilEp, x"90C", 0, r.dataWordCnt);
       axiSlaveRegisterR(axilEp, x"910", 0, r.hitCnt);
       axiSlaveRegisterR(axilEp, x"914", 0, dataBus);
@@ -230,6 +233,7 @@ begin
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;
       emuEnable      <= r.emuEnable;
+      forwardData    <= r.forwardData;
 
    end process comb;
 
