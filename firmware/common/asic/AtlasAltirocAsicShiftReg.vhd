@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocAsicShiftReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-07
--- Last update: 2018-11-20
+-- Last update: 2018-12-03
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ architecture mapping of AtlasAltirocAsicShiftReg is
 
    constant SCLK_HALF_PERIOD_C : positive := integer(SCLK_PERIOD_G / (2.0*CLK_PERIOD_G));
 
-   constant WRD_SIZE_C : natural := (SHIFT_REG_SIZE_G/32)+1;
+   constant WRD_SIZE_C : natural := (SHIFT_REG_SIZE_G/32)+4;
 
    type StateType is (
       IDLE_S,
@@ -57,6 +57,7 @@ architecture mapping of AtlasAltirocAsicShiftReg is
       DONE_S);
 
    type RegType is record
+      start          : sl;
       rstL           : sl;
       sclk           : sl;
       data           : slv((32*WRD_SIZE_C) downto 0);
@@ -70,6 +71,7 @@ architecture mapping of AtlasAltirocAsicShiftReg is
    end record;
 
    constant REG_INIT_C : RegType := (
+      start          => '1',
       rstL           => '1',
       sclk           => '0',
       data           => (others => '0'),
@@ -98,52 +100,57 @@ begin
          Q1 => shiftIn);
 
    comb : process (axilReadMaster, axilRst, axilWriteMaster, r, shiftIn) is
-      variable v             : RegType;
-      variable axilStatus    : AxiLiteStatusType;
-      variable axilWriteResp : slv(1 downto 0);
-      variable axilReadResp  : slv(1 downto 0);
-      variable wrIdx         : natural;
-      variable rdIdx         : natural;
-
+      variable v          : RegType;
+      variable axilStatus : AxiLiteStatusType;
+      variable wrIdx      : natural;
+      variable rdIdx      : natural;
    begin
       -- Latch the current value
       v := r;
 
       -- Update the variables
-      axilWriteResp := AXI_RESP_OK_C;
-      axilReadResp  := AXI_RESP_OK_C;
-      wrIdx         := conv_integer(axilWriteMaster.awaddr(11 downto 2));
-      rdIdx         := conv_integer(axilReadMaster.araddr(11 downto 2));
+      wrIdx := conv_integer(axilWriteMaster.awaddr(11 downto 2));
+      rdIdx := conv_integer(axilReadMaster.araddr(11 downto 2));
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
+
+      -- Check for a read request            
+      if (axilStatus.readEnable = '1') then
+         if (axilReadMaster.araddr(11 downto 0) = x"FFC") then
+            v.axilReadSlave.rdata(0) := r.rstL;
+         else
+            v.axilReadSlave.rdata := r.data((32*rdIdx)+31 downto (32*rdIdx));
+         end if;
+         -- Send AXI-Lite Response
+         axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
+      end if;
+
+      -- Check for a write request
+      if (axilStatus.writeEnable = '1') then
+         if (axilWriteMaster.awaddr(11 downto 0) = x"FFC") then
+            v.rstL := axilWriteMaster.wdata(0);
+         else
+            v.data((32*wrIdx)+31 downto (32*wrIdx)) := axilWriteMaster.wdata;
+            -- Set the flag
+            v.start                                 := '1';
+         end if;
+         -- Send AXI-Lite response
+         axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_OK_C);
+      end if;
 
       -- State Machine      
       case (r.state) is
          ----------------------------------------------------------------------      
          when IDLE_S =>
-            -- Check for a write request
-            if (axilStatus.writeEnable = '1') then
-               if (axilWriteMaster.awaddr(11 downto 0) = x"FFC") then
-                  v.rstL := axilWriteMaster.wdata(0);
-               else
-                  v.data((32*wrIdx)+31 downto (32*wrIdx)) := axilWriteMaster.wdata;
-                  -- Cache the data bus
-                  v.shiftReg                              := v.data(SHIFT_REG_SIZE_G-1 downto 0);
-                  -- Next state
-                  v.state                                 := SAMPLE_S;
-               end if;
-               -- Send AXI-Lite response
-               axiSlaveWriteResponse(v.axilWriteSlave, axilWriteResp);
-            -- Check for a read request            
-            elsif (axilStatus.readEnable = '1') then
-               if (axilReadMaster.araddr(11 downto 0) = x"FFC") then
-                  v.axilReadSlave.rdata(0) := r.rstL;
-               else
-                  v.axilReadSlave.rdata := r.data((32*rdIdx)+31 downto (32*rdIdx));
-               end if;
-               -- Send AXI-Lite Response
-               axiSlaveReadResponse(v.axilReadSlave, axilReadResp);
+            -- Check for send flag
+            if (r.start = '1') then
+               -- Reset the flag
+               v.start    := '0';
+               -- Initialize the shift register
+               v.shiftReg := r.data(SHIFT_REG_SIZE_G-1 downto 0);
+               -- Next state
+               v.state    := SAMPLE_S;
             end if;
          ----------------------------------------------------------------------      
          when SAMPLE_S =>
@@ -192,7 +199,7 @@ begin
             -- Wait half a clock period
             if (r.clkCnt = SCLK_HALF_PERIOD_C) then
                -- Reset the counter
-               v.clkCnt                            := 0;
+               v.clkCnt := 0;
                ----------------------------------------------------------------      
                -- Appears to be a bug in the ASIC with feedback of the shift 
                -- register output to update the firmware's local v.data cache.  
@@ -203,7 +210,7 @@ begin
                -- v.data(SHIFT_REG_SIZE_G-1 downto 0) := r.readback(SHIFT_REG_SIZE_G-1 downto 1) & shiftIn;
                ----------------------------------------------------------------      
                -- Next state
-               v.state                             := IDLE_S;
+               v.state  := IDLE_S;
             else
                -- Increment the counter
                v.clkCnt := r.clkCnt + 1;

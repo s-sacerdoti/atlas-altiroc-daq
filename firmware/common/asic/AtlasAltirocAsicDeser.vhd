@@ -170,6 +170,9 @@ begin
                v.txMaster.tValid              := '1';
                v.txMaster.tData(31 downto 19) := r.seqCnt;
                v.txMaster.tData(18 downto 0)  := (others => '0');
+               -- Only Sending 1 word frames
+               ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');  -- Tag as start of frame (SOF)
+               v.txMaster.tLast := '1';       -- Tag as end of frame (EOF)         
             else
                -- Drop data due to back pressure
                v.dataDropped := '1';
@@ -188,10 +191,6 @@ begin
 
          -- Reset cache
          v.runEnable := '0';
-
-         -- Only Sending 1 word frames
-         ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');  -- Tag as start of frame (SOF)
-         v.txMaster.tLast := '1';       -- Tag as end of frame (EOF)         
 
       -- Check if not bit slipping
       elsif (deserSlip = '0') then
