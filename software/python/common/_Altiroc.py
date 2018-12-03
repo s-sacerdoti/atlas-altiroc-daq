@@ -295,8 +295,8 @@ class AltirocDoutDebug(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'LastDeserWord_ToaOverflow', 
             offset       = 0x914,
-            bitSize      = 8,  
-            bitOffset    = 1,
+            bitSize      = 1,  
+            bitOffset    = 8,
             mode         = 'RO',
             pollInterval = 1,
             overlapEn    = True,

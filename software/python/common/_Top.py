@@ -63,7 +63,7 @@ class ExampleEventReader(rogue.interfaces.stream.Slave):
         # Check for a modulo of 32-bit word 
         if ((len(p) % 4) == 0):
             count = int(len(p)/4)
-            # Combine the byte array into single 32-bit word
+            # Combine the byte array into 32-bit word array
             hitWrd = np.frombuffer(p, dtype='uint32', count=count)
             # Loop through each 32-bit word
             for i in range(count):
