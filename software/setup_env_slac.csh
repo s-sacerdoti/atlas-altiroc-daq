@@ -9,7 +9,7 @@
 ##############################################################################
 
 # Setup anaconda3 on the SLAC AFS network
-source ~ruckman/projects/WorkSpace/anaconda3/etc/profile.d/conda.csh
+source /u/re/ruckman/projects/WorkSpace/anaconda3/etc/profile.d/conda.csh
 
 ## Activate Rogue conda Environment 
 conda activate rogue_env
