@@ -43,11 +43,14 @@ entity AtlasAltirocAsicPulseTrain is
       pulseWidth    : in  slv(15 downto 0);
       pulsePeriod   : in  slv(15 downto 0);
       rstCntMask    : in  slv(1 downto 0);
+      rstTdcMask    : in  slv(1 downto 0);
       emuTrig       : out sl;
       readoutEnable : out sl;
+      usrRstbTdc    : in  sl;
       -- ASIC Ports
-      rstbCounter   : out sl;           -- RSTB_COUNTER
       renable       : out sl;           -- RENABLE      
+      rstbCounter   : out sl;           -- RSTB_COUNTER
+      rstbTdc       : out sl;           -- RSTB_TDC
       cmdPulseP     : out sl;           -- CMD_PULSE_P
       cmdPulseN     : out sl;           -- CMD_PULSE_N
       extTrig       : out sl);          -- EXT_TRIG      
@@ -68,6 +71,7 @@ architecture rtl of AtlasAltirocAsicPulseTrain is
       readDuration : slv(15 downto 0);
       pulseCount   : slv(15 downto 0);
       pulsePeriod  : slv(15 downto 0);
+      rstbTdc      : sl;
       rstCounter   : sl;
       renable      : sl;
       pulse        : sl;
@@ -82,6 +86,7 @@ architecture rtl of AtlasAltirocAsicPulseTrain is
       readDuration => (others => '0'),
       pulseCount   => (others => '0'),
       pulsePeriod  => (others => '0'),
+      rstbTdc      => '1',
       rstCounter   => '0',
       renable      => '0',
       pulse        => '0',
@@ -92,8 +97,9 @@ architecture rtl of AtlasAltirocAsicPulseTrain is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal pulse  : sl;
-   signal rstCnt : sl;
+   signal pulse    : sl;
+   signal rstCnt   : sl;
+   signal resetTdc : sl;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
@@ -102,7 +108,7 @@ begin
 
    comb : process (continuous, invRstCnt, oneShot, pulseCount, pulseDelay,
                    pulsePeriod, r, readDelay, readDuration, rst40MHz,
-                   rstCntMask) is
+                   rstCntMask, rstTdcMask, usrRstbTdc) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -117,8 +123,9 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset flags
-            v.rstCounter := '0';
             v.renable    := '0';
+            v.rstCounter := '0';
+            v.rstbTdc    := '1';
 
             -- Reset the counter
             v.cnt      := (others => '0');
@@ -140,6 +147,9 @@ begin
                   -- Set the flag (active HIGH)
                   v.rstCounter := rstCntMask(0);
 
+                  -- Set the flag (active LOW)
+                  v.rstbTdc := not(rstTdcMask(0));
+
                   -- Check for zero pulse delay
                   if (pulseDelay = 0) then
                      -- Next state
@@ -157,6 +167,9 @@ begin
             -- Reset the flag (active HIGH)
             v.rstCounter := '0';
 
+            -- Set the flag (active LOW)
+            v.rstbTdc := '1';
+
             -- Increment the counter
             v.cnt := r.cnt + 1;
 
@@ -170,6 +183,9 @@ begin
          when RUN_S =>
             -- Reset the flag (active HIGH)
             v.rstCounter := '0';
+
+            -- Set the flag (active LOW)
+            v.rstbTdc := '1';
 
             -- Increment the counter
             v.cnt := r.cnt + 1;
@@ -196,10 +212,16 @@ begin
 
                   -- Check for zero read delay
                   if (r.readDelay = 0) then
+
                      -- Set the flag (active HIGH)
                      v.rstCounter := rstCntMask(1);
+
+                     -- Set the flag (active LOW)
+                     v.rstbTdc := not(rstTdcMask(1));
+
                      -- Next state
-                     v.state      := READ_S;
+                     v.state := READ_S;
+
                   else
                      -- Next state
                      v.state := READ_DLY_S;
@@ -221,6 +243,9 @@ begin
                -- Set the flag (active HIGH)
                v.rstCounter := rstCntMask(1);
 
+               -- Set the flag (active LOW)
+               v.rstbTdc := not(rstTdcMask(1));
+
                -- Next state
                v.state := READ_S;
 
@@ -240,6 +265,8 @@ begin
             if (r.cnt = 1) then
                -- Reset the flag (active HIGH)
                v.rstCounter := '0';
+               -- Set the flag (active LOW)
+               v.rstbTdc    := '1';
             end if;
 
             -- Check the end of the period
@@ -254,6 +281,9 @@ begin
                -- Reset the flag (active HIGH)
                v.rstCounter := '0';
 
+               -- Set the flag (active LOW)
+               v.rstbTdc := '1';
+
                -- Check if doing another iteration
                if (continuous = '1') and (pulsePeriod /= 0) and (pulseCount /= 0) then
 
@@ -266,6 +296,9 @@ begin
 
                   -- Set the flag (active HIGH)
                   v.rstCounter := rstCntMask(0);
+
+                  -- Set the flag (active LOW)
+                  v.rstbTdc := not(rstTdcMask(0));
 
                   -- Check for zero pulse delay
                   if (pulseDelay = 0) then
@@ -289,6 +322,7 @@ begin
       emuTrig       <= r.pulse;
       readoutEnable <= r.renable;
       rstCnt        <= r.rstCounter xor invRstCnt;
+      resetTdc      <= r.rstbTdc and usrRstbTdc;
 
       -- Reset
       if (rst40MHz = '1') then
@@ -306,6 +340,14 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   U_rstbTdc : entity work.OutputBufferReg
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         C => clk40MHz,
+         I => resetTdc,
+         O => rstbTdc);
 
    U_rstbCounter : entity work.OutputBufferReg
       generic map (

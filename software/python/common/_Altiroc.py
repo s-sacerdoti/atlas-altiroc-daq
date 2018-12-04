@@ -145,7 +145,7 @@ class AltirocPulseTrain(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'ResetCounterMask', 
-            description  = 'BIT0 enables the 1st RST_COUNTER_B strobe, BIT0 enables the 2nd RST_COUNTER_B strobe',
+            description  = 'BIT0 enables the 1st RST_COUNTER strobe, BIT0 enables the 2nd RST_COUNTER strobe',
             offset       = 0xA20,
             bitSize      = 2, 
             mode         = 'RW',
@@ -162,6 +162,14 @@ class AltirocPulseTrain(pr.Device):
                 0x1: 'Inverted',               
             },
         ))  
+        
+        self.add(pr.RemoteVariable(
+            name         = 'ResetTdcMask', 
+            description  = 'BIT0 enables the 1st RSTB_TDC strobe, BIT0 enables the 2nd RSTB_TDC strobe',
+            offset       = 0xA28,
+            bitSize      = 2, 
+            mode         = 'RW',
+        )) 
 
 class AltirocDoutDebug(pr.Device):
     def __init__(   

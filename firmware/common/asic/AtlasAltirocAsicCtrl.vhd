@@ -49,6 +49,7 @@ entity AtlasAltirocAsicCtrl is
       readDelay       : out slv(15 downto 0);
       readDuration    : out slv(15 downto 0);
       rstCntMask      : out slv(1 downto 0);
+      rstTdcMask      : out slv(1 downto 0);
       emuEnable       : out sl;
       dataWordDet     : in  sl;
       hitDet          : in  sl;
@@ -82,6 +83,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       readDelay       : slv(15 downto 0);
       readDuration    : slv(15 downto 0);
       rstCntMask      : slv(1 downto 0);
+      rstTdcMask      : slv(1 downto 0);
       deserSampleEdge : sl;
       deserInvert     : sl;
       deserSlip       : sl;
@@ -110,6 +112,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       readDelay       => toSlv(8, 16),
       readDuration    => toSlv(1024, 16),
       rstCntMask      => "11",
+      rstTdcMask      => "01",
       deserSampleEdge => '0',
       deserInvert     => '0',
       deserSlip       => '0',
@@ -118,7 +121,7 @@ architecture mapping of AtlasAltirocAsicCtrl is
       rstbTdc         => '1',
       ckWrConfig      => (others => '0'),
       emuEnable       => '0',
-      forwardData     => '1',
+      forwardData     => '0',           -- Don't forward by default
       cntRst          => '0',
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C);
@@ -215,6 +218,7 @@ begin
       axiSlaveRegister(axilEp, x"A1C", 0, v.readDuration);
       axiSlaveRegister(axilEp, x"A20", 0, v.rstCntMask);
       axiSlaveRegister(axilEp, x"A24", 0, v.invRstCnt);
+      axiSlaveRegister(axilEp, x"A28", 0, v.rstTdcMask);
 
       axiSlaveRegister(axilEp, x"FFC", 0, v.cntRst);
 
@@ -313,6 +317,15 @@ begin
          dataIn  => r.rstCntMask,
          dataOut => rstCntMask);
 
+   U_rstTdcMask : entity work.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 2)
+      port map (
+         clk     => clk40MHz,
+         dataIn  => r.rstTdcMask,
+         dataOut => rstTdcMask);
+
    U_invRstCnt : entity work.Synchronizer
       generic map (
          TPD_G => TPD_G)
@@ -383,16 +396,13 @@ begin
          asyncRst => r.rstbRead,
          syncRst  => rstbRead);
 
-   U_rstbTdc : entity work.RstSync
+   U_rstbTdc : entity work.Synchronizer
       generic map (
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '0',         -- 0 for active low
-         OUT_POLARITY_G => '0',         -- 0 for active low
-         OUT_REG_RST_G  => false)
+         TPD_G => TPD_G)
       port map (
-         clk      => clk40MHz,
-         asyncRst => r.rstbTdc,
-         syncRst  => rstbTdc);
+         clk     => clk40MHz,
+         dataIn  => r.rstbTdc,
+         dataOut => rstbTdc);
 
    U_ckWrConfig : entity work.SynchronizerVector
       generic map (

@@ -126,6 +126,7 @@ architecture mapping of AtlasAltirocAsic is
    signal readDelay       : slv(15 downto 0);
    signal readDuration    : slv(15 downto 0);
    signal rstCntMask      : slv(1 downto 0);
+   signal rstTdcMask      : slv(1 downto 0);
    signal dataBus         : slv(31 downto 0) := (others => '0');
 
    signal readoutEnable : sl;
@@ -134,6 +135,7 @@ architecture mapping of AtlasAltirocAsic is
    signal dataWordDet   : sl;
    signal hitDet        : sl;
    signal dataDropped   : sl;
+   signal usrRstbTdc    : sl;
 
 begin
 
@@ -224,7 +226,7 @@ begin
          deserRst        => deserRst,
          rstbRam         => rstbRam,      -- RSTB_RAM
          rstbRead        => rstbRead,     -- RSTB_READ
-         rstbTdc         => rstbTdc,      -- RSTB_TDC
+         rstbTdc         => usrRstbTdc,
          ckWriteAsic     => ckWriteAsic,  -- CK_WRITE_ASIC
          deserSampleEdge => deserSampleEdge,
          deserInvert     => deserInvert,
@@ -239,6 +241,7 @@ begin
          readDelay       => readDelay,
          readDuration    => readDuration,
          rstCntMask      => rstCntMask,
+         rstTdcMask      => rstTdcMask,
          emuEnable       => emuEnable,
          dataDropped     => dataDropped,
          dataWordDet     => dataWordDet,
@@ -276,11 +279,14 @@ begin
          readDelay     => readDelay,
          readDuration  => readDuration,
          rstCntMask    => rstCntMask,
+         rstTdcMask    => rstTdcMask,
          emuTrig       => emuTrig,
          readoutEnable => readoutEnable,
+         usrRstbTdc    => usrRstbTdc,
          -- ASIC Ports
          renable       => renable,      -- RENABLE
          rstbCounter   => rstbCounter,  -- RSTB_COUNTER
+         rstbTdc       => rstbTdc,      -- RSTB_TDC
          cmdPulseP     => cmdPulseP,    -- CMD_PULSE_P
          cmdPulseN     => cmdPulseN,    -- CMD_PULSE_N
          extTrig       => extTrig);     -- EXT_TRIG    
