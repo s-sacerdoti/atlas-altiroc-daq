@@ -72,7 +72,7 @@ Note: For more information about the firmware build system, please refer to this
 
 # How to install the Rogue With Anaconda
 
-> https://github.com/slaclab/rogue/blob/master/README_anaconda.md
+> https://slaclab.github.io/rogue/installing/anaconda.html
 
 <!--- ########################################################################################### -->
 
