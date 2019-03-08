@@ -8,14 +8,11 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-# Setup anaconda3 on the SLAC AFS network
-source /u/re/ruckman/projects/WorkSpace/anaconda3/etc/profile.d/conda.csh
-
-## Activate Rogue conda Environment 
-conda activate rogue_env
+# Setup environment
+source /afs/slac.stanford.edu/g/reseng/rogue/anaconda/rogue_pre-release.sh
 
 # Python Package directories
-setenv SURF_DIR ${PWD}/../firmware/submodules/surf/python
+export SURF_DIR=${PWD}/../firmware/submodules/surf/python
 
 # Setup python path
-setenv PYTHONPATH ${PWD}/python:${SURF_DIR}:${PYTHONPATH}
+export PYTHONPATH=${PWD}/python:${SURF_DIR}:${PYTHONPATH}
