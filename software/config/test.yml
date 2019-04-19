@@ -109,7 +109,7 @@ Top:
         totf: 0x0
         tot_overflow: 0x0
         toa_busy: 0x0
-        toa_ready: 0x0
+        Hit: 0x0
         tot_busy: 0x0
         tot_ready: 0x0
         en_read: 0x0
