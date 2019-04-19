@@ -42,7 +42,7 @@ Top:
       totf_satovfw: 0x0
       totc_satovfw: 0x0
       toa_satovfw: 0x0
-      ckw_choice: 0x0
+      Ck40_choice: 0x0
       cBitf: 0x0
       DLL_ALockR_en: 0x1
       CP_b: 0x3
@@ -72,7 +72,9 @@ Top:
       cd[4]: 0x0
       PLL: 0x1
       dac_icpb: 0xa
-      dac_CP_BWb: 0x20
+      # dac_CP_BWb: 0x20 # Legacy V1 value
+      Shifted_ck40: 0x0
+      dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
       EN_Ext_Vin_VCO: 0x0
       setN: 0x3
       setProbe: 0x0
