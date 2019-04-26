@@ -224,11 +224,11 @@ class AltirocSlowControl(pr.Device):
         )
         
         addReg(
-            name        = 'ckw_choice', 
-            description = 'DLL',
+            name        = 'Ck40_choice', 
+            description = '40MHz choice',
             bitSize     = 1, 
             bitOffset   = 59,
-            value       = 0x0, # DEF Value
+            value       = 0x1, # DEF Value
             base        = downToBitOrdering,
         )  
         
@@ -463,12 +463,21 @@ class AltirocSlowControl(pr.Device):
             value       = 0xA, # DEF Value
             base        = upToBitOrdering,            
         ) 
-
+        
+        addReg(
+            name        = 'Shifted_ck40', 
+            description = 'Was dac_CP_BW<0> in V1',
+            bitSize     = 1, 
+            bitOffset   = 927,
+            value       = 0x0, # DEF Value
+            base        = downToBitOrdering,            
+        ) 
+        
         addReg(
             name        = 'dac_CP_BWb', 
             description = '',
-            bitSize     = 6, 
-            bitOffset   = 927,
+            bitSize     = 5, 
+            bitOffset   = 928,
             value       = 0x20, # DEF Value
             base        = upToBitOrdering,            
         )

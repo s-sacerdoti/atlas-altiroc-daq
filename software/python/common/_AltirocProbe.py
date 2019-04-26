@@ -185,8 +185,8 @@ class AltirocProbe(pr.Device):
             )   
 
             addPixReg(
-                name        = 'toa_ready',
-                description = 'digital_probe2',
+                name        = 'Hit',
+                description = 'digital_probe2 (was toa_ready in Legacy V1)',
                 bitSize     = 1, 
                 bitOffset   = (41+(29*i)),
                 device      = pixDev,

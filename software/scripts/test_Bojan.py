@@ -238,7 +238,7 @@ if Disable_CustomConfig == 0:                                  ##
         top.Asic.Probe.pix[i].totf.set(0x0)                    ##
         top.Asic.Probe.pix[i].tot_overflow.set(0x0)            ##
         top.Asic.Probe.pix[i].toa_busy.set(0x0)                ##
-        top.Asic.Probe.pix[i].toa_ready.set(0x0)               ##
+        top.Asic.Probe.pix[i].Hit.set(0x0)                     ##
         top.Asic.Probe.pix[i].tot_busy.set(0x0)                ##
         top.Asic.Probe.pix[i].tot_ready.set(0x0)               ##
         top.Asic.Probe.pix[i].en_read.set(0x0)                 ##
@@ -271,7 +271,7 @@ if Disable_CustomConfig == 0:                                  ##
     top.Asic.Probe.pix[pixel_number].totf.set(0x0)             ##
     top.Asic.Probe.pix[pixel_number].tot_overflow.set(0x0)     ##
     top.Asic.Probe.pix[pixel_number].toa_busy.set(0x1)         ##
-    top.Asic.Probe.pix[pixel_number].toa_ready.set(0x0)        ##
+    top.Asic.Probe.pix[pixel_number].Hit.set(0x0)              ##
     top.Asic.Probe.pix[pixel_number].tot_busy.set(0x0)         ##
     top.Asic.Probe.pix[pixel_number].tot_ready.set(0x0)        ##
     top.Asic.Probe.pix[pixel_number].en_read.set(0x1)          ##
