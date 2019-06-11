@@ -19,74 +19,17 @@ import pyrogue.protocols
 import pyrogue.utilities.fileio
 import pyrogue.interfaces.simulation
 
-import surf.axi as axiVer
-import surf.xilinx as xil
-import surf.devices.micron as prom
-import surf.devices.linear as linear
-import surf.devices.nxp as nxp
-import surf.devices.silabs as silabs
-
 import common
-
 import time
-import numpy as np
+import click
 
-class EventValue(object):
-  def __init__(self, SeqCnt, TotOverflow, TotData, ToaOverflow, ToaData, Hit):
-     self.SeqCnt      = SeqCnt
-     self.TotOverflow = TotOverflow
-     self.TotData     = TotData
-     self.ToaOverflow = ToaOverflow
-     self.ToaData     = ToaData
-     self.Hit         = Hit
-
-def ParseDataWord(dataWord):
-    # Parse the 32-bit word
-    SeqCnt      = (dataWord >> 19) & 0x1FFF
-    TotOverflow = (dataWord >> 18) & 0x1
-    TotData     = (dataWord >>  9) & 0x1FF
-    ToaOverflow = (dataWord >>  8) & 0x1
-    ToaData     = (dataWord >>  1) & 0x7F
-    Hit         = (dataWord >>  0) & 0x1
-    return EventValue(SeqCnt, TotOverflow, TotData, ToaOverflow, ToaData, Hit)
-
-class ExampleEventReader(rogue.interfaces.stream.Slave):
-
-    def __init__(self):
-        rogue.interfaces.stream.Slave.__init__(self)
-
-    def _acceptFrame(self,frame):
-        # Get the payload data
-        p = bytearray(frame.getPayload())
-        # Return the buffer index
-        frame.read(p,0)
-        # Check for a modulo of 32-bit word 
-        if ((len(p) % 4) == 0):
-            count = int(len(p)/4)
-            # Combine the byte array into 32-bit word array
-            hitWrd = np.frombuffer(p, dtype='uint32', count=count)
-            # Loop through each 32-bit word
-            for i in range(count):
-                # Parse the 32-bit word
-                dat = ParseDataWord(hitWrd[i])
-                # Print the event
-                print( 'Event[SeqCnt=0x%x]: (TotOverflow = %r, TotData = 0x%x), (ToaOverflow = %r, ToaData = 0x%x), hit=%r' % (
-                        dat.SeqCnt,
-                        dat.TotOverflow,
-                        dat.TotData,
-                        dat.ToaOverflow,
-                        dat.ToaData,
-                        dat.Hit,
-                ))
-        else:
-            print ('Event dumped')
-        
 class Top(pr.Root):
     def __init__(   self,       
-            name        = "Top",
-            description = "Container for FEB FPGA",
-            hwType      = 'eth',
-            ip          = '10.0.0.1',
+            name        = 'Top',
+            description = 'Container for FEB FPGA',
+            ip          = ['10.0.0.1'],
+            pollEn      = True,
+            initRead    = True,
             configProm  = False,
             pllConfig   = 'config/pll-config/Si5345-RevD-Registers.csv',
             **kwargs):
@@ -95,160 +38,131 @@ class Top(pr.Root):
         # Cache the parameters
         self.pllConfig  = pllConfig
         self.configProm = configProm
-        self.hwType     = hwType
+        self.ip         = ip
+        self.numEthDev  = len(ip)  if (ip[0] != 'simulation') else 1
+        self._timeout   = 1.0      if (ip[0] != 'simulation') else 100.0 
+        self._pollEn    = pollEn   if (ip[0] != 'simulation') else False
+        self._initRead  = initRead if (ip[0] != 'simulation') else False      
         
         # File writer
         self.dataWriter = pr.utilities.fileio.StreamWriter()
         self.add(self.dataWriter)
         
-        ######################################################################
+        # Create arrays to be filled
+        self.rudp       = [None for i in range(self.numEthDev)]
+        self.srpStream  = [None for i in range(self.numEthDev)]
+        self.dataStream = [None for i in range(self.numEthDev)]
+        self.memMap     = [None for i in range(self.numEthDev)]
         
-        if (hwType == 'simulation'):
-            self.srpStream  = pr.interfaces.simulation.StreamSim(host='localhost', dest=0, uid=12, ssi=True)
-            self.dataStream = pr.interfaces.simulation.StreamSim(host='localhost', dest=1, uid=12, ssi=True)      
-        elif (hwType == 'eth'):
-            self.rudp       = pr.protocols.UdpRssiPack(host=ip,port=8192,packVer=2,jumbo=False)        
-            self.srpStream  = self.rudp.application(0)
-            self.dataStream = self.rudp.application(1) 
-            # self.add(self.rudp)
-        else:
-            raise Exception(f'hwType={hwType} passed to common.Top() is invalid')        
-                
-        ######################################################################
+        # Loop through the devices
+        for i in range(self.numEthDev):
         
-        # Connect the SRPv3 to PGPv3.VC[0]
-        self.memMap = rogue.protocols.srp.SrpV3()                
-        pr.streamConnectBiDir( self.memMap, self.srpStream )             
+            ######################################################################
+            if (self.ip[0] == 'simulation'):
+                self.srpStream[i]  = rogue.interfaces.stream.TcpClient('localhost',9000)
+                self.dataStream[i] = rogue.interfaces.stream.TcpClient('localhost',9002)  
+            else:
+                self.rudp[i]       = pr.protocols.UdpRssiPack(host=ip[i],port=8192,packVer=2,jumbo=False)        
+                self.srpStream[i]  = self.rudp[i].application(0)
+                self.dataStream[i] = self.rudp[i].application(1) 
                 
-        # Add data stream to file as channel to dataStream
-        pr.streamConnect(self.dataStream,self.dataWriter.getChannel(0))   
+            ######################################################################
             
-        ######################################################################
-        
-        # Add devices
-        self.add(axiVer.AxiVersion( 
-            name    = 'AxiVersion', 
-            memBase = self.memMap, 
-            offset  = 0x00000000, 
-            expand  = False,
-        ))
-        
-        self.add(xil.Xadc(
-            name    = 'Xadc', 
-            memBase = self.memMap,
-            offset  = 0x00010000, 
-            expand  = False,
-            hidden  = True, # Hidden in GUI because indented for scripting
-        ))
-        
-        if self.configProm is True:
-            self.add(prom.AxiMicronN25Q(
-                name    = 'AxiMicronN25Q', 
-                memBase = self.memMap, 
-                offset  = 0x00020000, 
-                hidden  = True, # Hidden in GUI because indented for scripting
+            # Connect the SRPv3 to PGPv3.VC[0]
+            self.memMap[i] = rogue.protocols.srp.SrpV3()                
+            pr.streamConnectBiDir( self.memMap[i], self.srpStream[i] )             
+                    
+            # Add data stream to file as channel to dataStream
+            pr.streamConnect(self.dataStream[i],self.dataWriter.getChannel(i))   
+                
+            ######################################################################
+            
+            # Add devices
+            self.add(common.Fpga( 
+                name    = f'Fpga[{i}]', 
+                memBase = self.memMap[i], 
+                offset  = 0x00000000, 
             ))
         
-        self.add(common.SysReg(
-            name        = 'SysReg', 
-            description = 'This device contains system level configuration and status registers', 
-            memBase     = self.memMap, 
-            offset      = 0x00030000, 
-            expand      = False,
-        ))
-        
-        self.add(nxp.Sa56004x(      
-            name        = 'BoardTemp', 
-            description = 'This device monitors the board temperature and FPGA junction temperature', 
-            memBase     = self.memMap, 
-            offset      = 0x00040000, 
-            expand      = False,
-        ))
-        
-        self.add(linear.Ltc4151(
-            name        = 'BoardPwr', 
-            description = 'This device monitors the board power, input voltage and input current', 
-            memBase     = self.memMap, 
-            offset      = 0x00040400, 
-            senseRes    = 20.E-3, # Units of Ohms
-            expand      = False,
-        ))
-
-        self.add(nxp.Sa56004x(      
-            name        = 'DelayIcTemp', 
-            description = 'This device monitors the board temperature and Delay IC\'s temperature', 
-            memBase     = self.memMap, 
-            offset      = 0x00050000, 
-            expand      = False,
-        ))        
-        
-        self.add(common.Dac(
-            name        = 'Dac', 
-            description = 'This device contains DAC that sets the VTH', 
-            memBase     = self.memMap, 
-            offset      = 0x00060000, 
-            expand      = False,
-        ))        
-    
-        self.add(silabs.Si5345(      
-            name        = 'Pll', 
-            description = 'This device contains Jitter cleaner PLL', 
-            memBase     = self.memMap, 
-            offset      = 0x00070000, 
-            expand      = True,
-            hidden      = True, # Hidden in GUI because indented for scripting
-        ))     
-
-        self.add(common.Altiroc(
-            name        = 'Asic', 
-            description = 'This device contains all the ASIC control/monitoring', 
-            memBase     = self.memMap, 
-            offset      = 0x01000000, 
-            expand      = True,
-        ))           
-
         ######################################################################
+        
+        # Start the system
+        self.start(
+            pollEn   = self._pollEn,
+            initRead = self._initRead,
+            timeout  = self._timeout,
+        )        
         
     def start(self,**kwargs):
         super(Top, self).start(**kwargs)  
-        
+
         # Check if not PROM loading 
-        if not self.configProm and (self.hwType != 'simulation'):
+        if not self.configProm and (self.ip[0] != 'simulation'):
         
-            # Load the PLL configurations
-            self.Pll.LoadCsvFile(arg=self.pllConfig)
-            
             # Hide all the "enable" variables
             for enableList in self.find(typ=pr.EnableVariable):
-                enableList.hidden = True
+                # Hide by default
+                enableList.hidden = True  
             
+            # Loop through FPGA devices
+            for i in range(self.numEthDev):
+                
+                # Hide unused variables
+                self.Fpga[i].AxiVersion.UserReset.hidden = True
+                self.Fpga[i].AxiVersion.DeviceId.hidden  = True
+                
+                # Unhide the ASIC's enable that are dependent on Pll.Locked
+                self.Fpga[i].Asic.TdcClk.enable.hidden   = False
+                self.Fpga[i].Asic.CalPulse.enable.hidden = False
+                self.Fpga[i].Asic.Trig.enable.hidden     = False
+                self.Fpga[i].Asic.Probe.enable.hidden    = False
+                self.Fpga[i].Asic.Readout.enable.hidden  = False
+            
+                # Prevent FEB from thermal shutdown until FPGA Tj = 100 degC (max. operating temp)  
+                self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95) 
+        
+            # Loop through the devices
+            for i in range(self.numEthDev):        
+                # Load the PLL configurations
+                self.Fpga[i].Pll.CsvFilePath.set(self.pllConfig)
+                # Check if not locked
+                if (not self.Fpga[i].Pll.Locked.get()):
+                    self.Fpga[i].Pll.LoadCsvFile()
+                                        
             # Wait for the SiLab PLL to lock
-            print ("Waiting for PLLs (SiLab and FPGA) to lock")
-            retry = 0
-            while (retry<100):
-                if (self.SysReg.ExtPllLocked.get() == 0x1):
-                    break
+            print ('Waiting for SiLab PLLs to lock')
+            time.sleep(1.0)
+            
+            # Loop through the devices
+            for i in range(self.numEthDev):             
+                retry = 0
+                while (retry<2):
+                    if (self.Fpga[i].Pll.Locked.get()):
+                        break
+                    else:
+                        retry = retry + 1
+                        self.Fpga[i].Pll.LoadCsvFile() 
+                        time.sleep(5.0)          
+                        
+                # Print the results
+                if (retry<2):
+                    print (f'PLL[{i}] locks established')
                 else:
-                    retry = retry + 1
-                    time.sleep(0.1)
-                    
-            # Wait for the FPGA PLL to lock
-            while (retry<100):
-                if (self.SysReg.IntPllLocked.get() == 0x1):
-                    break
-                else:
-                    retry = retry + 1
-                    time.sleep(0.1)                    
-                    
-            # Print the results
-            if (retry<100):
-                # Wait for system to settle down (unclear why I need this sleep)
-                time.sleep(3.0)
-                print ("PLL locks established")
-            else:
-                print ("Failed to establish PLL locking after 10 seconds")
+                    click.secho(
+                        "\n\n\
+                        ***************************************************\n\
+                        ***************************************************\n\
+                        Failed to establish PLL[%i] locking after 10 seconds\n\
+                        ***************************************************\n\
+                        ***************************************************\n\n"\
+                        % i, bg='red',
+                    )    
         else:
             # Hide all the "enable" variables
             for enableList in self.find(typ=pr.EnableVariable):
-                enableList.hidden = True        
+                # Hide by default
+                enableList.hidden = True  
                 
+        if (self._initRead):               
+            self.ReadAll()
+     

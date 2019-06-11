@@ -24,9 +24,9 @@ parser = argparse.ArgumentParser()
 # Add arguments
 parser.add_argument(
     "--ip", 
-    type     = str,
+    nargs    ='+',
     required = True,
-    help     = "IP address",
+    help     = "List of IP addresses",
 )  
 
 parser.add_argument(
@@ -42,35 +42,40 @@ args = parser.parse_args()
 #################################################################
 
 # Setup root class
-top = feb.Top(hwType='eth',ip=args.ip,configProm=True)   
-
-# Start the system
-top.start(pollEn=False)
+top = feb.Top(
+    ip          = args.ip,
+    pollEn      = False,
+    initRead    = False, 
+    configProm  = True,
+)    
     
-# Create useful pointers
-AxiVersion = top.AxiVersion
-PROM       = top.AxiMicronN25Q
-
-print ( '###################################################')
-print ( '#                 Old Firmware                    #')
-print ( '###################################################')
-AxiVersion.printStatus()
-
-# Program the FPGA's PROM
-PROM.LoadMcsFile(args.mcs)
-
-if(PROM._progDone):
-    print('\nReloading FPGA firmware from PROM ....')
-    AxiVersion.FpgaReload()
-    time.sleep(10)
-    print('\nReloading FPGA done')
+# Loop through the devices
+for i in range(top.numEthDev):    
+    
+    # Create useful pointers
+    AxiVersion = top.Fpga[i].AxiVersion
+    PROM       = top.Fpga[i].AxiMicronN25Q
 
     print ( '###################################################')
-    print ( '#                 New Firmware                    #')
+    print ( '#                 Old Firmware                    #')
     print ( '###################################################')
     AxiVersion.printStatus()
-else:
-    print('Failed to program FPGA')
+
+    # Program the FPGA's PROM
+    PROM.LoadMcsFile(args.mcs)
+
+    if(PROM._progDone):
+        print('\nReloading FPGA firmware from PROM ....')
+        AxiVersion.FpgaReload()
+        time.sleep(10)
+        print('\nReloading FPGA done')
+
+        print ( '###################################################')
+        print ( '#                 New Firmware                    #')
+        print ( '###################################################')
+        AxiVersion.printStatus()
+    else:
+        print('Failed to program FPGA')
 
 top.stop()
 exit()

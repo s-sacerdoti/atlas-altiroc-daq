@@ -13,411 +13,69 @@ import pyrogue as pr
 
 import common
 
-class AltirocGpio(pr.Device):
-    def __init__(   
-        self,       
-        name        = "AltirocGpio",
-        description = "Container for Altiroc ASIC\'s GPIOs",
-            **kwargs):
-        
-        super().__init__(
-            name        = name,
-            description = description,
-            **kwargs)
-            
-        self.add(pr.RemoteVariable(
-            name         = 'RSTB_RAM', 
-            description  = 'reset input active LOW',
-            offset       = 0x804,
-            bitSize      = 1, 
-            mode         = 'RW',
-        )) 
-
-        self.add(pr.RemoteVariable(
-            name         = 'RSTB_READ', 
-            description  = 'reset input active LOW',
-            offset       = 0x808,
-            bitSize      = 1, 
-            mode         = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'RSTB_TDC', 
-            description  = 'reset input active LOW',
-            offset       = 0x80C,
-            bitSize      = 1, 
-            mode         = 'RW',
-        ))             
-
-class AltirocPulseTrain(pr.Device):
-    def __init__(   
-        self,       
-        name        = "AltirocPulseTrain",
-        description = "Container for Altiroc ASIC\'s Pulse Train",
-            **kwargs):
-        
-        super().__init__(
-            name        = name,
-            description = description,
-            **kwargs)        
-            
-        self.add(pr.RemoteCommand(   
-            name         = 'OneShot',
-            description  = 'One shot trigger for pulse train',
-            offset       = 0xA10,
-            bitSize      = 1,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            function     = lambda cmd: cmd.post(1),
-            hidden       = False,
-        ))            
-
-        self.add(pr.RemoteVariable(
-            name         = 'OneShotReg', 
-            description  = 'One shot trigger for pulse train',
-            offset       = 0xA10,
-            bitSize      = 1, 
-            mode         = 'WO',
-            value        = 0x1,
-        ))         
-        
-        self.add(pr.RemoteVariable(
-            name         = 'Continuous', 
-            description  = 'Sets the pulse train module into continuous mode',
-            offset       = 0xA0C,
-            bitSize      = 1, 
-            mode         = 'RW',
-        ))               
-            
-        self.add(pr.RemoteVariable(
-            name         = 'PulseCount', 
-            description  = '# of pulses in the one-shot pulse train',
-            units        = '# of pulses',
-            offset       = 0xA00,
-            bitSize      = 16, 
-            mode         = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'PulseWidth', 
-            description  = 'Pulse width of the pulses in the pulse train',
-            units        = '1/160MHz',
-            offset       = 0xA04,
-            bitSize      = 16, 
-            mode         = 'RW',
-        ))
-        
-        self.add(pr.RemoteVariable(
-            name         = 'PulsePeriod', 
-            description  = 'period between pusles in the pulse train',
-            units        = '1/40MHz',
-            offset       = 0xA08,
-            bitSize      = 16, 
-            mode         = 'RW',
-        ))     
-
-        self.add(pr.RemoteVariable(
-            name         = 'PulseDelay', 
-            description  = 'Delay before the pulse train',
-            units        = '1/40MHz',
-            offset       = 0xA14,
-            bitSize      = 16, 
-            mode         = 'RW',
-        )) 
-
-        self.add(pr.RemoteVariable(
-            name         = 'ReadDelay', 
-            description  = 'Delay after the last pulse of the pulse train and before the start of the readout',
-            units        = '1/40MHz',
-            offset       = 0xA18,
-            bitSize      = 16, 
-            mode         = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'ReadDuration', 
-            description  = 'Readout duration (number of cycles that RENABLE is HIGH)',
-            units        = '1/40MHz',
-            offset       = 0xA1C,
-            bitSize      = 16, 
-            mode         = 'RW',
-        ))  
-
-        self.add(pr.RemoteVariable(
-            name         = 'ResetCounterMask', 
-            description  = 'BIT0 enables the 1st RST_COUNTER strobe, BIT0 enables the 2nd RST_COUNTER strobe',
-            offset       = 0xA20,
-            bitSize      = 2, 
-            mode         = 'RW',
-        ))   
-
-        self.add(pr.RemoteVariable(
-            name         = 'ResetCounterPolarity', 
-            description  = 'Selects whether the reset_counter is inverted polarity',
-            offset       = 0xA24,
-            bitSize      = 1, 
-            mode         = 'RW',
-            enum        = {
-                0x0: 'NonInverted', 
-                0x1: 'Inverted',               
-            },
-        ))  
-        
-        self.add(pr.RemoteVariable(
-            name         = 'ResetTdcMask', 
-            description  = 'BIT0 enables the 1st RSTB_TDC strobe, BIT0 enables the 2nd RSTB_TDC strobe',
-            offset       = 0xA28,
-            bitSize      = 2, 
-            mode         = 'RW',
-        )) 
-
-class AltirocDoutDebug(pr.Device):
-    def __init__(   
-        self,       
-        name        = "AltirocDoutDebug",
-        description = "Container for Altiroc ASIC\'s DOUT debugging",
-            **kwargs):
-        
-        super().__init__(
-            name        = name,
-            description = description,
-            **kwargs)
-            
-        self.add(pr.RemoteCommand(   
-            name         = 'DeserBitSlip',
-            description  = 'Force a bit slip in the deserializer',
-            offset       = 0x8FC,
-            bitSize      = 1,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            function     = lambda cmd: cmd.post(1),
-            hidden       = False,
-        ))            
-
-        self.add(pr.RemoteVariable(
-            name         = 'DeserBitSlipReg', 
-            description  = 'Force a bit slip in the deserializer',
-            offset       = 0x8FC,
-            bitSize      = 1, 
-            mode         = 'WO',
-            value        = 0x1,
-        ))      
-            
-        self.add(pr.RemoteVariable(
-            name         = 'DeserSampleEdge', 
-            description  = 'Selects whether the rising edge or falling edge sample is used in the deserializer',
-            offset       = 0x900,
-            bitSize      = 1, 
-            bitOffset    = 0,
-            mode         = 'RW',
-            enum        = {
-                0x0: 'RisingEdge', 
-                0x1: 'FallingEdge',               
-            },
-        )) 
-
-        self.add(pr.RemoteVariable(
-            name         = 'DeserInvertDout', 
-            description  = 'Selects whether the dout is inverted before the serializer (used in case of a layout polarity inversion)',
-            offset       = 0x900,
-            bitSize      = 1, 
-            bitOffset    = 1,
-            mode         = 'RW',
-            enum        = {
-                0x0: 'NonInverted', 
-                0x1: 'Inverted',               
-            },
-        ))             
-        
-        self.add(pr.RemoteVariable(
-            name         = 'ForwardData', 
-            description  = '1: Forwards data to the computer, 0: blows off the data stream',
-            offset       = 0x908,
-            bitSize      = 1, 
-            bitOffset    = 0,
-            mode         = 'RW',
-        ))        
-        
-        self.add(pr.RemoteVariable(
-            name         = 'DataWordCnt', 
-            description  = 'Increment every time a data word is sent to the DAQ PC',
-            offset       = 0x90C,
-            bitSize      = 32,  
-            mode         = 'RO',
-            base         = pr.UInt,
-            pollInterval = 1,
-        ))   
-
-        self.add(pr.RemoteVariable(
-            name         = 'HitDetCnt', 
-            description  = 'Increment every time a data word is sent to the DAQ PC with a hit',
-            offset       = 0x910,
-            bitSize      = 32,  
-            mode         = 'RO',
-            base         = pr.UInt,
-            pollInterval = 1,
-        ))     
-
-        self.add(pr.RemoteVariable(
-            name         = 'LastSeqCnt', 
-            description  = """
-                Read only register to present the streaming data bus 
-                DataBus(31:19) = sequence counter (increments once per deserialized word
-                DataBus(18:00) = AXIS's 19-bit deserialized data output """,
-            offset       = 0x914,
-            bitSize      = 13,  
-            bitOffset    = 19,
-            mode         = 'RO',
-            base         = pr.UInt,
-            pollInterval = 1,
-        )) 
-        
-        downToBitOrdering = pr.UInt
-        upToBitOrdering   = pr.UIntReversed 
-        self.add(pr.RemoteVariable(
-            name         = 'LastAsicDout', 
-            description  = """
-                Read only register to present the streaming data bus 
-                DataBus(31:19) = sequence counter (increments once per deserialized word
-                DataBus(18:00) = AXIS's 19-bit deserialized data output """,
-            offset       = 0x914,
-            bitSize      = 19,  
-            bitOffset    = 0,
-            mode         = 'RO',
-            base         = downToBitOrdering,
-            pollInterval = 1,
-            overlapEn    = True,
-        ))        
-
-        self.add(pr.RemoteVariable(
-            name         = 'LastDeserWord_TotOverflow', 
-            offset       = 0x914,
-            bitSize      = 1,  
-            bitOffset    = 18,
-            mode         = 'RO',
-            pollInterval = 1,
-            overlapEn    = True,
-        ))        
-        
-        self.add(pr.RemoteVariable(
-            name         = 'LastDeserWord_TotData', 
-            offset       = 0x914,
-            bitSize      = 9,  
-            bitOffset    = 9,
-            mode         = 'RO',
-            pollInterval = 1,
-            overlapEn    = True,
-        ))         
-        
-        self.add(pr.RemoteVariable(
-            name         = 'LastDeserWord_ToaOverflow', 
-            offset       = 0x914,
-            bitSize      = 1,  
-            bitOffset    = 8,
-            mode         = 'RO',
-            pollInterval = 1,
-            overlapEn    = True,
-        ))         
-        
-        self.add(pr.RemoteVariable(
-            name         = 'LastDeserWord_ToaData', 
-            offset       = 0x914,
-            bitSize      = 7,  
-            bitOffset    = 1,
-            mode         = 'RO',
-            pollInterval = 1,
-            overlapEn    = True,
-        ))         
-        
-        self.add(pr.RemoteVariable(
-            name         = 'LastDeserWord_Hit', 
-            offset       = 0x914,
-            bitSize      = 1,  
-            bitOffset    = 0,
-            mode         = 'RO',
-            pollInterval = 1,
-            overlapEn    = True,
-        ))         
-            
-        self.add(pr.RemoteVariable(
-            name         = 'DataDropCnt', 
-            description  = 'Increment every time a data word is dropped due to backpressure',
-            offset       = 0x918,
-            bitSize      = 32,  
-            mode         = 'RO',
-            base         = pr.UInt,
-            pollInterval = 1,
-        ))                   
-        
 class Altiroc(pr.Device):
     def __init__(   
         self,       
-        name        = "Altiroc",
-        description = "Container for Altiroc ASIC",
+        name        = 'Altiroc',
+        description = 'Container for Altiroc ASIC',
+        asyncDev    = None,
             **kwargs):
         
         super().__init__(
             name        = name,
             description = description,
-            size        = (0x1 << 12), 
             **kwargs)
-            
-        self.add(pr.RemoteVariable(
-            name         = 'CK_WRITE', 
-            description  = 'External ck used to write data in the SRAM instead of the internal one (to write slower for instance)',
-            offset       = 0x814,
-            bitSize      = 3, 
-            mode         = 'RW',
-            enum        = {
-                0x0: 'Disabled', 
-                0x1: '20MHz', 
-                0x2: '10MHz', 
-                0x3: '5MHz', 
-                0x4: '2.5MHz', 
-                0x5: '1.25MHz',                 
-            },
-        ))              
-                    
-        self.add(pr.RemoteVariable(
-            name         = 'EmuEnable', 
-            description  = 'Enables the emulation mode where a streaming data hit message will be generated for every pulse from the pulse generator',
-            offset       = 0x904,
-            bitSize      = 1, 
-            mode         = 'RW',        
-        )) 
-                   
-        self.add(AltirocGpio(
-            name        = 'Gpio', 
-            offset      = 0x0, 
-            expand      = False,
-        ))                          
-            
-        self.add(AltirocPulseTrain(
-            name        = 'PulseTrain', 
-            offset      = 0x0, 
-            expand      = False,
-        ))
 
-        self.add(AltirocDoutDebug(
-            name        = 'DoutDebug', 
-            offset      = 0x0, 
+        self.add(common.AltirocGpio(
+            name        = 'Gpio', 
+            description = 'This device contains Altiroc ASIC\'s ASYNC GPIO interfaces',
+            offset      = 0x00000000, 
             expand      = False,
-        ))        
+        )) 
+        
+        self.add(common.AltirocTdcClk(
+            name        = 'TdcClk', 
+            description = 'This device contains Altiroc ASIC\'s TDC Clock configurations',
+            offset      = 0x00010000, 
+            enableDeps  = asyncDev,
+            expand      = False,
+        ))          
+        
+        self.add(common.AltirocCalPulse(
+            name        = 'CalPulse', 
+            description = 'This device contains Altiroc ASIC\'s cal pulse controls',
+            offset      = 0x00020000, 
+            enableDeps  = asyncDev,
+            expand      = False,
+        ))      
+
+        self.add(common.AltirocTrig(
+            name        = 'Trig', 
+            description = 'This device contains Altiroc ASIC\'s triggering controls',
+            offset      = 0x00030000, 
+            enableDeps  = asyncDev,
+            expand      = False,
+        ))              
         
         self.add(common.AltirocSlowControl(
             name        = 'SlowControl', 
             description = 'This device contains Altiroc ASIC\'s slow control shift register interface',
-            offset      = 0x00010000, 
+            offset      = 0x00040000, 
             expand      = False,
         ))    
 
         self.add(common.AltirocProbe(
             name        = 'Probe', 
             description = 'This device contains Altiroc ASIC\'s probe shift register interface',
-            offset      = 0x00020000, 
+            offset      = 0x00050000, 
+            enableDeps  = asyncDev,
             expand      = False,
         ))
         
-    def countReset(self):
-        self._rawWrite(offset=0xFFC,data=0x1)            
-      
+        self.add(common.AltirocReadout(
+            name        = 'Readout', 
+            description = 'This device contains Altiroc ASIC\'s readout controls',
+            offset      = 0x00060000, 
+            enableDeps  = asyncDev,
+            expand      = False,
+        ))          

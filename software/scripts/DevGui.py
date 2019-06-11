@@ -27,9 +27,9 @@ argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
 # Add arguments
 parser.add_argument(
     "--ip", 
-    type     = str,
+    nargs    ='+',
     required = True,
-    help     = "IP address",
+    help     = "List of IP addresses",
 )  
 
 parser.add_argument(
@@ -54,13 +54,11 @@ args = parser.parse_args()
 #################################################################
 
 # Setup root class
-top = feb.Top(hwType='eth',ip=args.ip)    
-
-# Start the system
-top.start(
+top = feb.Top(
+    ip       = args.ip,
     pollEn   = args.pollEn,
-    initRead = args.initRead,    
-)
+    initRead = args.initRead,       
+)    
 
 # Create GUI
 appTop = pr.gui.application(sys.argv)

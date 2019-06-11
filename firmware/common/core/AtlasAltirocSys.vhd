@@ -21,7 +21,6 @@ use IEEE.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.I2cPkg.all;
-use work.AtlasAltirocPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -34,9 +33,6 @@ entity AtlasAltirocSys is
       AXI_CLK_FREQ_G  : real             := 156.25E+6;  -- units of Hz
       AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
-      -- Configuration/Status interface
-      status          : in    AtlasAltirocStatusType;
-      config          : out   AtlasAltirocConfigType;
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in    sl;
       axilRst         : in    sl;
@@ -61,6 +57,7 @@ entity AtlasAltirocSys is
       bootMosi        : out   sl := '1';
       bootMiso        : in    sl;
       -- Misc Ports
+      localMac        : in  slv(47 downto 0);
       pwrScl          : inout sl;
       pwrSda          : inout sl;
       tempAlertL      : in    sl;
@@ -75,7 +72,7 @@ architecture mapping of AtlasAltirocSys is
    constant VERSION_INDEX_C  : natural := 0;
    constant XADC_INDEX_C     : natural := 1;
    constant BOOT_MEM_INDEX_C : natural := 2;
-   constant SYS_REG_INDEX_C  : natural := 3;
+   constant LEGACY_INDEX_C   : natural := 3;
    constant PWR_INDEX_C      : natural := 4;
    constant DLY_TEMP_INDEX_C : natural := 5;
    constant DAC_INDEX_C      : natural := 6;
@@ -94,7 +91,7 @@ architecture mapping of AtlasAltirocSys is
          baseAddr      => (AXI_BASE_ADDR_G+x"0002_0000"),
          addrBits      => 16,
          connectivity  => x"FFFF"),
-      SYS_REG_INDEX_C  => (
+      LEGACY_INDEX_C   => (
          baseAddr      => (AXI_BASE_ADDR_G+x"0003_0000"),
          addrBits      => 16,
          connectivity  => x"FFFF"),
@@ -138,8 +135,13 @@ architecture mapping of AtlasAltirocSys is
    constant DLY_I2C_C : I2cAxiLiteDevArray(0 downto 0) := (others => PWR_I2C_C(0));  -- DLY TEMP IC same as power monitor
 
    signal bootSck : sl;
+   
+   signal userValues   : Slv32Array(0 to 63) := (others => x"00000000");   
 
 begin
+
+   userValues(0) <= localMac(31 downto 0);
+   userValues(1) <= x"0000" & localMac(47 downto 32);
 
    --------------------------
    -- AXI-Lite: Crossbar Core
@@ -180,26 +182,9 @@ begin
          axiReadMaster  => axilReadMasters(VERSION_INDEX_C),
          axiReadSlave   => axilReadSlaves(VERSION_INDEX_C),
          axiWriteMaster => axilWriteMasters(VERSION_INDEX_C),
-         axiWriteSlave  => axilWriteSlaves(VERSION_INDEX_C));
-
-   -----------------------------------
-   -- AXI-Lite: System Register Module
-   -----------------------------------
-   U_SysReg : entity work.AtlasAltirocSysReg
-      generic map (
-         TPD_G          => TPD_G,
-         AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)
-      port map (
-         -- AXI-Lite Interface
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilReadMaster  => axilReadMasters(SYS_REG_INDEX_C),
-         axilReadSlave   => axilReadSlaves(SYS_REG_INDEX_C),
-         axilWriteMaster => axilWriteMasters(SYS_REG_INDEX_C),
-         axilWriteSlave  => axilWriteSlaves(SYS_REG_INDEX_C),
-         -- System Interface 
-         status          => status,
-         config          => config);
+         axiWriteSlave  => axilWriteSlaves(VERSION_INDEX_C),
+         -- Optional: user values
+         userValues     => userValues);         
 
    NOT_SIM : if (SIMULATION_G = false) generate
 

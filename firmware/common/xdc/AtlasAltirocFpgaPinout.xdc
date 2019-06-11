@@ -10,48 +10,66 @@
 
 # ASIC Ports
 
-set_property -dict { PACKAGE_PIN U4 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { renable      }]; #  RENABLE
-set_property -dict { PACKAGE_PIN U6 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { srinSc       }]; #  SRIN_SC
-set_property -dict { PACKAGE_PIN U5 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstbSc       }]; #  RSTB_SC
-set_property -dict { PACKAGE_PIN U2 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { ckSc         }]; #  CK_SC
-set_property -dict { PACKAGE_PIN U1 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { srinProbe    }]; #  SRIN_PROBE
-set_property -dict { PACKAGE_PIN W6 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstbProbe    }]; #  RSTB_PROBE
-set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstbRam      }]; #  RSTB_RAM
-set_property -dict { PACKAGE_PIN V3 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstbRead     }]; #  RSTB_READ
-set_property -dict { PACKAGE_PIN W3 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstbTdc      }]; #  RSTB_TDC
-set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstbCounter  }]; #  RSTB_COUNTER
-set_property -dict { PACKAGE_PIN V6 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { ckProbeAsic  }]; #  CK_PROBE_ASIC
-set_property -dict { PACKAGE_PIN V4 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { ckWriteAsic  }]; #  CK_WRITE_ASIC
+set_property -dict { PACKAGE_PIN U4 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { renable     }]; #  RENABLE
+set_property -dict { PACKAGE_PIN U6 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { srinSc      }]; #  SRIN_SC
+set_property -dict { PACKAGE_PIN U5 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstbSc      }]; #  RSTB_SC
+set_property -dict { PACKAGE_PIN U2 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { ckSc        }]; #  CK_SC
+set_property -dict { PACKAGE_PIN U1 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { srinProbe   }]; #  SRIN_PROBE
+set_property -dict { PACKAGE_PIN W6 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstbProbe   }]; #  RSTB_PROBE
+set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstbRam     }]; #  RSTB_RAM
+set_property -dict { PACKAGE_PIN V3 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstbRead    }]; #  RSTB_READ
+set_property -dict { PACKAGE_PIN W3 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstbTdc     }]; #  RSTB_TDC
+set_property -dict { PACKAGE_PIN U7 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstCounter  }]; #  RST_COUNTER
+set_property -dict { PACKAGE_PIN V6 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { ckProbeAsic }]; #  CK_PROBE_ASIC
+set_property -dict { PACKAGE_PIN V4 IOSTANDARD LVCMOS12 DRIVE 8 SLEW FAST } [get_ports { rstbDll     }]; #  RSTB_DLL
 
 set_property -dict { PACKAGE_PIN AE2 IOSTANDARD LVCMOS12 } [get_ports { sroutSc      }]; #  SROUT_SC
 set_property -dict { PACKAGE_PIN AE6 IOSTANDARD LVCMOS12 } [get_ports { digProbe[0]  }]; #  DIGITAL_PROBE[2:1]
 set_property -dict { PACKAGE_PIN AE5 IOSTANDARD LVCMOS12 } [get_ports { digProbe[1]  }]; #  DIGITAL_PROBE[2:1]
 set_property -dict { PACKAGE_PIN AF3 IOSTANDARD LVCMOS12 } [get_ports { sroutProbe   }]; #  SROUT_PROBE
-set_property -dict { PACKAGE_PIN AF2 IOSTANDARD LVCMOS12 } [get_ports { totBusyb     }]; #  TOT_BUSYB
+set_property -dict { PACKAGE_PIN AF2 IOSTANDARD LVCMOS12 } [get_ports { totBusy      }]; #  TOT_BUSY
 set_property -dict { PACKAGE_PIN T7  IOSTANDARD LVCMOS12 } [get_ports { toaBusyb     }]; #  TOA_BUSYB
-
-set_property -dict { PACKAGE_PIN F14 IOSTANDARD LVCMOS25 SLEW FAST } [get_ports { extTrig }]; #  EXT_TRIG
 
 set_property -dict { PACKAGE_PIN W10 IOSTANDARD LVDS DIFF_TERM true } [get_ports { doutP }]; #  DOUT_P
 set_property -dict { PACKAGE_PIN W9  IOSTANDARD LVDS DIFF_TERM true } [get_ports { doutN }]; #  DOUT_N
 
-set_property -dict { PACKAGE_PIN AC8 IOSTANDARD LVDS } [get_ports { cmdPulseP }]; #  CMD_PULSE_P
-set_property -dict { PACKAGE_PIN AD8 IOSTANDARD LVDS } [get_ports { cmdPulseN }]; #  CMD_PULSE_N
+set_property -dict { PACKAGE_PIN AC8 IOSTANDARD LVDS } [get_ports { calPulseP }]; #  PULSE_P
+set_property -dict { PACKAGE_PIN AD8 IOSTANDARD LVDS } [get_ports { calPulseN }]; #  PULSE_N
 
-# CMD Pulse Delay Ports
+set_property -dict { PACKAGE_PIN V11 IOSTANDARD LVDS     } [get_ports { fpgaTdcClkP }]; #  FPGA_CK_40_P
+set_property -dict { PACKAGE_PIN W11 IOSTANDARD LVDS     } [get_ports { fpgaTdcClkN }]; #  FPGA_CK_40_M
+set_property -dict { PACKAGE_PIN B22 IOSTANDARD LVCMOS33 } [get_ports { tdcClkSel   }]; #  MUX_CLK_SEL
 
-set_property -dict { PACKAGE_PIN L23 IOSTANDARD LVCMOS33 } [get_ports { dlyLen }];
+set_property -dict { PACKAGE_PIN A9 IOSTANDARD LVDS_25 } [get_ports { rdClkP }]; #  CK_320_P
+set_property -dict { PACKAGE_PIN A8 IOSTANDARD LVDS_25 } [get_ports { rdClkN }]; #  CK_320_M
 
-set_property -dict { PACKAGE_PIN H23 IOSTANDARD LVCMOS33 } [get_ports { dlyData[0] }];
-set_property -dict { PACKAGE_PIN H24 IOSTANDARD LVCMOS33 } [get_ports { dlyData[1] }];
-set_property -dict { PACKAGE_PIN J21 IOSTANDARD LVCMOS33 } [get_ports { dlyData[2] }];
-set_property -dict { PACKAGE_PIN H22 IOSTANDARD LVCMOS33 } [get_ports { dlyData[3] }];
-set_property -dict { PACKAGE_PIN J24 IOSTANDARD LVCMOS33 } [get_ports { dlyData[4] }];
-set_property -dict { PACKAGE_PIN J25 IOSTANDARD LVCMOS33 } [get_ports { dlyData[5] }];
-set_property -dict { PACKAGE_PIN L22 IOSTANDARD LVCMOS33 } [get_ports { dlyData[6] }];
-set_property -dict { PACKAGE_PIN K22 IOSTANDARD LVCMOS33 } [get_ports { dlyData[7] }];
-set_property -dict { PACKAGE_PIN K23 IOSTANDARD LVCMOS33 } [get_ports { dlyData[8] }];
-set_property -dict { PACKAGE_PIN J23 IOSTANDARD LVCMOS33 } [get_ports { dlyData[9] }];
+# CAL Pulse Delay Ports
+
+set_property -dict { PACKAGE_PIN G9  IOSTANDARD LVCMOS25 } [get_ports { dlyCal[0][0]  }];
+set_property -dict { PACKAGE_PIN J13 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[0][1]  }];
+set_property -dict { PACKAGE_PIN H13 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[0][2]  }];
+set_property -dict { PACKAGE_PIN J11 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[0][3]  }];
+set_property -dict { PACKAGE_PIN J10 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[0][4]  }];
+set_property -dict { PACKAGE_PIN H14 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[0][5]  }];
+set_property -dict { PACKAGE_PIN G14 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[0][6]  }];
+set_property -dict { PACKAGE_PIN H12 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[0][7]  }];
+set_property -dict { PACKAGE_PIN H11 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[0][8]  }];
+set_property -dict { PACKAGE_PIN F9  IOSTANDARD LVCMOS25 } [get_ports { dlyCal[0][9]  }];
+set_property -dict { PACKAGE_PIN F8  IOSTANDARD LVCMOS25 } [get_ports { dlyCal[0][10] }];
+set_property -dict { PACKAGE_PIN D9  IOSTANDARD LVCMOS25 } [get_ports { dlyCal[0][11] }];
+
+set_property -dict { PACKAGE_PIN E13 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[1][0]  }];
+set_property -dict { PACKAGE_PIN E12 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[1][1]  }];
+set_property -dict { PACKAGE_PIN C14 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[1][2]  }];
+set_property -dict { PACKAGE_PIN C13 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[1][3]  }];
+set_property -dict { PACKAGE_PIN B12 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[1][4]  }];
+set_property -dict { PACKAGE_PIN B11 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[1][5]  }];
+set_property -dict { PACKAGE_PIN B14 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[1][6]  }];
+set_property -dict { PACKAGE_PIN A14 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[1][7]  }];
+set_property -dict { PACKAGE_PIN B10 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[1][8]  }];
+set_property -dict { PACKAGE_PIN A10 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[1][9]  }];
+set_property -dict { PACKAGE_PIN B15 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[1][10] }];
+set_property -dict { PACKAGE_PIN A15 IOSTANDARD LVCMOS25 } [get_ports { dlyCal[1][11] }];
 
 set_property -dict { PACKAGE_PIN H21 IOSTANDARD LVCMOS33 } [get_ports { dlyTempScl }];
 set_property -dict { PACKAGE_PIN G21 IOSTANDARD LVCMOS33 } [get_ports { dlyTempSda }];
@@ -69,12 +87,6 @@ set_property -dict { PACKAGE_PIN AD9 IOSTANDARD LVDS DIFF_TERM true } [get_ports
 
 set_property -dict { PACKAGE_PIN AB11 IOSTANDARD LVDS DIFF_TERM true } [get_ports { pllClkInP[1] }];
 set_property -dict { PACKAGE_PIN AC11 IOSTANDARD LVDS DIFF_TERM true } [get_ports { pllClkInN[1] }];
-
-set_property -dict { PACKAGE_PIN E10 IOSTANDARD LVDS_25 DIFF_TERM true } [get_ports { pllClkInP[2] }];
-set_property -dict { PACKAGE_PIN D10 IOSTANDARD LVDS_25 DIFF_TERM true } [get_ports { pllClkInN[2] }];
-
-set_property -dict { PACKAGE_PIN C12 IOSTANDARD LVDS_25 DIFF_TERM true } [get_ports { pllClkInP[3] }];
-set_property -dict { PACKAGE_PIN C11 IOSTANDARD LVDS_25 DIFF_TERM true } [get_ports { pllClkInN[3] }];
 
 set_property -dict { PACKAGE_PIN AD10 IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { pllClkSel[0]}];
 set_property -dict { PACKAGE_PIN AE10 IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { pllClkSel[1]}];

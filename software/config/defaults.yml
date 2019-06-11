@@ -1,115 +1,118 @@
 Top:
-  SysReg:
-    DlyData: 0x0
-    RefClkSel: IntClk
-  Dac:
-    RawValue:  0x8000
-  Asic:
-    CK_WRITE: Disabled
-    EmuEnable: 0x0
-    DoutDebug:
-      DeserSampleEdge: RisingEdge
-    PulseTrain:
-      Continuous: 0x0 
-      PulseCount: 4
-      PulseWidth: 1
-      PulsePeriod: 4
-      PulseDelay: 10
-      ReadDelay: 10
-      ReadDuration: 10000
-    Gpio:
-      RSTB_RAM: 0x1
-      RSTB_READ:  0x1
-      RSTB_TDC:  0x1
-    SlowControl:
-      dac: 0x0
-      ON_dac_LR: 0x1
-      Write_opt: 0x0
-      Precharge_opt: 0x0
-      ref_bg: 0x1
-      dac_pulser: 0x7
-      Ccomp_TZ: 0x0
-      Rin_Vpa: 0x0
-      Cp_Vpa: 0x0
-      dac_biaspa: 0xc
-      ON_dac_biaspa: 0x1
-      ON_ota_dac: 0x1
-      DAC10bit: 0x80
-      SatFVa: 0x0
-      IntFVa: 0x0
-      SatFTz: 0x0
-      IntFTz: 0x0
-      totf_satovfw: 0x0
-      totc_satovfw: 0x0
-      toa_satovfw: 0x0
-      Ck40_choice: 0x0
-      cBitf: 0x0
-      DLL_ALockR_en: 0x1
-      CP_b: 0x3
-      ext_Vcrtlf_en: 0x0
-      cBits: 0x0
-      ext_Vcrtls_en: 0x0
-      cBitc: 0x0
-      ext_Vcrtlc_en: 0x0
-      en_8drivers: 0x0
-      EN_ck_SRAM[0:24]: 0x1
-      ON_Ctest[0:24]: 0x0
-      disable_pa[0:24]: 0x0
-      bit_vth_cor[0:24]: 0x8
-      ON_discri[0:24]: 0x1
-      EN_hyst[0:24]: 0x1
-      EN_trig_ext[0:24]: 0x0
-      cBit_f_TOT[0:24]: 0x0
-      cBit_c_TOT[0:24]: 0x0
-      cBit_s_TOT[0:24]: 0x0
-      cBit_s_TOA[0:24]: 0x0
-      cBit_f_TOA[0:24]: 0x0
-      EN_ck_SRAM[0:24]: 0x1
-      cd[0]: 0x0
-      cd[1]: 0x0
-      cd[2]: 0x0
-      cd[3]: 0x0
-      cd[4]: 0x0
-      PLL: 0x1
-      dac_icpb: 0xa
-      # dac_CP_BWb: 0x20 # Legacy V1 value
-      Shifted_ck40: 0x0
-      dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
-      EN_Ext_Vin_VCO: 0x0
-      setN: 0x3
-      setProbe: 0x0
-      EN_500: 0x0
-      EN_1000: 0x0
-      EN_2000: 0x1
-      EN_4000: 0x0
-      EN_200p: 0x0
-      EN_LowKvco: 0x0
-      delay: 0x0
-      Ph: 0x0
-      forcedown: 0x0
-      inita: 0x1
-      initb: 0x1
-      initc: 0x1
-      cpen: 0x1
-      cp: 0x0
-      En_40M: 0x1
-      En_640M: 0x1
-      rstL: 0x1
-    Probe:
-      en_probe_pa: 0x0
-      en_probe_dig: 0x0
-      EN_dout: 0x0
-      rstL: 0x1
-      pix[0:24]:
-        probe_pa: 0x0
-        probe_vthc: 0x0
-        probe_dig_out_disc: 0x0
-        probe_toa: 0x0
-        probe_tot: 0x0
-        totf: 0x0
-        tot_overflow: 0x0
-        toa_busy: 0x0
-        Hit: 0x0
-        tot_busy: 0x0
-        tot_ready: 0x0
-        en_read: 0x0
+  Fpga[:]: # "[:]" is a wildcard for a dict search
+    Dac:
+      RawValue:  0x8000
+    Asic:
+      Gpio:
+        RSTB_RAM: 0x1
+        RST_COUNTER: 0x0
+        RSTB_TDC: 0x1
+        RSTB_DLL: 0x1
+        DlyCalPulseSet: 0x0 # Rising edge of EXT_TRIG
+        DlyCalPulseReset: 0xfff # Falling edge of EXT_TRIG
+        RefClkSel: IntClk # Using the local board OSC
+      TdcClk:
+        Tdc40MHzClkSel: Pll
+        FpgaTdcClkHigh: 0x1
+        FpgaTdcClkLow: 0x1
+      CalPulse:
+        CalPulseDelay: 0xFFFF
+        CalPulseCount: 0x0
+        Continuous: 0x0
+      Trig:
+        TrigTypeSel: Slave
+        StrobeAlign: 0x0        
+        EnCalPulseTrig: 0x1      
+        EnBncExtTrig: 0x0      
+        EnPcieLocalTrig: 0x0      
+        EnLemoRemoteTrig: 0x0      
+        MasterModeSel: AND      
+        TrigSizeBeforePause: 0x0      
+        DeadtimeDuration: 0x0      
+      SlowControl:
+        dac: 0x0
+        ON_dac_LR: 0x1
+        Write_opt: 0x0
+        Precharge_opt: 0x0
+        ref_bg: 0x1
+        dac_pulser: 0x7
+        Ccomp_TZ: 0x0
+        Rin_Vpa: 0x0
+        Cp_Vpa: 0x0
+        dac_biaspa: 0xc
+        ON_dac_biaspa: 0x1
+        ON_ota_dac: 0x1
+        DAC10bit: 0x80
+        SatFVa: 0x0
+        IntFVa: 0x0
+        SatFTz: 0x0
+        IntFTz: 0x0
+        totf_satovfw: 0x0
+        totc_satovfw: 0x0
+        toa_satovfw: 0x0
+        Ck40_choice: 0x0
+        cBitf: 0x0
+        DLL_ALockR_en: 0x1
+        CP_b: 0x3
+        ext_Vcrtlf_en: 0x0
+        cBits: 0x0
+        ext_Vcrtls_en: 0x0
+        cBitc: 0x0
+        ext_Vcrtlc_en: 0x0
+        en_8drivers: 0x0
+        EN_ck_SRAM[:]: 0x1
+        ON_Ctest[:]: 0x0
+        disable_pa[:]: 0x0
+        bit_vth_cor[:]: 0x8
+        ON_discri[:]: 0x1
+        EN_hyst[:]: 0x1
+        EN_trig_ext[:]: 0x0
+        cBit_f_TOT[:]: 0x0
+        cBit_c_TOT[:]: 0x0
+        cBit_s_TOT[:]: 0x0
+        cBit_s_TOA[:]: 0x0
+        cBit_f_TOA[:]: 0x0
+        cd[0]: 0x0
+        cd[1]: 0x0
+        cd[2]: 0x0
+        cd[3]: 0x0
+        cd[4]: 0x0
+        PLL: 0x1
+        dac_icpb: 0xa
+        # dac_CP_BWb: 0x20 # Legacy V1 value
+        Shifted_ck40: 0x1
+        dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
+        EN_Ext_Vin_VCO: 0x0
+        setN: 0x3
+        setProbe: 0x0
+        EN_500: 0x0
+        EN_1000: 0x0
+        EN_2000: 0x1
+        EN_4000: 0x0
+        EN_200p: 0x0
+        EN_LowKvco: 0x0
+        delay: 0x0
+        Ph: 0x0
+        forcedown: 0x0
+        inita: 0x1
+        initb: 0x1
+        initc: 0x1
+        cpen: 0x1
+        cp: 0x0
+        En_40M: 0x1
+        En_640M: 0x1
+        rstL: 0x1       
+      Readout:
+        StartPix: 0
+        LastPix: 24
+        PixReadIteration: 0
+        ProbeToRstDly: 0x0
+        RstPulseWidth: 0xf
+        RstToReadDly: 0xf
+        RckHighWidth: 0x3
+        RckLowWidth: 0x3
+        RestoreProbeConfig: 0x0
+        TestPattern: 0x0
+        SendData: 0x1
+        EnProbeWrite: 0x1
+        PolarityDout: 0x1
