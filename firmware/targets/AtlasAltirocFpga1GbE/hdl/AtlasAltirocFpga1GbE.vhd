@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocFpga1GbE.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-06
--- Last update: 2018-09-07
+-- Last update: 2019-06-04
 -------------------------------------------------------------------------------
 -- Description: Top-Level module using 1 GbE communication
 -------------------------------------------------------------------------------
@@ -22,7 +22,9 @@ use work.StdRtlPkg.all;
 
 entity AtlasAltirocFpga1GbE is
    generic (
-      TPD_G        : time := 1 ns;
+      TPD_G        : time    := 1 ns;
+      SIMULATION_G : boolean := false;
+      COM_TYPE_G   : string  := "ETH";
       BUILD_INFO_G : BuildInfoType);
    port (
       -- ASIC Ports
@@ -35,22 +37,25 @@ entity AtlasAltirocFpga1GbE is
       rstbRam      : out   sl;               -- RSTB_RAM
       rstbRead     : out   sl;               -- RSTB_READ
       rstbTdc      : out   sl;               -- RSTB_TDC
-      rstbCounter  : out   sl;               -- RSTB_COUNTER
+      rstCounter   : out   sl;               -- RST_COUNTER
       ckProbeAsic  : out   sl;               -- CK_PROBE_ASIC
-      ckWriteAsic  : out   sl;               -- CK_WRITE_ASIC
-      extTrig      : out   sl;               -- EXT_TRIG
+      rstbDll      : out   sl;               -- RSTB_DLL
       sroutSc      : in    sl;               -- SROUT_SC
       digProbe     : in    slv(1 downto 0);  -- DIGITAL_PROBE[2:1]
       sroutProbe   : in    sl;               -- SROUT_PROBE
-      totBusyb     : in    sl;               -- TOT_BUSYB
+      totBusy      : in    sl;               -- TOT_BUSY
       toaBusyb     : in    sl;               -- TOA_BUSYB
       doutP        : in    sl;               -- DOUT_P
       doutN        : in    sl;               -- DOUT_N
-      cmdPulseP    : out   sl;               -- CMD_PULSE_P
-      cmdPulseN    : out   sl;               -- CMD_PULSE_N
-      -- CMD Pulse Delay Ports
-      dlyLen       : out   sl;
-      dlyData      : out   slv(9 downto 0);
+      calPulseP    : out   sl;               -- PULSE_P
+      calPulseN    : out   sl;               -- PULSE_N
+      rdClkP       : out   sl;               -- CK_320_P
+      rdClkN       : out   sl;               -- CK_320_M     
+      tdcClkSel    : out   sl;               -- MUX_CLK_SEL 
+      fpgaTdcClkP  : out   sl;               -- FPGA_CK_40_P
+      fpgaTdcClkN  : out   sl;               -- FPGA_CK_40_M 
+      -- CAL Pulse Delay Ports
+      dlyCal       : out   Slv12Array(1 downto 0);
       dlyTempScl   : inout sl;
       dlyTempSda   : inout sl;
       -- Jitter Cleaner PLL Ports
@@ -58,8 +63,8 @@ entity AtlasAltirocFpga1GbE is
       localRefClkN : in    sl;
       pllClkOutP   : out   sl;
       pllClkOutN   : out   sl;
-      pllClkInP    : in    slv(3 downto 0);
-      pllClkInN    : in    slv(3 downto 0);
+      pllClkInP    : in    slv(1 downto 0);
+      pllClkInN    : in    slv(1 downto 0);
       pllSpiCsL    : out   sl;
       pllSpiSclk   : out   sl;
       pllSpiSdi    : out   sl;
@@ -109,9 +114,8 @@ begin
       generic map (
          TPD_G        => TPD_G,
          BUILD_INFO_G => BUILD_INFO_G,
+         SIMULATION_G => SIMULATION_G,
          COM_TYPE_G   => "ETH",
-         ETH_10G_G    => false,
-         DHCP_G       => true,
          IP_ADDR_G    => x"0A01A8C0")  -- 192.168.1.10 (before DHCP)            
       port map (
          -- ASIC Ports
@@ -124,22 +128,25 @@ begin
          rstbRam      => rstbRam,
          rstbRead     => rstbRead,
          rstbTdc      => rstbTdc,
-         rstbCounter  => rstbCounter,
+         rstCounter   => rstCounter,
          ckProbeAsic  => ckProbeAsic,
-         ckWriteAsic  => ckWriteAsic,
-         extTrig      => extTrig,
+         rstbDll      => rstbDll,
          sroutSc      => sroutSc,
          digProbe     => digProbe,
          sroutProbe   => sroutProbe,
-         totBusyb     => totBusyb,
+         totBusy      => totBusy,
          toaBusyb     => toaBusyb,
          doutP        => doutP,
          doutN        => doutN,
-         cmdPulseP    => cmdPulseP,
-         cmdPulseN    => cmdPulseN,
-         -- CMD Pulse Delay Ports
-         dlyLen       => dlyLen,
-         dlyData      => dlyData,
+         calPulseP    => calPulseP,
+         calPulseN    => calPulseN,
+         rdClkP       => rdClkP,
+         rdClkN       => rdClkN,
+         tdcClkSel    => tdcClkSel,
+         fpgaTdcClkP  => fpgaTdcClkP,
+         fpgaTdcClkN  => fpgaTdcClkN,
+         -- CAL Pulse Delay Ports
+         dlyCal       => dlyCal,
          dlyTempScl   => dlyTempScl,
          dlyTempSda   => dlyTempSda,
          -- Jitter Cleaner PLL Ports

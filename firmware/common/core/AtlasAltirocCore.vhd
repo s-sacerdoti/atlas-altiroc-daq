@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.AtlasAltirocPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -30,7 +29,7 @@ entity AtlasAltirocCore is
       BUILD_INFO_G : BuildInfoType;
       SIMULATION_G : boolean          := false;
       SYNTH_MODE_G : string           := "inferred";
-      COM_TYPE_G   : string           := "PGPv3";
+      COM_TYPE_G   : string           := "ETH";
       ETH_10G_G    : boolean          := false;
       DHCP_G       : boolean          := true;
       IP_ADDR_G    : slv(31 downto 0) := x"0A01A8C0";  -- 192.168.1.10 (before DHCP)      
@@ -46,22 +45,25 @@ entity AtlasAltirocCore is
       rstbRam      : out   sl;          -- RSTB_RAM
       rstbRead     : out   sl;          -- RSTB_READ
       rstbTdc      : out   sl;          -- RSTB_TDC
-      rstbCounter  : out   sl;          -- RSTB_COUNTER
+      rstCounter   : out   sl;          -- RST_COUNTER
       ckProbeAsic  : out   sl;          -- CK_PROBE_ASIC
-      ckWriteAsic  : out   sl;          -- CK_WRITE_ASIC
-      extTrig      : out   sl;          -- EXT_TRIG
+      rstbDll      : out   sl;          -- RSTB_DLL
       sroutSc      : in    sl;          -- SROUT_SC
       digProbe     : in    slv(1 downto 0);            -- DIGITAL_PROBE[2:1]
       sroutProbe   : in    sl;          -- SROUT_PROBE
-      totBusyb     : in    sl;          -- TOT_BUSYB
+      totBusy      : in    sl;          -- TOT_BUSY
       toaBusyb     : in    sl;          -- TOA_BUSYB
       doutP        : in    sl;          -- DOUT_P
       doutN        : in    sl;          -- DOUT_N
-      cmdPulseP    : out   sl;          -- CMD_PULSE_P
-      cmdPulseN    : out   sl;          -- CMD_PULSE_N
-      -- CMD Pulse Delay Ports
-      dlyLen       : out   sl;
-      dlyData      : out   slv(9 downto 0);
+      calPulseP    : out   sl;          -- PULSE_P
+      calPulseN    : out   sl;          -- PULSE_N
+      rdClkP       : out   sl;          -- CK_320_P
+      rdClkN       : out   sl;          -- CK_320_M     
+      tdcClkSel    : out   sl;          -- MUX_CLK_SEL 
+      fpgaTdcClkP  : out   sl;          -- FPGA_CK_40_P
+      fpgaTdcClkN  : out   sl;          -- FPGA_CK_40_M           
+      -- CAL Pulse Delay Ports
+      dlyCal       : out   Slv12Array(1 downto 0);
       dlyTempScl   : inout sl;
       dlyTempSda   : inout sl;
       -- Jitter Cleaner PLL Ports
@@ -69,8 +71,8 @@ entity AtlasAltirocCore is
       localRefClkN : in    sl;
       pllClkOutP   : out   sl;
       pllClkOutN   : out   sl;
-      pllClkInP    : in    slv(3 downto 0);
-      pllClkInN    : in    slv(3 downto 0);
+      pllClkInP    : in    slv(1 downto 0);
+      pllClkInN    : in    slv(1 downto 0);
       pllSpiCsL    : out   sl;
       pllSpiSclk   : out   sl;
       pllSpiSdi    : out   sl;
@@ -148,27 +150,26 @@ architecture mapping of AtlasAltirocCore is
    signal axilClk : sl;
    signal axilRst : sl;
 
-   signal clk40MHz : sl;
-   signal rst40MHz : sl;
-
    signal clk160MHz : sl;
    signal rst160MHz : sl;
-
-   signal deserClk : sl;
-   signal deserRst : sl;
-
-   signal status : AtlasAltirocStatusType := ALTIROC_STATUS_INIT_C;
-   signal config : AtlasAltirocConfigType := ALTIROC_CONFIG_INIT_C;
+   signal strb40MHz : sl;
+   
+   signal efuse      : slv(31 downto 0);
+   signal localMac   : slv(47 downto 0);   
 
 begin
 
-   led(0) <= rxLinkUp;
-   led(1) <= status.extPllLocked;
-   led(2) <= not(axilRst);
-   led(3) <= status.intPllLocked;
+   led(0) <= txLinkUp;
+   led(1) <= not(axilRst);
+   led(2) <= rxLinkUp;
+   led(3) <= not(rst160MHz);
+   
+   U_EFuse : EFUSE_USR
+      port map (
+         EFUSEUSR => efuse);
 
-   dlyLen  <= '0';
-   dlyData <= config.dlyData;
+   localMac(23 downto 0)  <= x"56_00_08";  -- 08:00:56:XX:XX:XX (big endian SLV)   
+   localMac(47 downto 24) <= efuse(31 downto 8);   
 
    ----------------------
    -- Timing Clock Module
@@ -187,32 +188,23 @@ begin
          pllClkInN    => pllClkInN,
          pllSpiRstL   => pllSpiRstL,
          pllSpiOeL    => pllSpiOeL,
-         pllClkSel    => pllClkSel,
          pllIntrL     => pllIntrL,
          pllLolL      => pllLolL,
          -- Status/Config Interface
          axilClk      => axilClk,
          axilRst      => axilRst,
-         clkSel       => config.clkSel,
          oscOe        => oscOe,
          pwrSyncSclk  => pwrSyncSclk,
          pwrSyncFclk  => pwrSyncFclk,
-         extPllLocked => status.extPllLocked,
-         intPllLocked => status.intPllLocked,
-         pllClkFreq   => status.pllClkFreq,
-         pllRst       => config.pllRst,
          -- Reference Clock/Reset Interface
-         deserClk     => deserClk,
-         deserRst     => deserRst,
          clk160MHz    => clk160MHz,
          rst160MHz    => rst160MHz,
-         clk40MHz     => clk40MHz,
-         rst40MHz     => rst40MHz);
+         strb40MHz    => strb40MHz);
 
    ---------------
    -- PGPv3 Module
    ---------------         
-   GEN_PGP : if (COM_TYPE_G = "PGPv3") generate
+   GEN_PGP : if (COM_TYPE_G = "PGPv3") or (SIMULATION_G = true) generate
       U_Pgp : entity work.AtlasAltirocPgp3
          generic map (
             TPD_G        => TPD_G,
@@ -244,7 +236,7 @@ begin
    ---------------
    -- PGPv3 Module
    ---------------         
-   GEN_ETH : if (COM_TYPE_G = "ETH") generate
+   GEN_ETH : if (COM_TYPE_G = "ETH") and (SIMULATION_G = false) generate
       U_ETH : entity work.AtlasAltirocEth
          generic map (
             TPD_G        => TPD_G,
@@ -267,6 +259,7 @@ begin
             rxLinkUp        => rxLinkUp,
             txLinkUp        => txLinkUp,
             -- PGP Ports
+            localMac        => localMac,
             ethClkP         => gtClkP,
             ethClkN         => gtClkN,
             ethRxP          => gtRxP,
@@ -306,9 +299,6 @@ begin
          AXI_BASE_ADDR_G => XBAR_CONFIG_C(SYS_INDEX_C).baseAddr,
          BUILD_INFO_G    => BUILD_INFO_G)
       port map (
-         -- Configuration/Status interface
-         status          => status,
-         config          => config,
          -- AXI-Lite Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
@@ -333,6 +323,7 @@ begin
          bootMosi        => bootMosi,
          bootMiso        => bootMiso,
          -- Misc Ports
+         localMac        => localMac,
          pwrScl          => pwrScl,
          pwrSda          => pwrSda,
          tempAlertL      => tempAlertL,
@@ -349,12 +340,9 @@ begin
          AXI_BASE_ADDR_G => XBAR_CONFIG_C(ASIC_INDEX_C).baseAddr)
       port map (
          -- Reference Clock/Reset Interface
-         clk40MHz        => clk40MHz,
-         rst40MHz        => rst40MHz,
          clk160MHz       => clk160MHz,
          rst160MHz       => rst160MHz,
-         deserClk        => deserClk,
-         deserRst        => deserRst,
+         strb40MHz       => strb40MHz,
          -- ASIC Ports
          renable         => renable,
          srinSc          => srinSc,
@@ -365,19 +353,25 @@ begin
          rstbRam         => rstbRam,
          rstbRead        => rstbRead,
          rstbTdc         => rstbTdc,
-         rstbCounter     => rstbCounter,
+         rstCounter      => rstCounter,
          ckProbeAsic     => ckProbeAsic,
-         ckWriteAsic     => ckWriteAsic,
-         extTrig         => extTrig,
+         rstbDll         => rstbDll,
          sroutSc         => sroutSc,
          digProbe        => digProbe,
          sroutProbe      => sroutProbe,
-         totBusyb        => totBusyb,
+         totBusy         => totBusy,
          toaBusyb        => toaBusyb,
          doutP           => doutP,
          doutN           => doutN,
-         cmdPulseP       => cmdPulseP,
-         cmdPulseN       => cmdPulseN,
+         calPulseP       => calPulseP,
+         calPulseN       => calPulseN,
+         rdClkP          => rdClkP,
+         rdClkN          => rdClkN,
+         tdcClkSel       => tdcClkSel,
+         fpgaTdcClkP     => fpgaTdcClkP,
+         fpgaTdcClkN     => fpgaTdcClkN,
+         dlyCal          => dlyCal,
+         pllClkSel       => pllClkSel,
          -- TTL IN/OUT Ports
          trigL           => trigL,
          busy            => busy,

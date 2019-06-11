@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocAsicShiftReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2018-09-07
--- Last update: 2018-12-03
+-- Last update: 2019-06-10
 -------------------------------------------------------------------------------
 -- Description: ALTIROC readout core module
 -------------------------------------------------------------------------------
@@ -35,6 +35,12 @@ entity AtlasAltirocAsicShiftReg is
       rstb            : out sl;
       ck              : out sl;
       srout           : in  sl;
+      -- External Interface
+      extLock         : in  sl                               := '0';
+      extValid        : in  sl                               := '0';
+      extIbData       : in  slv(SHIFT_REG_SIZE_G-1 downto 0) := (others => '0');
+      extObData       : out slv(SHIFT_REG_SIZE_G-1 downto 0) := (others => '0');
+      busy            : out sl;
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -99,7 +105,8 @@ begin
          I  => srout,
          Q1 => shiftIn);
 
-   comb : process (axilReadMaster, axilRst, axilWriteMaster, r, shiftIn) is
+   comb : process (axilReadMaster, axilRst, axilWriteMaster, extIbData,
+                   extLock, extValid, r, shiftIn) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable wrIdx      : natural;
@@ -127,7 +134,7 @@ begin
       end if;
 
       -- Check for a write request
-      if (axilStatus.writeEnable = '1') then
+      if (axilStatus.writeEnable = '1') and (extLock = '0') then
          if (axilWriteMaster.awaddr(11 downto 0) = x"FFC") then
             v.rstL := axilWriteMaster.wdata(0);
          else
@@ -143,8 +150,16 @@ begin
       case (r.state) is
          ----------------------------------------------------------------------      
          when IDLE_S =>
-            -- Check for send flag
-            if (r.start = '1') then
+            -- Check for FW start flag
+            if (extValid = '1') then
+               -- Initialize the shift register
+               v.shiftReg                          := extIbData(SHIFT_REG_SIZE_G-1 downto 0);
+               v.data(SHIFT_REG_SIZE_G-1 downto 0) := extIbData(SHIFT_REG_SIZE_G-1 downto 0);
+               -- Next state
+               v.state                             := SAMPLE_S;
+
+            -- Check for SW start flag
+            elsif (r.start = '1') and (extLock = '0') then
                -- Reset the flag
                v.start    := '0';
                -- Initialize the shift register
@@ -218,18 +233,26 @@ begin
       ----------------------------------------------------------------------      
       end case;
 
+      -- Outputs
+      axilWriteSlave <= r.axilWriteSlave;
+      axilReadSlave  <= r.axilReadSlave;
+      extObData      <= r.data(SHIFT_REG_SIZE_G-1 downto 0);
+      rstL           <= r.rstL;
+      if (v.state = IDLE_S) then
+         busy <= '0';
+      else
+         busy <= '1';
+      end if;
+
       -- Reset
       if (axilRst = '1') then
-         v := REG_INIT_C;
+         v      := REG_INIT_C;
+         -- Don't touch register configurations
+         v.data := r.data;
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Outputs
-      axilWriteSlave <= r.axilWriteSlave;
-      axilReadSlave  <= r.axilReadSlave;
-      rstL           <= r.rstL and not(axilRst);
 
    end process comb;
 

@@ -9,9 +9,4 @@
 ##############################################################################
 
 # Setup the Xilinx Vivado and licensing
-source /afs/slac.stanford.edu/g/reseng/xilinx/vivado_2018.2/Vivado/2018.2/settings64.sh
-
-# Firmware Simulation Software
-source /afs/slac.stanford.edu/g/reseng/synopsys/vcs-mx/M-2017.03-1/settings.sh
-source /afs/slac.stanford.edu/g/reseng/synopsys/ns/G-2012.06/settings.sh
-source /afs/slac.stanford.edu/g/reseng/synopsys/CosmosScope/D-2010.03/settings.sh
+source /afs/slac.stanford.edu/g/reseng/xilinx/vivado_2018.3/Vivado/2018.3/settings64.sh

@@ -21,7 +21,6 @@ use ieee.std_logic_arith.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.AtlasAltirocPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -33,40 +32,46 @@ entity AtlasAltirocAsic is
       AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- Reference Clock/Reset Interface
-      clk40MHz        : in  sl;
-      rst40MHz        : in  sl;
       clk160MHz       : in  sl;
       rst160MHz       : in  sl;
-      deserClk        : in  sl;
-      deserRst        : in  sl;
-      -- ASIC Ports
-      renable         : out sl;               -- RENABLE
-      srinSc          : out sl;               -- SRIN_SC
-      rstbSc          : out sl;               -- RSTB_SC
-      ckSc            : out sl;               -- CK_SC
-      srinProbe       : out sl;               -- SRIN_PROBE
-      rstbProbe       : out sl;               -- RSTB_PROBE
+      strb40MHz       : in  sl;
+      -- GPIO Ports
       rstbRam         : out sl;               -- RSTB_RAM
-      rstbRead        : out sl;               -- RSTB_READ
+      rstCounter      : out sl;               -- RST_COUNTER
       rstbTdc         : out sl;               -- RSTB_TDC
-      rstbCounter     : out sl;               -- RSTB_COUNTER
-      ckProbeAsic     : out sl;               -- CK_PROBE_ASIC
-      ckWriteAsic     : out sl;               -- CK_WRITE_ASIC
-      extTrig         : out sl;               -- EXT_TRIG
-      sroutSc         : in  sl;               -- SROUT_SC
+      rstbDll         : out sl;               -- RSTB_DLL
       digProbe        : in  slv(1 downto 0);  -- DIGITAL_PROBE[2:1]
-      sroutProbe      : in  sl;               -- SROUT_PROBE
-      totBusyb        : in  sl;               -- TOT_BUSYB
+      dlyCal          : out Slv12Array(1 downto 0);
+      pllClkSel       : out slv(1 downto 0);
+      tdcClkSel       : out sl;               -- MUX_CLK_SEL 
+      fpgaTdcClkP     : out sl;               -- FPGA_CK_40_P
+      fpgaTdcClkN     : out sl;               -- FPGA_CK_40_M         
+      -- Trigger Ports
+      totBusy         : in  sl;               -- TOT_BUSY
       toaBusyb        : in  sl;               -- TOA_BUSYB
-      doutP           : in  sl;               -- DOUT_P
-      doutN           : in  sl;               -- DOUT_N
-      cmdPulseP       : out sl;               -- CMD_PULSE_P
-      cmdPulseN       : out sl;               -- CMD_PULSE_N
-      -- TTL IN/OUT Ports
       trigL           : in  sl;
       busy            : out sl;
       spareInL        : in  sl;
       spareOut        : out sl;
+      calPulseP       : out sl;               -- CAL_PULSE_P
+      calPulseN       : out sl;               -- CAL_PULSE_N
+      -- Slow Control Ports
+      srinSc          : out sl;               -- SRIN_SC
+      rstbSc          : out sl;               -- RSTB_SC
+      ckSc            : out sl;               -- CK_SC
+      sroutSc         : in  sl;               -- SROUT_SC
+      -- Probe Ports
+      srinProbe       : out sl;               -- SRIN_PROBE
+      rstbProbe       : out sl;               -- RSTB_PROBE
+      ckProbeAsic     : out sl;               -- CK_PROBE_ASIC
+      sroutProbe      : in  sl;               -- SROUT_PROBE
+      -- Readout Ports
+      renable         : out sl;               -- RENABLE
+      rstbRead        : out sl;               -- RSTB_READ
+      doutP           : in  sl;               -- DOUT_P
+      doutN           : in  sl;               -- DOUT_N
+      rdClkP          : out sl;               -- CK_320_P
+      rdClkN          : out sl;               -- CK_320_M     
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -81,69 +86,76 @@ end AtlasAltirocAsic;
 
 architecture mapping of AtlasAltirocAsic is
 
-   constant SCLK_PERIOD_C : real := ite(SIMULATION_G,
-                                        (4*6.4E-9),  -- Super fast shift register clock for faster simulation
-                                        1.0E-6);  -- 1MHz = 1/1.0E-6 for normal operation (non-simulation)
+   constant NUM_AXIL_MASTERS_C : natural := 7;
 
-   constant NUM_AXIL_MASTERS_C : natural := 3;
+   constant GPIO_INDEX_C    : natural := 0;
+   constant TDC_CLK_INDEX_C : natural := 1;
+   constant CAL_INDEX_C     : natural := 2;
+   constant TRIG_INDEX_C    : natural := 3;
+   constant SC_INDEX_C      : natural := 4;
+   constant PROBE_INDEX_C   : natural := 5;
+   constant READ_INDEX_C    : natural := 6;
 
-   constant CTRL_INDEX_C  : natural := 0;
-   constant SC_INDEX_C    : natural := 1;
-   constant PROBE_INDEX_C : natural := 2;
-
-   constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
-      CTRL_INDEX_C    => (
-         baseAddr     => (x"0000_0000" + AXI_BASE_ADDR_G),
-         addrBits     => 16,
-         connectivity => x"FFFF"),
-      SC_INDEX_C      => (
-         baseAddr     => (x"0001_0000" + AXI_BASE_ADDR_G),
-         addrBits     => 16,
-         connectivity => x"FFFF"),
-      PROBE_INDEX_C   => (
-         baseAddr     => (x"0002_0000" + AXI_BASE_ADDR_G),
-         addrBits     => 16,
-         connectivity => x"FFFF"));
+   constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXI_BASE_ADDR_G, 20, 16);
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
 
-   signal dataMaster : AxiStreamMasterType;
+   signal tdcClkReadMaster  : AxiLiteReadMasterType;
+   signal tdcClkReadSlave   : AxiLiteReadSlaveType;
+   signal tdcClkWriteMaster : AxiLiteWriteMasterType;
+   signal tdcClkWriteSlave  : AxiLiteWriteSlaveType;
 
-   signal deserSampleEdge : sl;
-   signal deserInvert     : sl;
-   signal deserSlip       : sl;
-   signal continuous      : sl;
-   signal oneShot         : sl;
-   signal invRstCnt       : sl;
-   signal forwardData     : sl;
-   signal pulseCount      : slv(15 downto 0);
-   signal pulseWidth      : slv(15 downto 0);
-   signal pulsePeriod     : slv(15 downto 0);
-   signal pulseDelay      : slv(15 downto 0);
-   signal readDelay       : slv(15 downto 0);
-   signal readDuration    : slv(15 downto 0);
-   signal rstCntMask      : slv(1 downto 0);
-   signal rstTdcMask      : slv(1 downto 0);
-   signal dataBus         : slv(31 downto 0) := (others => '0');
+   signal calReadMaster  : AxiLiteReadMasterType;
+   signal calReadSlave   : AxiLiteReadSlaveType;
+   signal calWriteMaster : AxiLiteWriteMasterType;
+   signal calWriteSlave  : AxiLiteWriteSlaveType;
 
-   signal readoutEnable : sl;
-   signal emuEnable     : sl;
-   signal emuTrig       : sl;
-   signal dataWordDet   : sl;
-   signal hitDet        : sl;
-   signal dataDropped   : sl;
-   signal usrRstbTdc    : sl;
+   signal trigReadMaster  : AxiLiteReadMasterType;
+   signal trigReadSlave   : AxiLiteReadSlaveType;
+   signal trigWriteMaster : AxiLiteWriteMasterType;
+   signal trigWriteSlave  : AxiLiteWriteSlaveType;
+
+   signal probeReadMaster  : AxiLiteReadMasterType;
+   signal probeReadSlave   : AxiLiteReadSlaveType;
+   signal probeWriteMaster : AxiLiteWriteMasterType;
+   signal probeWriteSlave  : AxiLiteWriteSlaveType;
+
+   signal readoutReadMaster  : AxiLiteReadMasterType;
+   signal readoutReadSlave   : AxiLiteReadSlaveType;
+   signal readoutWriteMaster : AxiLiteWriteMasterType;
+   signal readoutWriteSlave  : AxiLiteWriteSlaveType;
+
+   signal readoutStart : sl;
+   signal readoutBusy  : sl;
+   signal startReadout : sl;
+   signal probeValid   : sl;
+   signal probeIbData  : slv(739 downto 0);
+   signal probeObData  : slv(739 downto 0);
+   signal probeBusy    : sl;
+
+   signal calPulse    : sl;
+   signal strobe40MHz : sl;
+   signal strobeAlign : slv(1 downto 0);
 
 begin
 
-   -----------------------
-   -- Terminate Unused I/O
-   -----------------------
-   busy     <= '0';
-   spareOut <= '0';
+   -----------------------------------------------
+   -- Phase alignment correction for 40 MHz strobe
+   -----------------------------------------------
+   U_SlvDelay : entity work.SlvDelay
+      generic map (
+         TPD_G        => TPD_G,
+         DELAY_G      => 4,
+         WIDTH_G      => 1,
+         REG_OUTPUT_G => true)
+      port map (
+         clk     => clk160MHz,
+         delay   => strobeAlign,
+         din(0)  => strb40MHz,
+         dout(0) => strobe40MHz);
 
    --------------------------
    -- AXI-Lite: Crossbar Core
@@ -166,6 +178,157 @@ begin
          mAxiReadMasters     => axilReadMasters,
          mAxiReadSlaves      => axilReadSlaves);
 
+   ---------------------------
+   -- AXI-Lite: GPIO Registers
+   ---------------------------
+   U_GPIO : entity work.AtlasAltirocAsicGpio
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- ASIC Interface
+         rstbRam         => rstbRam,
+         rstCounter      => rstCounter,
+         rstbTdc         => rstbTdc,
+         rstbDll         => rstbDll,
+         digProbe        => digProbe,
+         dlyCal          => dlyCal,
+         pllClkSel       => pllClkSel,
+         -- AXI-Lite Interface
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMasters(GPIO_INDEX_C),
+         axilReadSlave   => axilReadSlaves(GPIO_INDEX_C),
+         axilWriteMaster => axilWriteMasters(GPIO_INDEX_C),
+         axilWriteSlave  => axilWriteSlaves(GPIO_INDEX_C));
+
+   --------------------------------
+   -- AXI-Lite: TDC Clock Registers
+   --------------------------------
+   U_TdcClk : entity work.AtlasAltirocAsicTdcClk
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- ASIC Interface
+         tdcClkSel       => tdcClkSel,
+         fpgaTdcClkP     => fpgaTdcClkP,
+         fpgaTdcClkN     => fpgaTdcClkN,
+         -- AXI-Lite Interface
+         clk160MHz       => clk160MHz,
+         rst160MHz       => rst160MHz,
+         axilReadMaster  => tdcClkReadMaster,
+         axilReadSlave   => tdcClkReadSlave,
+         axilWriteMaster => tdcClkWriteMaster,
+         axilWriteSlave  => tdcClkWriteSlave);
+
+   U_TdcClkAsync : entity work.AxiLiteAsync
+      generic map (
+         TPD_G           => TPD_G,
+         NUM_ADDR_BITS_G => 16)
+      port map (
+         -- Slave Interface
+         sAxiClk         => axilClk,
+         sAxiClkRst      => axilRst,
+         sAxiReadMaster  => axilReadMasters(TDC_CLK_INDEX_C),
+         sAxiReadSlave   => axilReadSlaves(TDC_CLK_INDEX_C),
+         sAxiWriteMaster => axilWriteMasters(TDC_CLK_INDEX_C),
+         sAxiWriteSlave  => axilWriteSlaves(TDC_CLK_INDEX_C),
+         -- Master Interface
+         mAxiClk         => clk160MHz,
+         mAxiClkRst      => rst160MHz,
+         mAxiReadMaster  => tdcClkReadMaster,
+         mAxiReadSlave   => tdcClkReadSlave,
+         mAxiWriteMaster => tdcClkWriteMaster,
+         mAxiWriteSlave  => tdcClkWriteSlave);
+
+   -------------------------------------         
+   -- AXI-Lite: Calibration Pulse Module
+   -------------------------------------         
+   U_CalPulse : entity work.AtlasAltirocAsicCalPulse
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- Calibration Pulse Interface
+         calPulse        => calPulse,
+         calPulseP       => calPulseP,
+         calPulseN       => calPulseN,
+         -- AXI-Lite Interface
+         clk160MHz       => clk160MHz,
+         rst160MHz       => rst160MHz,
+         strobe40MHz     => strobe40MHz,
+         axilReadMaster  => calReadMaster,
+         axilReadSlave   => calReadSlave,
+         axilWriteMaster => calWriteMaster,
+         axilWriteSlave  => calWriteSlave);
+
+   U_CalAsync : entity work.AxiLiteAsync
+      generic map (
+         TPD_G           => TPD_G,
+         NUM_ADDR_BITS_G => 16)
+      port map (
+         -- Slave Interface
+         sAxiClk         => axilClk,
+         sAxiClkRst      => axilRst,
+         sAxiReadMaster  => axilReadMasters(CAL_INDEX_C),
+         sAxiReadSlave   => axilReadSlaves(CAL_INDEX_C),
+         sAxiWriteMaster => axilWriteMasters(CAL_INDEX_C),
+         sAxiWriteSlave  => axilWriteSlaves(CAL_INDEX_C),
+         -- Master Interface
+         mAxiClk         => clk160MHz,
+         mAxiClkRst      => rst160MHz,
+         mAxiReadMaster  => calReadMaster,
+         mAxiReadSlave   => calReadSlave,
+         mAxiWriteMaster => calWriteMaster,
+         mAxiWriteSlave  => calWriteSlave);
+
+   ---------------------------
+   -- AXI-Lite: Trigger Module
+   ---------------------------
+   U_Trigger : entity work.AtlasAltirocAsicTrigger
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         totBusy         => totBusy,
+         toaBusyb        => toaBusyb,
+         trigL           => trigL,
+         busy            => busy,
+         spareInL        => spareInL,
+         spareOut        => spareOut,
+         -- Calibration and 40 Strobe phase alignment Interface
+         calPulse        => calPulse,
+         strobeAlign     => strobeAlign,
+         -- Readout Interface
+         readoutStart    => readoutStart,
+         readoutBusy     => readoutBusy,
+         -- Reference Clock/Reset Interface
+         clk160MHz       => clk160MHz,
+         rst160MHz       => rst160MHz,
+         strobe40MHz     => strobe40MHz,
+         -- AXI-Lite Interface 
+         axilReadMaster  => trigReadMaster,
+         axilReadSlave   => trigReadSlave,
+         axilWriteMaster => trigWriteMaster,
+         axilWriteSlave  => trigWriteSlave);
+
+   U_TrigAsync : entity work.AxiLiteAsync
+      generic map (
+         TPD_G           => TPD_G,
+         NUM_ADDR_BITS_G => 16)
+      port map (
+         -- Slave Interface
+         sAxiClk         => axilClk,
+         sAxiClkRst      => axilRst,
+         sAxiReadMaster  => axilReadMasters(TRIG_INDEX_C),
+         sAxiReadSlave   => axilReadSlaves(TRIG_INDEX_C),
+         sAxiWriteMaster => axilWriteMasters(TRIG_INDEX_C),
+         sAxiWriteSlave  => axilWriteSlaves(TRIG_INDEX_C),
+         -- Master Interface
+         mAxiClk         => clk160MHz,
+         mAxiClkRst      => rst160MHz,
+         mAxiReadMaster  => trigReadMaster,
+         mAxiReadSlave   => trigReadSlave,
+         mAxiWriteMaster => trigWriteMaster,
+         mAxiWriteSlave  => trigWriteSlave);
+
    ---------------------------------------- 
    -- AXI-Lite: Slow Control Shift Register
    ---------------------------------------- 
@@ -173,7 +336,8 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SHIFT_REG_SIZE_G => 965,
-         SCLK_PERIOD_G    => SCLK_PERIOD_C)
+         CLK_PERIOD_G     => 6.4E-9,
+         SCLK_PERIOD_G    => ite(SIMULATION_G, (4*6.4E-9), 1.0E-6))
       port map (
          -- ASIC Ports
          srin            => srinSc,     -- SRIN_SC
@@ -195,148 +359,101 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SHIFT_REG_SIZE_G => 740,
-         SCLK_PERIOD_G    => SCLK_PERIOD_C)
+         CLK_PERIOD_G     => 6.25E-9,
+         SCLK_PERIOD_G    => ite(SIMULATION_G, (4*6.25E-9), 1.0E-6))
       port map (
          -- ASIC Ports
          srin            => srinProbe,    -- SRIN_PROBE
          rstb            => rstbProbe,    -- RSTB_PROBE
          ck              => ckProbeAsic,  -- CK_PROBE_ASIC
          srout           => sroutProbe,   -- SROUT_PROBE
+         -- External Interface
+         extLock         => readoutBusy,
+         extValid        => probeValid,
+         extIbData       => probeIbData,
+         extObData       => probeObData,
+         busy            => probeBusy,
          -- AXI-Lite Interface (axilClk domain)
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilReadMaster  => axilReadMasters(PROBE_INDEX_C),
-         axilReadSlave   => axilReadSlaves(PROBE_INDEX_C),
-         axilWriteMaster => axilWriteMasters(PROBE_INDEX_C),
-         axilWriteSlave  => axilWriteSlaves(PROBE_INDEX_C));
+         axilClk         => clk160MHz,
+         axilRst         => rst160MHz,
+         axilReadMaster  => probeReadMaster,
+         axilReadSlave   => probeReadSlave,
+         axilWriteMaster => probeWriteMaster,
+         axilWriteSlave  => probeWriteSlave);
 
-   ------------------------------
-   -- AXI-Lite: Control Registers
-   ------------------------------
-   U_Ctrl : entity work.AtlasAltirocAsicCtrl
+   U_ProbeAsync : entity work.AxiLiteAsync
+      generic map (
+         TPD_G           => TPD_G,
+         NUM_ADDR_BITS_G => 16)
+      port map (
+         -- Slave Interface
+         sAxiClk         => axilClk,
+         sAxiClkRst      => axilRst,
+         sAxiReadMaster  => axilReadMasters(PROBE_INDEX_C),
+         sAxiReadSlave   => axilReadSlaves(PROBE_INDEX_C),
+         sAxiWriteMaster => axilWriteMasters(PROBE_INDEX_C),
+         sAxiWriteSlave  => axilWriteSlaves(PROBE_INDEX_C),
+         -- Master Interface
+         mAxiClk         => clk160MHz,
+         mAxiClkRst      => rst160MHz,
+         mAxiReadMaster  => probeReadMaster,
+         mAxiReadSlave   => probeReadSlave,
+         mAxiWriteMaster => probeWriteMaster,
+         mAxiWriteSlave  => probeWriteSlave);
+
+   ---------------------------
+   -- AXI-Lite: Readout Module
+   ---------------------------
+   U_Readout : entity work.AtlasAltirocAsicReadout
       generic map (
          TPD_G => TPD_G)
       port map (
-         -- ASIC Interface
-         clk40MHz        => clk40MHz,
-         rst40MHz        => rst40MHz,
-         clk160MHz       => clk160MHz,
-         rst160MHz       => rst160MHz,
-         deserClk        => deserClk,
-         deserRst        => deserRst,
-         rstbRam         => rstbRam,      -- RSTB_RAM
-         rstbRead        => rstbRead,     -- RSTB_READ
-         rstbTdc         => usrRstbTdc,
-         ckWriteAsic     => ckWriteAsic,  -- CK_WRITE_ASIC
-         deserSampleEdge => deserSampleEdge,
-         deserInvert     => deserInvert,
-         deserSlip       => deserSlip,
-         continuous      => continuous,
-         oneShot         => oneShot,
-         invRstCnt       => invRstCnt,
-         pulseCount      => pulseCount,
-         pulseWidth      => pulseWidth,
-         pulsePeriod     => pulsePeriod,
-         pulseDelay      => pulseDelay,
-         readDelay       => readDelay,
-         readDuration    => readDuration,
-         rstCntMask      => rstCntMask,
-         rstTdcMask      => rstTdcMask,
-         emuEnable       => emuEnable,
-         dataDropped     => dataDropped,
-         dataWordDet     => dataWordDet,
-         hitDet          => hitDet,
-         dataBus         => dataBus,
-         forwardData     => forwardData,
-         -- AXI-Lite Interface (axilClk domain)
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilReadMaster  => axilReadMasters(CTRL_INDEX_C),
-         axilReadSlave   => axilReadSlaves(CTRL_INDEX_C),
-         axilWriteMaster => axilWriteMasters(CTRL_INDEX_C),
-         axilWriteSlave  => axilWriteSlaves(CTRL_INDEX_C));
-
-   ---------------------
-   -- Pulse Train Module
-   ---------------------
-   U_PulseTrain : entity work.AtlasAltirocAsicPulseTrain
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         -- Clock and Reset
-         clk40MHz      => clk40MHz,
-         rst40MHz      => rst40MHz,
-         clk160MHz     => clk160MHz,
-         rst160MHz     => rst160MHz,
-         -- Configuration Interface
-         continuous    => continuous,
-         oneShot       => oneShot,
-         invRstCnt     => invRstCnt,
-         pulseCount    => pulseCount,
-         pulseWidth    => pulseWidth,
-         pulsePeriod   => pulsePeriod,
-         pulseDelay    => pulseDelay,
-         readDelay     => readDelay,
-         readDuration  => readDuration,
-         rstCntMask    => rstCntMask,
-         rstTdcMask    => rstTdcMask,
-         emuTrig       => emuTrig,
-         readoutEnable => readoutEnable,
-         usrRstbTdc    => usrRstbTdc,
-         -- ASIC Ports
-         renable       => renable,      -- RENABLE
-         rstbCounter   => rstbCounter,  -- RSTB_COUNTER
-         rstbTdc       => rstbTdc,      -- RSTB_TDC
-         cmdPulseP     => cmdPulseP,    -- CMD_PULSE_P
-         cmdPulseN     => cmdPulseN,    -- CMD_PULSE_N
-         extTrig       => extTrig);     -- EXT_TRIG    
-
-   ----------------------
-   -- Deserializer Module
-   ----------------------
-   U_Deser : entity work.AtlasAltirocAsicDeser
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         -- Control Interface
-         readoutEnable   => readoutEnable,
-         emuEnable       => emuEnable,
-         emuTrig         => emuTrig,
-         dataDropped     => dataDropped,
-         -- Serial Interface
-         deserClk        => deserClk,
-         deserRst        => deserRst,
-         deserSampleEdge => deserSampleEdge,
-         deserInvert     => deserInvert,
-         deserSlip       => deserSlip,
+         -- Readout Ports
+         renable         => renable,
+         rstbRead        => rstbRead,
          doutP           => doutP,
          doutN           => doutN,
-         -- Master AXI Stream Interface
-         mAxisClk        => axilClk,
-         mAxisRst        => axilRst,
-         mAxisMaster     => dataMaster,
-         mAxisSlave      => mDataSlave);
+         rdClkP          => rdClkP,
+         rdClkN          => rdClkN,
+         -- Trigger Interface (clk160MHz domain)
+         readoutStart    => readoutStart,
+         readoutBusy     => readoutBusy,
+         -- Probe Interface (clk160MHz domain)
+         probeValid      => probeValid,
+         probeIbData     => probeIbData,
+         probeObData     => probeObData,
+         probeBusy       => probeBusy,
+         -- Streaming ASIC Data Interface (axilClk domain)
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         mDataMaster     => mDataMaster,
+         mDataSlave      => mDataSlave,
+         -- AXI-Lite Interface (clk160MHz domain)
+         clk160MHz       => clk160MHz,
+         rst160MHz       => rst160MHz,
+         axilReadMaster  => readoutReadMaster,
+         axilReadSlave   => readoutReadSlave,
+         axilWriteMaster => readoutWriteMaster,
+         axilWriteSlave  => readoutWriteSlave);
 
-
-   process(dataMaster, dataWordDet, forwardData, mDataSlave)
-      variable data : AxiStreamMasterType;
-   begin
-      data        := dataMaster;
-      dataWordDet <= dataMaster.tValid and mDataSlave.tReady;
-      hitDet      <= dataWordDet and dataMaster.tData(0);
-      if (forwardData = '0') then
-         data.tValid := '0';
-      end if;
-      mDataMaster <= data;
-   end process;
-
-   process(axilClk)
-   begin
-      if rising_edge(axilClk) then
-         if (dataWordDet = '1') then
-            dataBus <= dataMaster.tData(31 downto 0) after TPD_G;
-         end if;
-      end if;
-   end process;
+   U_ReadoutAsync : entity work.AxiLiteAsync
+      generic map (
+         TPD_G           => TPD_G,
+         NUM_ADDR_BITS_G => 16)
+      port map (
+         -- Slave Interface
+         sAxiClk         => axilClk,
+         sAxiClkRst      => axilRst,
+         sAxiReadMaster  => axilReadMasters(READ_INDEX_C),
+         sAxiReadSlave   => axilReadSlaves(READ_INDEX_C),
+         sAxiWriteMaster => axilWriteMasters(READ_INDEX_C),
+         sAxiWriteSlave  => axilWriteSlaves(READ_INDEX_C),
+         -- Master Interface
+         mAxiClk         => clk160MHz,
+         mAxiClkRst      => rst160MHz,
+         mAxiReadMaster  => readoutReadMaster,
+         mAxiReadSlave   => readoutReadSlave,
+         mAxiWriteMaster => readoutWriteMaster,
+         mAxiWriteSlave  => readoutWriteSlave);
 
 end mapping;

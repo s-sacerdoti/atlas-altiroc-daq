@@ -21,7 +21,6 @@ use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.Pgp3Pkg.all;
-use work.AtlasAltirocPkg.all;
 
 entity AtlasAltirocPgp3 is
    generic (
@@ -125,7 +124,6 @@ begin
       generic map(
          TPD_G               => TPD_G,
          ROGUE_SIM_EN_G      => SIMULATION_G,
-         ROGUE_SIM_USER_ID_G => 12,
          NUM_LANES_G         => 1,
          NUM_VC_G            => 2,
          RATE_G              => PGP3_RATE_G,

@@ -22,7 +22,6 @@ use work.AxiStreamPkg.all;
 use work.SsiPkg.all;
 use work.Pgp3Pkg.all;
 use work.EthMacPkg.all;
-use work.AtlasAltirocPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -53,6 +52,7 @@ entity AtlasAltirocEth is
       rxLinkUp        : out sl;
       txLinkUp        : out sl;
       -- ETH Ports
+      localMac        : in  slv(47 downto 0);
       ethClkP         : in  sl;
       ethClkN         : in  sl;
       ethRxP          : in  sl;
@@ -90,12 +90,9 @@ architecture mapping of AtlasAltirocEth is
    signal ethRst   : sl;
    signal phyReady : sl;
 
-   signal sysClk : sl;
-   signal sysRst : sl;
-
-   signal efuse      : slv(31 downto 0);
-   signal localMac   : slv(47 downto 0);
-   signal rssiStatus : slv(6 downto 0);
+   signal sysClk        : sl;
+   signal sysRst        : sl;
+   signal rssiConnected : sl;
 
 begin
 
@@ -103,7 +100,7 @@ begin
    axilRst <= sysRst;
 
    txLinkUp <= phyReady;
-   rxLinkUp <= rssiStatus(0);
+   rxLinkUp <= rssiConnected;
 
    U_MMCM : entity work.ClockManager7
       generic map(
@@ -128,13 +125,6 @@ begin
          clkOut(1) => sysClk,
          rstOut(0) => refRst300MHz,
          rstOut(1) => sysRst);
-
-   U_EFuse : EFUSE_USR
-      port map (
-         EFUSEUSR => efuse);
-
-   localMac(23 downto 0)  <= x"56_00_08";  -- 08:00:56:XX:XX:XX (big endian SLV)   
-   localMac(47 downto 24) <= efuse(31 downto 8);
 
    GEN_1G : if (ETH_10G_G = false) generate
       U_Eth : entity work.GigEthGtx7Wrapper
@@ -222,7 +212,7 @@ begin
          -- General IPv4/ARP/DHCP Generics
          DHCP_G         => DHCP_G,
          CLK_FREQ_G     => CLK_FREQUENCY_C,
-         COMM_TIMEOUT_G => 30)
+         COMM_TIMEOUT_G => 10)
       port map (
          -- Local Configurations
          localMac        => localMac,
@@ -246,30 +236,25 @@ begin
    ------------------------------------------
    U_RssiServer : entity work.RssiCoreWrapper
       generic map (
-         TPD_G                => TPD_G,
-         APP_ILEAVE_EN_G      => true,    -- Interleaved RSSI (PackVer = 2)
-         ILEAVE_ON_NOTVALID_G => true,
-         MAX_SEG_SIZE_G       => 1024,
-         SEGMENT_ADDR_SIZE_G  => 7,
-         APP_STREAMS_G        => APP_STREAMS_C,
-         APP_STREAM_ROUTES_G  => (
-            0                 => X"00",   -- SRPv3
-            1                 => X"01"),  -- Data[0]          
-         CLK_FREQUENCY_G      => CLK_FREQUENCY_C,
-         TIMEOUT_UNIT_G       => 1.0E-3,  -- In units of seconds
-         SERVER_G             => true,
-         RETRANSMIT_ENABLE_G  => true,
-         BYPASS_CHUNKER_G     => false,
-         WINDOW_ADDR_SIZE_G   => 3,
-         PIPE_STAGES_G        => 1,
-         APP_AXIS_CONFIG_G    => APP_AXIS_CONFIG_C,
-         TSP_AXIS_CONFIG_G    => EMAC_AXIS_CONFIG_C,
-         INIT_SEQ_N_G         => 16#80#)
+         TPD_G               => TPD_G,
+         SERVER_G            => true,
+         APP_ILEAVE_EN_G     => true,    -- Interleaved RSSI (PackVer = 2)
+         MAX_SEG_SIZE_G      => 1024,
+         WINDOW_ADDR_SIZE_G  => 4,
+         PIPE_STAGES_G       => 1,
+         TIMEOUT_UNIT_G      => 1.0E-3,  -- In units of seconds
+         CLK_FREQUENCY_G     => CLK_FREQUENCY_C,
+         APP_STREAMS_G       => APP_STREAMS_C,
+         APP_STREAM_ROUTES_G => (
+            0                => X"00",   -- SRPv3
+            1                => X"01"),  -- Data[0]          
+         APP_AXIS_CONFIG_G   => APP_AXIS_CONFIG_C,
+         TSP_AXIS_CONFIG_G   => EMAC_AXIS_CONFIG_C)
       port map (
          clk_i             => ethClk,
          rst_i             => ethRst,
          openRq_i          => '1',
-         statusReg_o       => rssiStatus,
+         rssiConnected_o   => rssiConnected,
          -- Application Layer Interface
          sAppAxisMasters_i => ethTxMasters,
          sAppAxisSlaves_o  => ethTxSlaves,
