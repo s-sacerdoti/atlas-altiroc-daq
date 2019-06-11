@@ -215,6 +215,7 @@ begin
       axiSlaveRegister (axilEp, x"34", 0, v.enProbeWrite);
       axiSlaveRegisterR(axilEp, x"38", 0, r.txDataDebug);
       axiSlaveRegister (axilEp, x"3C", 0, v.invertDout);
+      axiSlaveRegister (axilEp, x"40", 0, v.txDataBitReverse);
 
       axiSlaveRegister (axilEp, x"F8", 0, v.forceStart);
       axiSlaveRegister (axilEp, x"FC", 0, v.cntRst);
@@ -412,13 +413,17 @@ begin
                else
                   v.txData := not(dout) & r.txData(20 downto 1);
                end if;
-               
+
                -- Check the counter
                if (r.bitCnt = r.bitSize) then
                   -- Reset the counter
                   v.bitCnt := (others => '0');
+                  -- Check for bit reversal
+                  if (r.txDataBitReverse = '1') then
+                     v.txData := bitReverse(v.txData);
+                  end if;
                   -- Next state
-                  v.state  := SEND_DATA_S;
+                  v.state := SEND_DATA_S;
                else
                   -- Increment the counter
                   v.bitCnt := r.bitCnt + 1;
@@ -445,10 +450,10 @@ begin
 
                -- Latch the value for debugging
                v.txDataDebug := r.txData;
-               
+
                -- Reset the shift register
-               v.txData := (others => '0');               
-               
+               v.txData := (others => '0');
+
                -- Increment the counter
                v.rdCnt := r.rdCnt + 1;
 
@@ -485,7 +490,7 @@ begin
             end if;
       ----------------------------------------------------------------------      
       end case;
-      
+
       -- Outputs
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;

@@ -212,7 +212,15 @@ class AltirocReadout(pr.Device):
             offset       = 0x3C,
             bitSize      = 1, 
             mode         = 'RW',
-        ))               
+        )) 
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxDataBitReverse', 
+            description  = '1: reserves the TX data bit ordering, 0: no change to TX data bit ordering',
+            offset       = 0x40,
+            bitSize      = 1, 
+            mode         = 'RW',
+        ))         
         
         self.add(pr.RemoteCommand(   
             name         = 'ForceStart',

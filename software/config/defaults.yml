@@ -116,3 +116,4 @@ Top:
         SendData: 0x1
         EnProbeWrite: 0x1
         PolarityDout: 0x1
+        TxDataBitReverse: 0x0
