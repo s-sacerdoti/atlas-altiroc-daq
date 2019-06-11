@@ -201,7 +201,7 @@ class AltirocReadout(pr.Device):
             offset       = 0x38,
             bitSize      = 21, 
             mode         = 'RO',
-            disp         = '{0:b}',
+            disp         = '{:021b}',
             units        = 'binary',
             pollInterval = 1,
         ))             

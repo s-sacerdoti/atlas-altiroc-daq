@@ -438,11 +438,14 @@ begin
          when SEND_DATA_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
+            
+               -- Reset the output data bus
+               v.txMaster.tData := (others => '0');
+               
                -- Forward the data
                v.txMaster.tValid              := r.tValid;
                v.txMaster.tData(20 downto 0)  := r.txData;
-               v.txMaster.tData(26 downto 21) := r.rdCnt(5 downto 0);
-               v.txMaster.tData(31 downto 27) := r.pixIndex;
+               v.txMaster.tData(28 downto 24) := r.pixIndex;
 
                -- Check for test pattern insertion
                if (r.testPattern = '1') then
@@ -517,6 +520,8 @@ begin
          v.testPattern        := r.testPattern;
          v.sendData           := r.sendData;
          v.enProbeWrite       := r.enProbeWrite;
+         v.invertDout         := r.invertDout;
+         v.txDataBitReverse   := r.txDataBitReverse;
       end if;
 
 
