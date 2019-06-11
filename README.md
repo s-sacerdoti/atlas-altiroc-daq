@@ -89,7 +89,7 @@ $ source /path/to/my/anaconda3/etc/profile.d/conda.sh
 $ source setup_env.sh
 
 # Launch the GUI
-$ python3 scripts/DevGui.py --ip <DHCP_IP_ADDRESS>
+$ python3 scripts/DevGui.py --ip <List of IP addresses>
  
 ```
 
@@ -109,7 +109,7 @@ $ source /path/to/my/anaconda3/etc/profile.d/conda.sh
 $ source setup_env.sh
 
 # Reprogram the FPGA
-$ python3 scripts/ReprogramFpga.py --ip <DHCP_IP_ADDRESS> --mcs <PATH_TO_MCS_FILE>
+$ python3 scripts/ReprogramFpga.py --ip <List of IP addresses> --mcs <PATH_TO_MCS_FILE>
 ```
 
 <!--- ########################################################################################### -->
