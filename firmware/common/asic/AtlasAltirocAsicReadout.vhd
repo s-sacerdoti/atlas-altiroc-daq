@@ -77,6 +77,7 @@ architecture rtl of AtlasAltirocAsicReadout is
    type RegType is record
       cntRst             : sl;
       invertDout         : sl;
+      txDataBitReverse   : sl;
       forceStart         : sl;
       sendData           : sl;
       tValid             : sl;
@@ -114,6 +115,7 @@ architecture rtl of AtlasAltirocAsicReadout is
    constant REG_INIT_C : RegType := (
       cntRst             => '0',
       invertDout         => '0',
+      txDataBitReverse   => '0',
       forceStart         => '0',
       sendData           => '1',
       tValid             => '1',
