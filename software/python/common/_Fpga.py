@@ -56,6 +56,8 @@ class Fpga(pr.Device):
         self,       
         name        = 'Fpga',
         description = 'Container for FPGA registers',
+        configProm  = False,
+        advanceUser = False,
             **kwargs):
         
         super().__init__(
@@ -69,57 +71,67 @@ class Fpga(pr.Device):
             expand  = False,
         ))
         
-        self.add(xil.Xadc(
-            name    = 'Xadc', 
-            offset  = 0x00010000, 
-            expand  = False,
-            hidden  = True, # Hidden in GUI because indented for scripting
-        ))
+        if(configProm):
+            self.add(prom.AxiMicronN25Q(
+                name    = 'AxiMicronN25Q', 
+                offset  = 0x00020000, 
+                hidden  = True, # Hidden in GUI because indented for scripting
+            ))
         
-        self.add(prom.AxiMicronN25Q(
-            name    = 'AxiMicronN25Q', 
-            offset  = 0x00020000, 
-            hidden  = True, # Hidden in GUI because indented for scripting
-        ))
+        if(advanceUser):
         
-        self.add(nxp.Sa56004x(      
-            name        = 'BoardTemp', 
-            description = 'This device monitors the board temperature and FPGA junction temperature', 
-            offset      = 0x00040000, 
-            expand      = False,
-            hidden      = True, # Hidden in GUI because indented for scripting
-        ))
+            self.add(xil.Xadc(
+                name    = 'Xadc', 
+                offset  = 0x00010000, 
+                expand  = False,
+                hidden  = True, # Hidden in GUI because indented for scripting
+            ))
         
-        self.add(linear.Ltc4151(
-            name        = 'BoardPwr', 
-            description = 'This device monitors the board power, input voltage and input current', 
-            offset      = 0x00040400, 
-            senseRes    = 20.E-3, # Units of Ohms
-            expand      = False,
-            hidden      = True, # Hidden in GUI because indented for scripting
-        ))
+            self.add(nxp.Sa56004x(      
+                name        = 'BoardTemp', 
+                description = 'This device monitors the board temperature and FPGA junction temperature', 
+                offset      = 0x00040000, 
+                expand      = False,
+                hidden      = True, # Hidden in GUI because indented for scripting
+            ))
+            
+            self.add(linear.Ltc4151(
+                name        = 'BoardPwr', 
+                description = 'This device monitors the board power, input voltage and input current', 
+                offset      = 0x00040400, 
+                senseRes    = 20.E-3, # Units of Ohms
+                expand      = False,
+                hidden      = True, # Hidden in GUI because indented for scripting
+            ))
 
-        self.add(nxp.Sa56004x(      
-            name        = 'DelayIcTemp', 
-            description = 'This device monitors the board temperature and Delay IC\'s temperature', 
-            offset      = 0x00050000, 
-            expand      = False,
-            hidden      = True, # Hidden in GUI because indented for scripting
-        ))        
-        
+            self.add(nxp.Sa56004x(      
+                name        = 'DelayIcTemp', 
+                description = 'This device monitors the board temperature and Delay IC\'s temperature', 
+                offset      = 0x00050000, 
+                expand      = False,
+                hidden      = True, # Hidden in GUI because indented for scripting
+            ))        
+    
+            self.add(silabs.Si5345(      
+                name        = 'Pll', 
+                description = 'This device contains Jitter cleaner PLL', 
+                offset      = 0x00070000, 
+                expand      = False,
+            ))     
+        else:
+            self.add(silabs.Si5345Lite(      
+                name        = 'Pll', 
+                description = 'This device contains Jitter cleaner PLL', 
+                offset      = 0x00070000, 
+                expand      = False,
+            ))     
+            
         self.add(common.Dac(
             name        = 'Dac', 
             description = 'This device contains DAC that sets the VTH', 
             offset      = 0x00060000, 
             expand      = False,
         ))        
-    
-        self.add(silabs.Si5345(      
-            name        = 'Pll', 
-            description = 'This device contains Jitter cleaner PLL', 
-            offset      = 0x00070000, 
-            expand      = False,
-        ))     
 
         self.add(common.Altiroc(
             name        = 'Asic', 

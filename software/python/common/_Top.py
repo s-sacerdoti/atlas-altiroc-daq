@@ -31,18 +31,20 @@ class Top(pr.Root):
             pollEn      = True,
             initRead    = True,
             configProm  = False,
+            advanceUser = False,
             pllConfig   = 'config/pll-config/Si5345-RevD-Registers.csv',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
         # Cache the parameters
-        self.pllConfig  = pllConfig
-        self.configProm = configProm
-        self.ip         = ip
-        self.numEthDev  = len(ip)  if (ip[0] != 'simulation') else 1
-        self._timeout   = 1.0      if (ip[0] != 'simulation') else 100.0 
-        self._pollEn    = pollEn   if (ip[0] != 'simulation') else False
-        self._initRead  = initRead if (ip[0] != 'simulation') else False      
+        self.pllConfig   = pllConfig
+        self.advanceUser = advanceUser
+        self.configProm  = configProm
+        self.ip          = ip
+        self.numEthDev   = len(ip)  if (ip[0] != 'simulation') else 1
+        self._timeout    = 1.0      if (ip[0] != 'simulation') else 100.0 
+        self._pollEn     = pollEn   if (ip[0] != 'simulation') else False
+        self._initRead   = initRead if (ip[0] != 'simulation') else False      
         
         # File writer
         self.dataWriter = pr.utilities.fileio.StreamWriter()
@@ -79,9 +81,11 @@ class Top(pr.Root):
             
             # Add devices
             self.add(common.Fpga( 
-                name    = f'Fpga[{i}]', 
-                memBase = self.memMap[i], 
-                offset  = 0x00000000, 
+                name        = f'Fpga[{i}]', 
+                memBase     = self.memMap[i], 
+                offset      = 0x00000000, 
+                configProm  = self.configProm, 
+                advanceUser = self.advanceUser, 
             ))
         
         ######################################################################
@@ -118,8 +122,9 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.Probe.enable.hidden    = False
                 self.Fpga[i].Asic.Readout.enable.hidden  = False
             
-                # Prevent FEB from thermal shutdown until FPGA Tj = 100 degC (max. operating temp)  
-                self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95) 
+                if (self.advanceUser):
+                    # Prevent FEB from thermal shutdown until FPGA Tj = 100 degC (max. operating temp)  
+                    self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95) 
         
             # Loop through the devices
             for i in range(self.numEthDev):        
