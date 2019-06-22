@@ -1,0 +1,84 @@
+Top:
+  Fpga[:]: # "[:]" is a wildcard for a dict search
+    Asic:
+      SlowControl:
+        dac: 0x0
+        ON_dac_LR: 0x0
+        Write_opt: 0x0
+        Precharge_opt: 0x0
+        ref_bg: 0x1
+        dac_pulser: 10
+        Ccomp_TZ: 0x0
+        Rin_Vpa: 0x0
+        Cp_Vpa: 0x0
+        dac_biaspa: 0x1e
+        ON_dac_biaspa: 0x1
+        ON_ota_dac: 0x1
+        DAC10bit: 335 
+        SatFVa: 0x3
+        IntFVa: 0x1
+        SatFTz: 0x4
+        IntFTz: 0x1
+        totf_satovfw: 0x1
+        totc_satovfw: 0x1
+        toa_satovfw: 0x1
+        cBitf: 0x0
+        DLL_ALockR_en: 0x1
+        CP_b: 0x5
+        ext_Vcrtlf_en: 0x0
+        cBits: 0xf
+        ext_Vcrtls_en: 0x1
+        cBitc: 0xf
+        ext_Vcrtlc_en: 0x0
+        en_8drivers: 0x0
+        ####################################
+        # [0:25] = "for (i=0; i<25; i++)"
+        ####################################
+        EN_ck_SRAM[0:25]: 0x1
+        ON_Ctest[0:25]: 0x1
+        disable_pa[0:25]: 0x1
+        bit_vth_cor[0:25]: 64
+        ON_discri[0:25]: 0x0
+        EN_hyst[0:25]: 0x1
+        EN_trig_ext[0:25]: 0x0
+        cBit_f_TOT[0:25]: 0x0
+        cBit_c_TOT[0:25]: 0x0
+        cBit_s_TOT[0:25]: 0x0
+        cBit_s_TOA[0:25]: 0x0
+        cBit_f_TOA[0:25]: 0x0
+        ####################################
+        cd[0]: 0x7
+        cd[1]: 0x7
+        cd[2]: 0x7
+        cd[3]: 0x7
+        cd[4]: 0x7
+        PLL: 0x0
+        dac_icpb: 0xa
+        # dac_CP_BWb: 0x20 # Legacy V1 value
+        Shifted_ck40: 0x1
+        dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
+        EN_Ext_Vin_VCO: 0x0
+        setN: 0x0
+        setProbe: 0x0
+        EN_500: 0x0
+        EN_1000: 0x0
+        EN_2000: 0x1
+        EN_4000: 0x0
+        EN_200p: 0x0
+        EN_LowKvco: 0x0
+        delay: 0x0
+        Ph: 0x0
+        forcedown: 0x0
+        inita: 0x1
+        initb: 0x1
+        initc: 0x1
+        cpen: 0x1
+        cp: 0x8
+        En_40M: 0x0
+        En_640M: 0x0
+        rstL: 0x1       
+      Probe:
+        en_probe_pa: 0x0
+        en_probe_dig: 0x1
+        EN_dout: 0x1
+        rstL: 0x1
