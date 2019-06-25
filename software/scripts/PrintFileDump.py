@@ -41,7 +41,7 @@ args = parser.parse_args()
 dataReader = rogue.utilities.fileio.StreamReader()
 
 # Create the Event reader streaming interface
-dataStream = feb.ExampleEventReader()
+dataStream = feb.MyEventReader()
 
 # Connect the file reader to the event reader
 pr.streamConnect(dataReader, dataStream) 

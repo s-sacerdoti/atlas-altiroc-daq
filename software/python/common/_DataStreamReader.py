@@ -49,6 +49,8 @@ class MyEventReader(rogue.interfaces.stream.Slave):
         p = bytearray(frame.getPayload())
         # Return the buffer index
         frame.read(p,0)
+        print(p)
+        print(frame.getFlags())
         # Check for a modulo of 32-bit word 
         if ((len(p) % 4) == 0):
             count = int(len(p)/4)
@@ -59,9 +61,9 @@ class MyEventReader(rogue.interfaces.stream.Slave):
                 # Parse the 32-bit word
                 dat = ParseDataWord(hitWrd[i])
                 # Print the event if hit
-                #if (dat.Hit > 0):
+                if (dat.Hit > 0):
                 #if (dat.Hit > 0) or (self.printNext == 1 and self.printNextEn == 1) or (dat.TotData != 0x1fc and dat.TotData != self.lastTOT):
-                if (dat.Hit > 0) or (self.printNext == 1 and self.printNextEn == 1):
+                #if (dat.Hit > 0) or (self.printNext == 1 and self.printNextEn == 1):
 
                     self.lastTOT = dat.TotData
 
