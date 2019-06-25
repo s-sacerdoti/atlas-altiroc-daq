@@ -48,6 +48,14 @@ parser.add_argument(
     help     = "Enable read all variables at start",
 )  
 
+parser.add_argument(
+    "--printEvents", 
+    type     = argBool,
+    required = False,
+    default  = False,
+    help     = "prints the stream data event frames",
+)  
+
 # Get the arguments
 args = parser.parse_args()
 
@@ -59,6 +67,13 @@ top = feb.Top(
     pollEn   = args.pollEn,
     initRead = args.initRead,       
 )    
+
+if (args.printEvents):
+    # Create the Event reader streaming interface
+    eventReader = feb.ExampleEventReader()
+
+    # Connect the file reader to the event reader
+    pr.streamConnect(top.dataStream[0], eventReader) 
 
 # Create GUI
 appTop = pr.gui.application(sys.argv)
