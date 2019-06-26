@@ -24,7 +24,7 @@ class AltirocTrig(pr.Device):
             name        = name,
             description = description,
             **kwargs)
-            
+        
         self.add(pr.RemoteVariable(
             name         = 'CalPulseTrigDropCnt', 
             description  = 'Increments every time a trigger is dropped due to previous readout cycle not being completed (renable still active)',
@@ -44,7 +44,7 @@ class AltirocTrig(pr.Device):
         )) 
 
         self.add(pr.RemoteVariable(
-            name         = 'PcieLocalTrigDropCnt', 
+            name         = 'LocalMasterTrigDropCnt', 
             description  = 'Increments every time a trigger is dropped due to previous readout cycle not being completed (renable still active)',
             offset       = 0x08,
             bitSize      = 32, 
@@ -53,9 +53,45 @@ class AltirocTrig(pr.Device):
         ))  
 
         self.add(pr.RemoteVariable(
-            name         = 'LemoRemoteTrigDropCnt', 
+            name         = 'RemoteSlaveTrigDropCnt', 
             description  = 'Increments every time a trigger is dropped due to previous readout cycle not being completed (renable still active)',
             offset       = 0x0C,
+            bitSize      = 32, 
+            mode         = 'RO',
+            pollInterval = 1,
+        ))          
+        
+        self.add(pr.RemoteVariable(
+            name         = 'CalPulseTrigCnt', 
+            description  = 'Increments every time a trigger is received for readout (renable not active)',
+            offset       = 0x10,
+            bitSize      = 32, 
+            mode         = 'RO',
+            pollInterval = 1,
+        ))   
+        
+        self.add(pr.RemoteVariable(
+            name         = 'BncExtTrigCnt', 
+            description  = 'Increments every time a trigger is received for readout (renable not active)',
+            offset       = 0x14,
+            bitSize      = 32, 
+            mode         = 'RO',
+            pollInterval = 1,
+        )) 
+
+        self.add(pr.RemoteVariable(
+            name         = 'LocalMasterTrigCnt', 
+            description  = 'Increments every time a trigger is received for readout (renable not active)',
+            offset       = 0x18,
+            bitSize      = 32, 
+            mode         = 'RO',
+            pollInterval = 1,
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'RemoteSlaveTrigCnt', 
+            description  = 'Increments every time a trigger is received for readout (renable not active)',
+            offset       = 0x1C,
             bitSize      = 32, 
             mode         = 'RO',
             pollInterval = 1,
@@ -160,7 +196,66 @@ class AltirocTrig(pr.Device):
                 0x2: 'OSCOPE_DEADTIME_S', 
                 0x3: 'RESERVED', 
             },
-        ))        
+        ))
+
+        # self.add(pr.RemoteVariable(
+            # name         = 'TrigCnt', 
+            # description  = 'Increment for each triggered readout (used for O-scope deadtime)',
+            # offset       = 0x5C,
+            # bitSize      = 32, 
+            # mode         = 'RO',
+            # pollInterval = 1,
+        # ))    
+
+        self.add(pr.RemoteVariable(
+            name         = 'BncExtTrig', 
+            description  = 'current value of BNC External Trigger',
+            offset       = 0x60,
+            bitSize      = 1, 
+            bitOffset    = 0, 
+            mode         = 'RO',
+            pollInterval = 1,
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'LocalPcieToaBusy', 
+            description  = 'current value of local PCIe TOA busy (active HIGH)',
+            offset       = 0x60,
+            bitSize      = 1, 
+            bitOffset    = 1, 
+            mode         = 'RO',
+            pollInterval = 1,
+        ))   
+
+        self.add(pr.RemoteVariable(
+            name         = 'LemoIn', 
+            description  = 'current value LEMO input (active HIGH)',
+            offset       = 0x60,
+            bitSize      = 1, 
+            bitOffset    = 2, 
+            mode         = 'RO',
+            pollInterval = 1,
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'OrTrig', 
+            description  = 'current value of OR trigger logic',
+            offset       = 0x60,
+            bitSize      = 1, 
+            bitOffset    = 3, 
+            mode         = 'RO',
+            pollInterval = 1,
+        ))   
+
+        self.add(pr.RemoteVariable(
+            name         = 'AndTrig', 
+            description  = 'current value of AND trigger logic',
+            offset       = 0x60,
+            bitSize      = 1, 
+            bitOffset    = 4, 
+            mode         = 'RO',
+            pollInterval = 1,
+        ))           
        
         self.add(pr.RemoteCommand(   
             name         = 'CountReset',
