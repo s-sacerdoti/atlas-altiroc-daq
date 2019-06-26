@@ -98,8 +98,17 @@ begin
 
    axilClk <= sysClk;
    axilRst <= sysRst;
-
-   txLinkUp <= phyReady;
+   
+   U_txLinkUp : entity work.PwrUpRst
+      generic map (
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '0',
+         OUT_POLARITY_G => '0',
+         SIM_SPEEDUP_G  => SIMULATION_G)
+      port map (
+         arst   => phyReady,
+         clk    => sysClk,
+         rstOut => txLinkUp);
    rxLinkUp <= rssiConnected;
 
    U_MMCM : entity work.ClockManager7
