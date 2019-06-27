@@ -153,9 +153,9 @@ architecture mapping of AtlasAltirocCore is
    signal clk160MHz : sl;
    signal rst160MHz : sl;
    signal strb40MHz : sl;
-   
-   signal efuse      : slv(31 downto 0);
-   signal localMac   : slv(47 downto 0);   
+
+   signal efuse    : slv(31 downto 0);
+   signal localMac : slv(47 downto 0);
 
 begin
 
@@ -163,13 +163,13 @@ begin
    led(1) <= not(axilRst);
    led(2) <= rxLinkUp;
    led(3) <= not(rst160MHz);
-   
+
    U_EFuse : EFUSE_USR
       port map (
          EFUSEUSR => efuse);
 
    localMac(23 downto 0)  <= x"56_00_08";  -- 08:00:56:XX:XX:XX (big endian SLV)   
-   localMac(47 downto 24) <= efuse(31 downto 8);   
+   localMac(47 downto 24) <= efuse(31 downto 8);
 
    ----------------------
    -- Timing Clock Module
@@ -324,6 +324,7 @@ begin
          bootMiso        => bootMiso,
          -- Misc Ports
          localMac        => localMac,
+         txLinkUp        => txLinkUp,
          pwrScl          => pwrScl,
          pwrSda          => pwrSda,
          tempAlertL      => tempAlertL,

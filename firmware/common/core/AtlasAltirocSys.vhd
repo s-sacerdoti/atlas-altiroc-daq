@@ -57,10 +57,11 @@ entity AtlasAltirocSys is
       bootMosi        : out   sl := '1';
       bootMiso        : in    sl;
       -- Misc Ports
-      localMac        : in  slv(47 downto 0);
+      localMac        : in    slv(47 downto 0);
       pwrScl          : inout sl;
       pwrSda          : inout sl;
       tempAlertL      : in    sl;
+      txLinkUp        : in    sl;
       vPIn            : in    sl;
       vNIn            : in    sl);
 end AtlasAltirocSys;
@@ -134,9 +135,10 @@ architecture mapping of AtlasAltirocSys is
 
    constant DLY_I2C_C : I2cAxiLiteDevArray(0 downto 0) := (others => PWR_I2C_C(0));  -- DLY TEMP IC same as power monitor
 
-   signal bootSck : sl;
-   
-   signal userValues   : Slv32Array(0 to 63) := (others => x"00000000");   
+   signal bootSck   : sl;
+   signal txLinkUpL : sl;
+
+   signal userValues : Slv32Array(0 to 63) := (others => x"00000000");
 
 begin
 
@@ -169,12 +171,14 @@ begin
    ---------------------------          
    U_AxiVersion : entity work.AxiVersion
       generic map (
-         TPD_G           => TPD_G,
-         BUILD_INFO_G    => BUILD_INFO_G,
-         CLK_PERIOD_G    => (1.0/AXI_CLK_FREQ_G),
-         XIL_DEVICE_G    => "7SERIES",
-         EN_DEVICE_DNA_G => true,
-         EN_ICAP_G       => true)
+         TPD_G              => TPD_G,
+         BUILD_INFO_G       => BUILD_INFO_G,
+         CLK_PERIOD_G       => (1.0/AXI_CLK_FREQ_G),
+         XIL_DEVICE_G       => "7SERIES",
+         EN_DEVICE_DNA_G    => true,
+         EN_ICAP_G          => true,
+         AUTO_RELOAD_EN_G   => true,
+         AUTO_RELOAD_TIME_G => 4)
       port map (
          -- AXI-Lite Register Interface
          axiClk         => axilClk,
@@ -183,8 +187,12 @@ begin
          axiReadSlave   => axilReadSlaves(VERSION_INDEX_C),
          axiWriteMaster => axilWriteMasters(VERSION_INDEX_C),
          axiWriteSlave  => axilWriteSlaves(VERSION_INDEX_C),
+         -- Optional: FPGA Reloading Interface
+         fpgaEnReload   => txLinkUpL,
          -- Optional: user values
-         userValues     => userValues);         
+         userValues     => userValues);
+
+   txLinkUpL <= not(txLinkUp);
 
    NOT_SIM : if (SIMULATION_G = false) generate
 
