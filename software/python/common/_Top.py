@@ -36,6 +36,9 @@ class Top(pr.Root):
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
+        # Set the min. firmware Version support by the software
+        self.minFpgaVersion = 0x20000020
+        
         # Cache the parameters
         self.pllConfig   = pllConfig
         self.advanceUser = advanceUser
@@ -98,7 +101,7 @@ class Top(pr.Root):
         )        
         
     def start(self,**kwargs):
-        super(Top, self).start(**kwargs)  
+        super(Top, self).start(**kwargs) 
 
         # Check if not PROM loading 
         if not self.configProm and (self.ip[0] != 'simulation'):
@@ -110,6 +113,15 @@ class Top(pr.Root):
             
             # Loop through FPGA devices
             for i in range(self.numEthDev):
+            
+                # Check for min. FW version
+                fwVersion = self.Fpga[i].AxiVersion.FpgaVersion.get()
+                if (fwVersion < self.minFpgaVersion):
+                    errMsg = f"""
+                        Fpga[{i}].AxiVersion.FpgaVersion = {fwVersion:#04x} < {self.minFpgaVersion:#04x}
+                        Please update Fpga[{i}] at IP={self.ip[i]} firmware using software/scripts/ReprogramFpga.py
+                        """
+                    raise ValueError(errMsg)
                 
                 # Hide unused variables
                 self.Fpga[i].AxiVersion.UserReset.hidden = True
