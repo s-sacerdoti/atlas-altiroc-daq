@@ -64,7 +64,7 @@ def setupRogue(argip,configFile):
     top.LoadConfig(arg = configFile)
     
     # Tap the streaming data interface (same interface that writes to file)
-    dataStream = feb.MyEventReader()    
+    dataStream = feb.LegacyMyEventReader()    
     pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
     
     return top
@@ -90,7 +90,7 @@ def fixedTOAhistogram(top,argip,
     if top == None:
         top = setupRogue(argip,configFile)
 
-    dataStream = feb.MyEventReader()
+    dataStream = feb.LegacyMyEventReader()
     pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
     
     #################################################################
