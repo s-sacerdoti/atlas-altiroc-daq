@@ -34,8 +34,9 @@ class EventValue(object):
      self.SeqCnt            = None
      self.pixValue          = None
 
+
 def ParseDataWord(dataWord):
-    # Parse the 32-bit word
+    #Parse the 32-bit word
     PixelIndex  = (dataWord >> 24) & 0x1F
     TotOverflow = (dataWord >> 20) & 0x1
     TotData     = (dataWord >> 11) & 0x1FF
@@ -43,11 +44,42 @@ def ParseDataWord(dataWord):
     ToaData     = (dataWord >>  3) & 0x7F
     Hit         = (dataWord >>  2) & 0x1
     Sof         = (dataWord >>  0) & 0x3
+
+    #print( "{:028b}".format(dataWord) )
     return PixValue(PixelIndex, TotOverflow, TotData, ToaOverflow, ToaData, Hit, Sof)
+
+
+def ParseFrame(frame):
+    # Next we can get the size of the frame payload
+    size = frame.getPayload()
+    
+    # To access the data we need to create a byte array to hold the data
+    fullData = bytearray(size)
+    
+    # Next we read the frame data into the byte array, from offset 0
+    frame.read(fullData,0)
+
+    # Fill an array of 32-bit formatted word
+    wrdData = [None for i in range(2+512*32)]
+    wrdData = np.frombuffer(fullData, dtype='uint32', count=(size>>2))
+    
+    # Parse the data and data to data frame
+    eventFrame = EventValue()
+    eventFrame.FormatVersion     = (wrdData[0] >>  0) & 0xFFF
+    eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
+    eventFrame.StartPix          = (wrdData[0] >> 22) & 0x1F
+    eventFrame.StopPix           = (wrdData[0] >> 27) & 0x1F
+    eventFrame.SeqCnt            = wrdData[1]
+    numPixValues = (eventFrame.StopPix-eventFrame.StartPix+1)*(eventFrame.PixReadIteration+1)
+    eventFrame.pixValue  = [None for i in range(numPixValues)]
+    for i in range(numPixValues):
+        eventFrame.pixValue[i] = ParseDataWord(wrdData[2+i])
+
+    return eventFrame
 
 #################################################################
 
-class ExampleEventReader(rogue.interfaces.stream.Slave):
+class MyEventReader(rogue.interfaces.stream.Slave):
     # Init method must call the parent class init
     def __init__(self):
         super().__init__()
@@ -57,46 +89,24 @@ class ExampleEventReader(rogue.interfaces.stream.Slave):
 
         # First it is good practice to hold a lock on the frame data.
         with frame.lock():
-
-            # Next we can get the size of the frame payload
-            size = frame.getPayload()
-            
-            # To access the data we need to create a byte array to hold the data
-            fullData = bytearray(size)
-            
-            # Next we read the frame data into the byte array, from offset 0
-            frame.read(fullData,0)
-
-            # Fill an array of 32-bit formatted word
-            wrdData = [None for i in range(2+512*32)]
-            wrdData = np.frombuffer(fullData, dtype='uint32', count=(size>>2))
-            
-            # Parse the data and data to data frame
-            eventFrame = EventValue()
-            eventFrame.FormatVersion     = (wrdData[0] >>  0) & 0xFFF
-            eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
-            eventFrame.StartPix          = (wrdData[0] >> 22) & 0x1F
-            eventFrame.StopPix           = (wrdData[0] >> 27) & 0x1F
-            eventFrame.SeqCnt            = wrdData[1]
-            numPixValues = (eventFrame.StopPix-eventFrame.StartPix+1)*(eventFrame.PixReadIteration+1)
-            eventFrame.pixValue  = [None for i in range(numPixValues)]
-            for i in range(numPixValues):
-                eventFrame.pixValue[i] = ParseDataWord(wrdData[2+i])
+            eventFrame = ParseFrame(frame)
                 
             # Print out the event
-            print('frame.payloadSize(Bytes)     {:#}'.format(size))
+            print('frame.payloadSize(Bytes)     {:#}'.format( frame.getPayload() ) )
             print('eventFrame.FormatVersion     {:#}'.format(eventFrame.FormatVersion))
             print('eventFrame.PixReadIteration  {:#}'.format(eventFrame.PixReadIteration))
             print('eventFrame.StartPix          {:#}'.format(eventFrame.StartPix))
             print('eventFrame.StopPix           {:#}'.format(eventFrame.StopPix))
             print('eventFrame.SeqCnt            {:#}'.format(eventFrame.SeqCnt))            
-            for i in range(numPixValues):
-                print('eventFrame.pixValue[{:#}].TotOverflow {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].TotOverflow))
-                print('eventFrame.pixValue[{:#}].TotData     {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].TotData))
-                print('eventFrame.pixValue[{:#}].ToaOverflow {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].ToaOverflow))
-                print('eventFrame.pixValue[{:#}].ToaData     {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].ToaData))
-                print('eventFrame.pixValue[{:#}].Hit         {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].Hit))
-                print('eventFrame.pixValue[{:#}].Sof         {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].Sof))
+            for i in range( len(eventFrame.pixValue) ):
+                pixel = eventFrame.pixValue[i]
+                pixIndex = pixel.PixelIndex
+                print('eventFrame.pixValue[{:#}].TotOverflow {:#}'.format(pixIndex,pixel.TotOverflow))
+                print('eventFrame.pixValue[{:#}].TotData     {:#}'.format(pixIndex,pixel.TotData))
+                print('eventFrame.pixValue[{:#}].ToaOverflow {:#}'.format(pixIndex,pixel.ToaOverflow))
+                print('eventFrame.pixValue[{:#}].ToaData     {:#}'.format(pixIndex,pixel.ToaData))
+                print('eventFrame.pixValue[{:#}].Hit         {:#}'.format(pixIndex,pixel.Hit))
+                print('eventFrame.pixValue[{:#}].Sof         {:#}'.format(pixIndex,pixel.Sof))
 
 #################################################################
 # Class for Reading the Data from File
@@ -119,37 +129,24 @@ class MyFileReader(rogue.interfaces.stream.Slave):
         self.HitDataTOTc_int1_tz_temp = 0
 
     def _acceptFrame(self,frame):
-        # Get the payload data
-        p = bytearray(frame.getPayload())
-        # Return the buffer index
-        frame.read(p,0)
-        # Check for a modulo of 32-bit word 
-        if ((len(p) % 4) == 0):
-            count = int(len(p)/4)
-            # Combine the byte array into 32-bit word array
-            hitWrd = np.frombuffer(p, dtype='uint32', count=count)
-            # Loop through each 32-bit word
-            for i in range(count):
-                # Parse the 32-bit word
-                dat = ParseDataWord(hitWrd[i])
-                # Print the event if hit
+        # First it is good practice to hold a lock on the frame data.
+        with frame.lock():
+            eventFrame = ParseFrame(frame)
+            for i in range( len(eventFrame.pixValue) ):
+                dat = eventFrame.pixValue[i]
 
                 if (dat.Hit > 0) and (dat.ToaOverflow == 0):
-                   
                     self.HitData.append(dat.ToaData)
                 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
-    
                     self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
                     self.HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
                     self.HitDataTOTc_int1_vpa_temp = (((dat.TotData >>  2) + 1) >> 1) & 0x3F
-                    #if ((dat.TotData >>  2) & 0x1) == 1:
                     self.HitDataTOTf_vpa.append(self.HitDataTOTf_vpa_temp)
                     self.HitDataTOTc_vpa.append(self.HitDataTOTc_vpa_temp)
                     self.HitDataTOTc_int1_vpa.append(self.HitDataTOTc_int1_vpa_temp)
 
                 if (dat.Hit > 0) and (dat.TotData != 0x1f8):
-
                     self.HitDataTOTf_tz_temp = ((dat.TotData >>  0) & 0x7) + dat.TotOverflow*math.pow(2,3)
                     self.HitDataTOTc_tz_temp = (dat.TotData >>  3) & 0x3F
                     self.HitDataTOTc_int1_tz_temp = (((dat.TotData >>  3) + 1) >> 1) & 0x1F
