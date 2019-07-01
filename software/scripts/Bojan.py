@@ -268,15 +268,16 @@ print('Loading Configuration File...')
 #top.ReadConfig(arg = Configuration_LOAD_file)
 top.LoadConfig(arg=args.cfg)
 print("DEBUG003")
-top.Fpga[0].Asic.DoutDebug.ForwardData.set(0x0)
+#top.Fpga[0].Asic.DoutDebug.ForwardData.set(0x0)
 print("DEBUG004")
 
 print("DEBUG005")
 
 # Tap the streaming data interface (same interface that writes to file)
-dataStream = MyEventReader()    
+dataStream = feb.LegacyMyEventReader()    
 print("DEBUG006")
-pyrogue.streamTap(top.dataStream, dataStream) 
+#pyrogue.streamTap(top.dataStream, dataStream) 
+pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
 print("DEBUG007")
 #################################################################
 
@@ -285,54 +286,54 @@ print("DEBUG007")
                                                                ##
 if Disable_CustomConfig == 0:                                  ## 
                                                                ##
-    top.Asic.Probe.en_probe_pa.set(0x0)                        ##
+    top.Fpga[0].Asic.Probe.en_probe_pa.set(0x0)                        ##
                                                                ##
     for i in range(25):                                        ##
-        top.Asic.Probe.pix[i].probe_pa.set(0x0)                ## 
-        top.Asic.Probe.pix[i].probe_vthc.set(0x0)              ## 
-        top.Asic.Probe.pix[i].probe_dig_out_disc.set(0x0)      ##
-        top.Asic.Probe.pix[i].probe_toa.set(0x0)               ##
-        top.Asic.Probe.pix[i].probe_tot.set(0x0)               ##
-        top.Asic.Probe.pix[i].totf.set(0x0)                    ##
-        top.Asic.Probe.pix[i].tot_overflow.set(0x0)            ##
-        top.Asic.Probe.pix[i].toa_busy.set(0x0)                ##
-        top.Asic.Probe.pix[i].toa_ready.set(0x0)               ##
-        top.Asic.Probe.pix[i].tot_busy.set(0x0)                ##
-        top.Asic.Probe.pix[i].tot_ready.set(0x0)               ##
-        top.Asic.Probe.pix[i].en_read.set(0x0)                 ##
+        top.Fpga[0].Asic.Probe.pix[i].probe_pa.set(0x0)                ## 
+        top.Fpga[0].Asic.Probe.pix[i].probe_vthc.set(0x0)              ## 
+        top.Fpga[0].Asic.Probe.pix[i].probe_dig_out_disc.set(0x0)      ##
+        top.Fpga[0].Asic.Probe.pix[i].probe_toa.set(0x0)               ##
+        top.Fpga[0].Asic.Probe.pix[i].probe_tot.set(0x0)               ##
+        top.Fpga[0].Asic.Probe.pix[i].totf.set(0x0)                    ##
+        top.Fpga[0].Asic.Probe.pix[i].tot_overflow.set(0x0)            ##
+        top.Fpga[0].Asic.Probe.pix[i].toa_busy.set(0x0)                ##
+        top.Fpga[0].Asic.Probe.pix[i].toa_ready.set(0x0)               ##
+        top.Fpga[0].Asic.Probe.pix[i].tot_busy.set(0x0)                ##
+        top.Fpga[0].Asic.Probe.pix[i].tot_ready.set(0x0)               ##
+        top.Fpga[0].Asic.Probe.pix[i].en_read.set(0x0)                 ##
                                                                ##
     if pixel_number in range(0, 5):                            ##
-        top.Asic.Probe.en_probe_dig.set(0x1)                   ##
-        top.Asic.Probe.EN_dout.set(0x1)                        ##
+        top.Fpga[0].Asic.Probe.en_probe_dig.set(0x1)                   ##
+        top.Fpga[0].Asic.Probe.EN_dout.set(0x1)                        ##
     if pixel_number in range(5, 10):                           ##
-        top.Asic.Probe.en_probe_dig.set(0x2)                   ##
-        top.Asic.Probe.EN_dout.set(0x2)                        ##
+        top.Fpga[0].Asic.Probe.en_probe_dig.set(0x2)                   ##
+        top.Fpga[0].Asic.Probe.EN_dout.set(0x2)                        ##
     if pixel_number in range(10, 15):                          ##
-        top.Asic.Probe.en_probe_dig.set(0x4)                   ##
-        top.Asic.Probe.EN_dout.set(0x4)                        ##
+        top.Fpga[0].Asic.Probe.en_probe_dig.set(0x4)                   ##
+        top.Fpga[0].Asic.Probe.EN_dout.set(0x4)                        ##
     if pixel_number in range(15, 20):                          ##
-        top.Asic.Probe.en_probe_dig.set(0x8)                   ##
-        top.Asic.Probe.EN_dout.set(0x8)                        ##
+        top.Fpga[0].Asic.Probe.en_probe_dig.set(0x8)                   ##
+        top.Fpga[0].Asic.Probe.EN_dout.set(0x8)                        ##
     if pixel_number in range(20, 25):                          ##
-        top.Asic.Probe.en_probe_dig.set(0x10)                  ##
-        top.Asic.Probe.EN_dout.set(0x10)                       ##
+        top.Fpga[0].Asic.Probe.en_probe_dig.set(0x10)                  ##
+        top.Fpga[0].Asic.Probe.EN_dout.set(0x10)                       ##
                                                                ##
-    top.Asic.Gpio.RSTB_READ.set(0x0)                           ##
+    top.Fpga[0].Asic.Gpio.RSTB_READ.set(0x0)                           ##
     time.sleep(0.1)                                            ##
-    top.Asic.Gpio.RSTB_READ.set(0x1)                           ##
+    top.Fpga[0].Asic.Gpio.RSTB_READ.set(0x1)                           ##
                                                                ##
-    top.Asic.Probe.pix[pixel_number].probe_pa.set(0x0)         ## 
-    top.Asic.Probe.pix[pixel_number].probe_vthc.set(0x0)       ## 
-    top.Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)#
-    top.Asic.Probe.pix[pixel_number].probe_toa.set(0x0)        ##
-    top.Asic.Probe.pix[pixel_number].probe_tot.set(0x0)        ##
-    top.Asic.Probe.pix[pixel_number].totf.set(0x0)             ##
-    top.Asic.Probe.pix[pixel_number].tot_overflow.set(0x0)     ##
-    top.Asic.Probe.pix[pixel_number].toa_busy.set(0x1)         ##
-    top.Asic.Probe.pix[pixel_number].toa_ready.set(0x0)        ##
-    top.Asic.Probe.pix[pixel_number].tot_busy.set(0x0)         ##
-    top.Asic.Probe.pix[pixel_number].tot_ready.set(0x0)        ##
-    top.Asic.Probe.pix[pixel_number].en_read.set(0x1)          ##
+    top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x0)         ## 
+    top.Fpga[0].Asic.Probe.pix[pixel_number].probe_vthc.set(0x0)       ## 
+    top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)#
+    top.Fpga[0].Asic.Probe.pix[pixel_number].probe_toa.set(0x0)        ##
+    top.Fpga[0].Asic.Probe.pix[pixel_number].probe_tot.set(0x0)        ##
+    top.Fpga[0].Asic.Probe.pix[pixel_number].totf.set(0x0)             ##
+    top.Fpga[0].Asic.Probe.pix[pixel_number].tot_overflow.set(0x0)     ##
+    top.Fpga[0].Asic.Probe.pix[pixel_number].toa_busy.set(0x1)         ##
+    top.Fpga[0].Asic.Probe.pix[pixel_number].toa_ready.set(0x0)        ##
+    top.Fpga[0].Asic.Probe.pix[pixel_number].tot_busy.set(0x0)         ##
+    top.Fpga[0].Asic.Probe.pix[pixel_number].tot_ready.set(0x0)        ##
+    top.Fpga[0].Asic.Probe.pix[pixel_number].en_read.set(0x1)          ##
 #################################################################
 
 #################################################################
@@ -341,95 +342,95 @@ if Disable_CustomConfig == 0:                                  ##
 if Disable_CustomConfig == 0:                                  ##
                                                                ##
     for i in range(25):                                        ##
-        top.Asic.SlowControl.disable_pa[i].set(0x1)            ##
-        top.Asic.SlowControl.ON_discri[i].set(0x0)             ##
-        top.Asic.SlowControl.EN_ck_SRAM[i].set(0x1)            ##
-        top.Asic.SlowControl.EN_trig_ext[i].set(0x0)           ##
-        top.Asic.SlowControl.ON_Ctest[i].set(0x0)              ##
+        top.Fpga[0].Asic.SlowControl.disable_pa[i].set(0x1)            ##
+        top.Fpga[0].Asic.SlowControl.ON_discri[i].set(0x0)             ##
+        top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[i].set(0x1)            ##
+        top.Fpga[0].Asic.SlowControl.EN_trig_ext[i].set(0x0)           ##
+        top.Fpga[0].Asic.SlowControl.ON_Ctest[i].set(0x0)              ##
                                                                ##
-        top.Asic.SlowControl.cBit_f_TOA[i].set(0x0)            ##
-        top.Asic.SlowControl.cBit_s_TOA[i].set(0x0)            ##      
-        top.Asic.SlowControl.cBit_f_TOT[i].set(0x0)            ##
-        top.Asic.SlowControl.cBit_s_TOT[i].set(0x0)            ##
-        top.Asic.SlowControl.cBit_c_TOT[i].set(0x0)            ##
+        top.Fpga[0].Asic.SlowControl.cBit_f_TOA[i].set(0x0)            ##
+        top.Fpga[0].Asic.SlowControl.cBit_s_TOA[i].set(0x0)            ##      
+        top.Fpga[0].Asic.SlowControl.cBit_f_TOT[i].set(0x0)            ##
+        top.Fpga[0].Asic.SlowControl.cBit_s_TOT[i].set(0x0)            ##
+        top.Fpga[0].Asic.SlowControl.cBit_c_TOT[i].set(0x0)            ##
                                                                ##
     for i in range(16):                                        ##
-        top.Asic.SlowControl.EN_trig_ext[i].set(0x0)           ##
+        top.Fpga[0].Asic.SlowControl.EN_trig_ext[i].set(0x0)           ##
                                                                ##
-    top.Asic.SlowControl.disable_pa[pixel_number].set(0x0)     ##
-    top.Asic.SlowControl.ON_discri[pixel_number].set(0x1)      ##
-    top.Asic.SlowControl.EN_hyst[pixel_number].set(0x1)        ##
-    top.Asic.SlowControl.EN_trig_ext[pixel_number].set(0x0)    ##
-    top.Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)     ##
-    top.Asic.SlowControl.ON_Ctest[pixel_number].set(0x1)       ##
-    top.Asic.SlowControl.bit_vth_cor[pixel_number].set(0x40)   ##
+    top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x0)     ##
+    top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x1)      ##
+    top.Fpga[0].Asic.SlowControl.EN_hyst[pixel_number].set(0x1)        ##
+    top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x0)    ##
+    top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)     ##
+    top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x1)       ##
+    top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(0x40)   ##
                                                                ##
-    top.Asic.SlowControl.Write_opt.set(0x0)                    ##
-    top.Asic.SlowControl.Precharge_opt.set(0x0)                ##
+    top.Fpga[0].Asic.SlowControl.Write_opt.set(0x0)                    ##
+    top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)                ##
                                                                ##
-    top.Asic.SlowControl.DLL_ALockR_en.set(0x1)                ##
-    top.Asic.SlowControl.CP_b.set(0x7) #5                      ##
-    top.Asic.SlowControl.ext_Vcrtlf_en.set(0x0) #0             ##
-    top.Asic.SlowControl.ext_Vcrtls_en.set(0x1) #1             ##
-    top.Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #0             ##
+    top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)                ##
+    top.Fpga[0].Asic.SlowControl.CP_b.set(0x7) #5                      ##
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x0) #0             ##
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #1             ##
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #0             ##
                                                                ##
-    top.Asic.SlowControl.totf_satovfw.set(0x1)                 ##
-    top.Asic.SlowControl.totc_satovfw.set(0x1)                 ##
-    top.Asic.SlowControl.toa_satovfw.set(0x1)                  ##
+    top.Fpga[0].Asic.SlowControl.totf_satovfw.set(0x1)                 ##
+    top.Fpga[0].Asic.SlowControl.totc_satovfw.set(0x1)                 ##
+    top.Fpga[0].Asic.SlowControl.toa_satovfw.set(0x1)                  ##
                                                                ##
-    top.Asic.SlowControl.SatFVa.set(0x3)                       ##
-    top.Asic.SlowControl.IntFVa.set(0x1)                       ##
-    top.Asic.SlowControl.SatFTz.set(0x4)                       ##
-    top.Asic.SlowControl.IntFTz.set(0x1)                       ##
+    top.Fpga[0].Asic.SlowControl.SatFVa.set(0x3)                       ##
+    top.Fpga[0].Asic.SlowControl.IntFVa.set(0x1)                       ##
+    top.Fpga[0].Asic.SlowControl.SatFTz.set(0x4)                       ##
+    top.Fpga[0].Asic.SlowControl.IntFTz.set(0x1)                       ##
                                                                ##
-    top.Asic.SlowControl.cBitf.set(0xf) #0                     ##
-    top.Asic.SlowControl.cBits.set(0x0) #f                     ##
-    top.Asic.SlowControl.cBitc.set(0xf) #f                     ##
+    top.Fpga[0].Asic.SlowControl.cBitf.set(0xf) #0                     ##
+    top.Fpga[0].Asic.SlowControl.cBits.set(0x0) #f                     ##
+    top.Fpga[0].Asic.SlowControl.cBitc.set(0xf) #f                     ##
                                                                ##
-    top.Asic.SlowControl.cBit_f_TOA[pixel_number].set(0x0) #0  ##
-    top.Asic.SlowControl.cBit_s_TOA[pixel_number].set(0xf) #0  ##
+    top.Fpga[0].Asic.SlowControl.cBit_f_TOA[pixel_number].set(0x0) #0  ##
+    top.Fpga[0].Asic.SlowControl.cBit_s_TOA[pixel_number].set(0xf) #0  ##
                                                                ##
-    top.Asic.SlowControl.cBit_f_TOT[pixel_number].set(0xf) #f  ##
-    top.Asic.SlowControl.cBit_s_TOT[pixel_number].set(0x0) #0  ##
-    top.Asic.SlowControl.cBit_c_TOT[pixel_number].set(0xf) #f  ##
+    top.Fpga[0].Asic.SlowControl.cBit_f_TOT[pixel_number].set(0xf) #f  ##
+    top.Fpga[0].Asic.SlowControl.cBit_s_TOT[pixel_number].set(0x0) #0  ##
+    top.Fpga[0].Asic.SlowControl.cBit_c_TOT[pixel_number].set(0xf) #f  ##
                                                                ##
-    top.Asic.SlowControl.Rin_Vpa.set(0x1) #0                   ##
-    top.Asic.SlowControl.cd[0].set(0x0) #6                     ##
-    top.Asic.SlowControl.dac_biaspa.set(0x10) #10              ##
-    top.Asic.SlowControl.dac_pulser.set(0x7) #7                ##
-    top.Asic.SlowControl.DAC10bit.set(0x19f) #173 / 183        ##
+    top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(0x1) #0                   ##
+    top.Fpga[0].Asic.SlowControl.cd[0].set(0x0) #6                     ##
+    top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x10) #10              ##
+    top.Fpga[0].Asic.SlowControl.dac_pulser.set(0x7) #7                ##
+    top.Fpga[0].Asic.SlowControl.DAC10bit.set(0x19f) #173 / 183        ##
                                                                ##
-    top.Asic.DoutDebug.DeserSampleEdge.set(0x0)                ##
+    top.Fpga[0].Asic.DoutDebug.DeserSampleEdge.set(0x0)                ##
                                                                ##
-    top.Asic.PulseTrain.PulseCount.set(0x1)                    ##
-    top.Asic.PulseTrain.PulseWidth.set(0x8)                    ##
-    top.Asic.PulseTrain.PulsePeriod.set(0x4)                   ##
-    top.Asic.PulseTrain.PulseDelay.set(0x4)                    ##
-    top.Asic.PulseTrain.ReadDelay.set(0x8)                     ##
-    top.Asic.PulseTrain.ReadDuration.set(0x70) #10a0           ##
-    top.Asic.PulseTrain.ResetCounterMask.set(0x3)              ##
-    top.Asic.PulseTrain.ResetTdcMask.set(0x2)                  ##
+    top.Fpga[0].Asic.PulseTrain.PulseCount.set(0x1)                    ##
+    top.Fpga[0].Asic.PulseTrain.PulseWidth.set(0x8)                    ##
+    top.Fpga[0].Asic.PulseTrain.PulsePeriod.set(0x4)                   ##
+    top.Fpga[0].Asic.PulseTrain.PulseDelay.set(0x4)                    ##
+    top.Fpga[0].Asic.PulseTrain.ReadDelay.set(0x8)                     ##
+    top.Fpga[0].Asic.PulseTrain.ReadDuration.set(0x70) #10a0           ##
+    top.Fpga[0].Asic.PulseTrain.ResetCounterMask.set(0x3)              ##
+    top.Fpga[0].Asic.PulseTrain.ResetTdcMask.set(0x2)                  ##
                                                                ##
 #################################################################
 
 #################################################################
 # Data Stream Alignment                                        ##
                                                                ##
-top.Asic.PulseTrain.Continuous.set(0x0)                        ##
-top.Asic.Gpio.RSTB_TDC.set(0x0)                                ##
-Write_opt = top.Asic.SlowControl.Write_opt.get()               ##
-Precharge_opt = top.Asic.SlowControl.Precharge_opt.get()       ##  
-top.Asic.SlowControl.Write_opt.set(0x0)                        ##
-top.Asic.SlowControl.Precharge_opt.set(0x0)                    ##
+top.Fpga[0].Asic.PulseTrain.Continuous.set(0x0)                        ##
+top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)                                ##
+Write_opt = top.Fpga[0].Asic.SlowControl.Write_opt.get()               ##
+Precharge_opt = top.Fpga[0].Asic.SlowControl.Precharge_opt.get()       ##  
+top.Fpga[0].Asic.SlowControl.Write_opt.set(0x0)                        ##
+top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)                    ##
 time.sleep(0.1)                                                ##
-top.Asic.PulseTrain.ResetCounterPolarity.set(0x1)              ##
-top.Asic.PulseTrain.Continuous.set(0x1)                        ##
+top.Fpga[0].Asic.PulseTrain.ResetCounterPolarity.set(0x1)              ##
+top.Fpga[0].Asic.PulseTrain.Continuous.set(0x1)                        ##
 time.sleep(0.1)                                                ##
-top.Asic.SlowControl.Write_opt.set(Write_opt)                  ##
-top.Asic.SlowControl.Precharge_opt.set(Precharge_opt)          ##
-top.Asic.Gpio.RSTB_TDC.set(0x1)                                ##
-top.Asic.PulseTrain.ResetCounterPolarity.set(0x0)              ##
-top.Asic.PulseTrain.Continuous.set(0x0)                        ##
+top.Fpga[0].Asic.SlowControl.Write_opt.set(Write_opt)                  ##
+top.Fpga[0].Asic.SlowControl.Precharge_opt.set(Precharge_opt)          ##
+top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)                                ##
+top.Fpga[0].Asic.PulseTrain.ResetCounterPolarity.set(0x0)              ##
+top.Fpga[0].Asic.PulseTrain.Continuous.set(0x0)                        ##
 time.sleep(0.1)                                                ##
 #################################################################
 
@@ -448,15 +449,15 @@ if DataAcqusitionTOA == 1:                                     ##
         except OSError:                                        ##
             pass                                               ##
         top.dataWriter._writer.open('TestData/TOA%d.dat' %i)   ##
-        top.Asic.DoutDebug.ForwardData.set(0x1)                ##
+        top.Fpga[0].Asic.DoutDebug.ForwardData.set(0x1)                ##
         for j in range(NofIterationsTOA):                      ##
                                                                ##
-            top.Asic.Gpio.RSTB_TDC.set(0x0)                    ##
-            top.Asic.Gpio.RSTB_TDC.set(0x1)                    ##
+            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)                    ##
+            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)                    ##
             time.sleep(0.01)                                   ##
-            top.Asic.PulseTrain.OneShot()                      ##
+            top.Fpga[0].Asic.PulseTrain.OneShot()                      ##
                                                                ##
-        top.Asic.DoutDebug.ForwardData.set(0x0)                ##
+        top.Fpga[0].Asic.DoutDebug.ForwardData.set(0x0)                ##
         top.dataWriter._writer.close()                         ##
                                                                ##
 #################################################################
@@ -471,22 +472,22 @@ if DataAcqusitionTOT == 1:                                     ##
                                                                ##
         print ('Pulser =',i)                                   ##
                                                                ##
-        top.Asic.SlowControl.dac_pulser.set(i)                 ##
+        top.Fpga[0].Asic.SlowControl.dac_pulser.set(i)                 ##
                                                                ##
         try:                                                   ##
             os.remove('TestData/TOT%d.dat' %i)                 ##
         except OSError:                                        ##
             pass                                               ##
         top.dataWriter._writer.open('TestData/TOT%d.dat' %i)   ##
-        top.Asic.DoutDebug.ForwardData.set(0x1)                ##
+        top.Fpga[0].Asic.DoutDebug.ForwardData.set(0x1)                ##
         for j in range(NofIterationsTOT):                      ##
                                                                ##
-            top.Asic.Gpio.RSTB_TDC.set(0x0)                    ##
-            top.Asic.Gpio.RSTB_TDC.set(0x1)                    ##
+            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)                    ##
+            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)                    ##
             time.sleep(0.01)                                   ##
-            top.Asic.PulseTrain.OneShot()                      ##
+            top.Fpga[0].Asic.PulseTrain.OneShot()                      ##
                                                                ##
-        top.Asic.DoutDebug.ForwardData.set(0x0)                ##
+        top.Fpga[0].Asic.DoutDebug.ForwardData.set(0x0)                ##
         top.dataWriter._writer.close()                         ##
                                                                ##
 #################################################################
