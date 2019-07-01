@@ -58,6 +58,19 @@ def parse_arguments():
     return args
 #################################################################
 def setupRogue(argip,configFile):
+    # Setup root class
+    top = feb.Top(ip= argip)    # Assuming only 1 FPGA
+
+    # Load the default YAML file .... 
+    top.LoadConfig(arg='config/defaults.yml')
+
+    # ... then load the User YAML file
+    print('Loading Configuration File...')
+    top.LoadConfig(arg = configFile)
+    
+    # Tap the streaming data interface (same interface that writes to file)
+    dataStream = feb.LegacyMyEventReader()    
+    pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
     
     return top
 
@@ -92,7 +105,7 @@ def fixedTOAhistogram(argip, configFile, pixel_number,
 
     print(top)
 
-    dataStream = feb.MyEventReader()
+    dataStream = feb.LegacyMyEventReader()
     pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
     
     #################################################################
