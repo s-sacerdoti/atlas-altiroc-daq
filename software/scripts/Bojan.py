@@ -235,7 +235,8 @@ parser.add_argument(
     "--cfg",
     type = str,
     required = False,
-    default  = "config/testBojan11.yml",
+    #default  = "config/testBojan11.yml",
+    default  = "config/defaults.yml",
     help = "config file",
 )
 
@@ -266,9 +267,8 @@ print("DEBUG002")
 print('Loading Configuration File...')
 #top.ReadConfig(arg = Configuration_LOAD_file)
 top.LoadConfig(arg=args.cfg)
-exit(0)
 print("DEBUG003")
-top.Asic.DoutDebug.ForwardData.set(0x0)
+top.Fpga[0].Asic.DoutDebug.ForwardData.set(0x0)
 print("DEBUG004")
 
 print("DEBUG005")
