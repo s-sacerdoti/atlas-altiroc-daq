@@ -214,7 +214,7 @@ top.start(initRead=True)
 
 # Load the default YAML file
 print('Loading Configuration File...')
-top.ReadConfig(arg = Configuration_LOAD_file)
+top.LoadConfig(arg = Configuration_LOAD_file)
 top.Asic.DoutDebug.ForwardData.set(0x0)
 
 # Tap the streaming data interface (same interface that writes to file)

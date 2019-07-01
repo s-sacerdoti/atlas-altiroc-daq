@@ -53,7 +53,7 @@ pyrogue.streamTap(top.dataStream, dataStream)
 top.start(initRead=True)
 
 # Load the default YAML file
-top.ReadConfig(arg='config/defaults.yml')
+top.LoadConfig(arg='config/defaults.yml')
 
 # Open a file to dump the streaming data
 top.dataWriter._writer.open('test.dat')
