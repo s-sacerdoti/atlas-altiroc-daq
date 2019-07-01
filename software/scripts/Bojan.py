@@ -12,7 +12,8 @@
 ##############################################################################
 # Script Settings
 
-Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
+#Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
+Configuration_LOAD_file = 'config/config_irrad_B1.yml' # <= Path to the Configuration File to be Loaded
 
 pixel_number = 3 # <= Pixel to be Tested
 
@@ -195,12 +196,51 @@ parser = argparse.ArgumentParser()
 argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
 
 # Add arguments
+#parser.add_argument(
+#    "--ip", 
+#    type     = str,
+#    required = True,
+#    help     = "IP address",
+#)  
+
 parser.add_argument(
     "--ip", 
-    type     = str,
+    nargs    ='+',
     required = True,
-    help     = "IP address",
+    help     = "List of IP addresses",
 )  
+
+parser.add_argument(
+    "--pollEn", 
+    type     = argBool,
+    required = False,
+    default  = True,
+    help     = "Enable auto-polling",
+) 
+
+parser.add_argument(
+    "--initRead", 
+    type     = argBool,
+    required = False,
+    default  = True,
+    help     = "Enable read all variables at start",
+)  
+
+parser.add_argument(
+    "--printEvents", 
+    type     = argBool,
+    required = False,
+    default  = False,
+    help     = "prints the stream data event frames",
+)  
+
+parser.add_argument(
+    "--cfg",
+    type = str,
+    required = False,
+    default  = "config/default.yml",
+    help = "config file",
+)
 
 # Get the arguments
 args = parser.parse_args()
@@ -208,29 +248,38 @@ args = parser.parse_args()
 #################################################################
 # Setup root class
 #top = feb.Top(hwType='eth',ip= args.ip)    
-top = feb.Top(
-    ip          = args.ip,
-    pollEn      = False,
-    initRead    = False, 
-    configProm  = True
-)    
 #top = feb.Top(
-#    ip       = args.ip,
-#    pollEn   = args.pollEn,
-#    initRead = args.initRead,       
+#    ip          = args.ip,
+#    pollEn      = False,
+#    initRead    = False, 
+#    configProm  = True
 #)    
+top = feb.Top(
+    ip       = args.ip,
+    pollEn   = args.pollEn,
+    initRead = args.initRead,       
+)    
+print("DEBUG001")
 
 # Start the system
-top.start(initRead=True)
+#top.start(initRead=True)
+print("DEBUG002")
 
 # Load the default YAML file
 print('Loading Configuration File...')
-top.ReadConfig(arg = Configuration_LOAD_file)
+#top.ReadConfig(arg = Configuration_LOAD_file)
+top.LoadConfig(arg=Configuration_LOAD_file)
+print("DEBUG003")
 top.Asic.DoutDebug.ForwardData.set(0x0)
+print("DEBUG004")
+
+print("DEBUG005")
 
 # Tap the streaming data interface (same interface that writes to file)
 dataStream = MyEventReader()    
+print("DEBUG006")
 pyrogue.streamTap(top.dataStream, dataStream) 
+print("DEBUG007")
 #################################################################
 
 #################################################################

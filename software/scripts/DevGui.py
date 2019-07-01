@@ -62,6 +62,9 @@ args = parser.parse_args()
 #################################################################
 
 # Setup root class
+print(args.ip)
+print(args.pollEn)
+print(args.initRead)
 top = feb.Top(
     ip       = args.ip,
     pollEn   = args.pollEn,
