@@ -58,6 +58,23 @@ def parse_arguments():
     return args
 #################################################################
 def setupRogue(argip,configFile):
+    
+    return top
+
+#################################################################
+def fixedTOAhistogram(argip, configFile, pixel_number,
+        Qinj, #Pulser Decimal code with added resistance: 3 = 2.66,6 = 5.24, 12 =10.32 fC, 24=20.08 fC  ##
+        DACvalue, DelayValue, outFile, datDirectory):
+
+    NofIterations = 2000  # <= Number of TOA measurements
+    probePA = False
+
+    LSBest = 28.64 #ch4
+    if pixel_number == 9:
+        LSBest = 30.4
+    elif pixel_number == 14:
+        LSBest = 31.28 #ps
+    
     # Setup root class
     top = feb.Top(ip= argip)    # Assuming only 1 FPGA
 
@@ -71,25 +88,7 @@ def setupRogue(argip,configFile):
     # Tap the streaming data interface (same interface that writes to file)
     dataStream = feb.MyEventReader()    
     pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
-    
-    return top
-
-#################################################################
-def fixedTOAhistogram(top,argip, configFile, pixel_number,
-        Qinj, #Pulser Decimal code with added resistance: 3 = 2.66,6 = 5.24, 12 =10.32 fC, 24=20.08 fC  ##
-        DACvalue, DelayValue, outFile, datDirectory):
-
-    NofIterations = 2000  # <= Number of TOA measurements
-    probePA = False
-
-    LSBest = 28.64 #ch4
-    if pixel_number == 9:
-        LSBest = 30.4
-    elif pixel_number == 14:
-        LSBest = 31.28 #ps
-    
-    if top == None:
-        top = setupRogue(argip,configFile)
+    #top = setupRogue(argip,configFile)
 
     print(top)
 
@@ -321,5 +320,5 @@ def fixedTOAhistogram(top,argip, configFile, pixel_number,
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
-    fixedTOAhistogram(None,args.ip,args.cfg,args.ch,args.Q,args.DAC,args.delay,args.out,args.dat)
+    fixedTOAhistogram(args.ip,args.cfg,args.ch,args.Q,args.DAC,args.delay,args.out,args.dat)
 
