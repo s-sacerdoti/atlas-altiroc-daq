@@ -12,9 +12,6 @@
 ##############################################################################
 # Script Settings
 
-#Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
-Configuration_LOAD_file = 'config/config_irrad_B1.yml' # <= Path to the Configuration File to be Loaded
-
 pixel_number = 3 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
@@ -238,7 +235,7 @@ parser.add_argument(
     "--cfg",
     type = str,
     required = False,
-    default  = "config/default.yml",
+    default  = "config/testBojan11.yml",
     help = "config file",
 )
 
@@ -268,7 +265,8 @@ print("DEBUG002")
 # Load the default YAML file
 print('Loading Configuration File...')
 #top.ReadConfig(arg = Configuration_LOAD_file)
-top.LoadConfig(arg=Configuration_LOAD_file)
+top.LoadConfig(arg=args.cfg)
+exit(0)
 print("DEBUG003")
 top.Asic.DoutDebug.ForwardData.set(0x0)
 print("DEBUG004")
