@@ -51,6 +51,14 @@ class MyAxiVersion(axi.AxiVersion):
             dependencies = [self.variables["MacAddress"]],
         ))          
 
+        self.add(pr.RemoteVariable(   
+            name         = "Efuse",
+            offset       = 0x408,
+            bitSize      = 32,
+            mode         = "RO",
+            hidden       = True,
+        ))
+
 class Fpga(pr.Device):
     def __init__(   
         self,       

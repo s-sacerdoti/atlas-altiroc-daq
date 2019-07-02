@@ -37,7 +37,7 @@ class Top(pr.Root):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000020
+        self.minFpgaVersion = 0x20000021
         
         # Cache the parameters
         self.pllConfig   = pllConfig
@@ -121,6 +121,13 @@ class Top(pr.Root):
                         Fpga[{i}].AxiVersion.FpgaVersion = {fwVersion:#04x} < {self.minFpgaVersion:#04x}
                         Please update Fpga[{i}] at IP={self.ip[i]} firmware using software/scripts/ReprogramFpga.py
                         """
+                    click.secho(errMsg, bg='red')
+                    raise ValueError(errMsg)
+                
+                # Check for an incompatible V1 FPGA eFUSE value
+                if (self.Fpga[i].AxiVersion.Efuse.get() < 0x00004EA9):
+                    errMsg = 'incompatible Version1 FPGA board Detected'
+                    click.secho(errMsg, bg='red')
                     raise ValueError(errMsg)
                 
                 # Hide unused variables

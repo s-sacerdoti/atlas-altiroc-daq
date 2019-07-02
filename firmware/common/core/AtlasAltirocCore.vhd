@@ -323,6 +323,7 @@ begin
          bootMosi        => bootMosi,
          bootMiso        => bootMiso,
          -- Misc Ports
+         efuse           => efuse,
          localMac        => localMac,
          txLinkUp        => txLinkUp,
          pwrScl          => pwrScl,
