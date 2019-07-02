@@ -17,8 +17,8 @@ Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuratio
 pixel_number = 3 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
-#DelayRange = 251        # <= Range of Programmable Delay Sweep 
-DelayRange = 11        # <= Range of Programmable Delay Sweep 
+DelayRange = 251        # <= Range of Programmable Delay Sweep 
+#DelayRange = 11        # <= Range of Programmable Delay Sweep 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 
 DataAcqusitionTOT = 0   # <= Enable TOT Data Acquisition (Pulser Sweep)

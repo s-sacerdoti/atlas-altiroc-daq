@@ -92,25 +92,25 @@ class MyEventReader(rogue.interfaces.stream.Slave):
             eventFrame = ParseFrame(frame)
                 
             # Print out the event
-            print('payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
-                  ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
-                  ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
-                  ', StartPix {:#}'.format(eventFrame.StartPix) +
-                  ', StopPix {:#}'.format(eventFrame.StopPix) + 
-                  ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
-            print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
-            for i in range( len(eventFrame.pixValue) ):
-                pixel = eventFrame.pixValue[i]
-                pixIndex = pixel.PixelIndex
-                print('    {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}'.format(
-                    pixIndex,
-                    pixel.TotOverflow,
-                    pixel.TotData,
-                    pixel.ToaOverflow,
-                    pixel.ToaData,
-                    pixel.Hit,
-                    pixel.Sof)
-                )
+            #!#print('payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
+            #!#      ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
+            #!#      ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
+            #!#      ', StartPix {:#}'.format(eventFrame.StartPix) +
+            #!#      ', StopPix {:#}'.format(eventFrame.StopPix) + 
+            #!#      ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
+            #!#print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
+            #!#for i in range( len(eventFrame.pixValue) ):
+            #!#    pixel = eventFrame.pixValue[i]
+            #!#    pixIndex = pixel.PixelIndex
+            #!#    print('    {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}'.format(
+            #!#        pixIndex,
+            #!#        pixel.TotOverflow,
+            #!#        pixel.TotData,
+            #!#        pixel.ToaOverflow,
+            #!#        pixel.ToaData,
+            #!#        pixel.Hit,
+            #!#        pixel.Sof)
+            #!#    )
 
 #################################################################
 # Class for Reading the Data from File
@@ -136,13 +136,11 @@ class MyFileReader(rogue.interfaces.stream.Slave):
         # First it is good practice to hold a lock on the frame data.
         with frame.lock():
             eventFrame = ParseFrame(frame)
-            print( 'FILEREADER: ' + str(len(eventFrame.pixValue)) )
             for i in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[i]
 
                 #if (dat.Hit > 0) and (dat.ToaOverflow == 0): #FIXME: uncomment this after debugging
                 self.HitData.append(dat.ToaData)
-                print('    Appended! ' + self.HitData)
                 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
                     self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
