@@ -235,7 +235,7 @@ if nTOA_TOT_Processing == 0:
         dataReader = rogue.utilities.fileio.StreamReader()
         time.sleep(0.01)
         # Create the Event reader streaming interface
-        dataStream = LegacyMyFileReader()
+        dataStream = feb.LegacyMyFileReader()
         time.sleep(0.01)
         # Connect the file reader to the event reader
         pr.streamConnect(dataReader, dataStream) 
@@ -284,7 +284,7 @@ if nTOA_TOT_Processing == 1 and TOT_f_Calibration_En == 1:
     dataReader = rogue.utilities.fileio.StreamReader()
     time.sleep(0.01)
     # Create the Event reader streaming interface
-    dataStream = MyFileReader()
+    dataStream = feb.MyFileReader()
     time.sleep(0.01)
     # Connect the file reader to the event reader
     pr.streamConnect(dataReader, dataStream) 
