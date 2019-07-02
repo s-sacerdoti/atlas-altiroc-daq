@@ -57,6 +57,7 @@ entity AtlasAltirocSys is
       bootMosi        : out   sl := '1';
       bootMiso        : in    sl;
       -- Misc Ports
+      efuse           : in    slv(31 downto 0);
       localMac        : in    slv(47 downto 0);
       pwrScl          : inout sl;
       pwrSda          : inout sl;
@@ -144,6 +145,7 @@ begin
 
    userValues(0) <= localMac(31 downto 0);
    userValues(1) <= x"0000" & localMac(47 downto 32);
+   userValues(2) <= endianSwap(efuse);
 
    --------------------------
    -- AXI-Lite: Crossbar Core
