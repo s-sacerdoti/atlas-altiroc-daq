@@ -17,7 +17,8 @@ Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuratio
 pixel_number = 3 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
-DelayRange = 251        # <= Range of Programmable Delay Sweep 
+#DelayRange = 251        # <= Range of Programmable Delay Sweep 
+DelayRange = 11        # <= Range of Programmable Delay Sweep 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 
 DataAcqusitionTOT = 0   # <= Enable TOT Data Acquisition (Pulser Sweep)
@@ -76,44 +77,8 @@ import matplotlib.pyplot as plt                                ##
                                                                ##
 #################################################################
 
-#################################################################
-# Set the argument parser
-parser = argparse.ArgumentParser()
 
-# Convert str to bool
-argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
-
-# Add arguments
-parser.add_argument(
-    "--ip", 
-    nargs    ='+',
-    required = True,
-    help     = "List of IP addresses",
-)  
-# Get the arguments
-args = parser.parse_args()
-
-#################################################################
-# Setup root class
-top = feb.Top(ip= args.ip)    
-
-# Load the default YAML file
-print('Loading Configuration File...')
-top.LoadConfig(arg='config/defaults.yml')
-
-# ... then load the User YAML file
-top.LoadConfig(arg = Configuration_LOAD_file)
-
-# Tap the streaming data interface (same interface that writes to file)
-dataStream = feb.LegacyMyEventReader()    
-pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
-
-########################
-# Custom Configuration # 
-########################
-
-if Disable_CustomConfig == 0:
-
+def set_fpga_for_custom_config(top):
     for i in range(25):
         top.Fpga[0].Asic.SlowControl.disable_pa[i].set(0x1)
         top.Fpga[0].Asic.SlowControl.ON_discri[i].set(0x0)
@@ -176,48 +141,77 @@ if Disable_CustomConfig == 0:
 
     top.Fpga[0].Asic.Readout.StartPix.set(pixel_number)
     top.Fpga[0].Asic.Readout.LastPix.set(pixel_number)
+#################################################################
 
-########################
-# Data Acquisition TOA #
-########################
-if DataAcqusitionTOA == 1:
-    for i in range(DelayRange):
 
+def acquire_data(range_low, range_high, top, asic_pulser, file_prefix, n_iterations): 
+    for i in range(range_low, range_high):
         print ('Delay =',i)
-        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(i)
+        asic_pulser.set(i)
 
-        try:
-            os.remove('TestData/TOA%d.dat' %i)
-        except OSError:
-            pass
-            
-        top.dataWriter._writer.open('TestData/TOA%d.dat' %i)
-        for j in range(NofIterationsTOA):
+        filename = 'TestData/'+file_prefix+'%d.dat' %i
+        try: os.remove(filename)
+        except OSError: pass
+        top.dataWriter._writer.open(filename)
+
+        for j in range(n_iterations):
+            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)
+            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
+            time.sleep(0.01)
             top.Fpga[0].Asic.CalPulse.Start()
             time.sleep(0.001)
 
         top.dataWriter._writer.close()
+#################################################################
 
-########################
-# Data Acquisition TOT #
-########################
+
+
+#################################################################
+# Set the argument parser
+parser = argparse.ArgumentParser()
+
+# Convert str to bool
+argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
+
+# Add arguments
+parser.add_argument(
+    "--ip", 
+    nargs    ='+',
+    required = True,
+    help     = "List of IP addresses",
+)  
+# Get the arguments
+args = parser.parse_args()
+
+#################################################################
+# Setup root class
+top = feb.Top(ip= args.ip)    
+
+# Load the default YAML file
+print('Loading Configuration File...')
+top.LoadConfig(arg='config/defaults.yml')
+
+# ... then load the User YAML file
+top.LoadConfig(arg = Configuration_LOAD_file)
+
+# Tap the streaming data interface (same interface that writes to file)
+dataStream = feb.MyEventReader()    
+pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
+
+# Custom Configuration
+if Disable_CustomConfig == 0:
+    set_fpga_for_custom_config(top)
+
+# Data Acquisition for TOA and TOT
+if DataAcqusitionTOA == 1:
+    acquire_data(0, DelayRange, top,
+            top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOA', NofIterationsTOA)
+
+top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValueTOT)
+
 if DataAcqusitionTOT == 1:
-    for i in range(PulserRangeL, PulserRangeH):
-
-        print ('Pulser =',i)
-        top.Fpga[0].Asic.SlowControl.dac_pulser.set(i)
-        
-        try:
-            os.remove('TestData/TOT%d.dat' %i)
-        except OSError:
-            pass
-
-        top.dataWriter._writer.open('TestData/TOT%d.dat' %i)
-        for j in range(NofIterationsTOT):
-            top.Fpga[0].Asic.CalPulse.Start()
-            time.sleep(0.001)
-
-        top.dataWriter._writer.close()
+    acquire_data(PulserRangeL, DelayRange, top, 
+            top.Fpga[0].Asic.SlowControl.dac_pulser, 'TOT', NofIterationsTOT)
 
 #######################
 # Data Processing TOA #
@@ -235,7 +229,7 @@ if nTOA_TOT_Processing == 0:
         dataReader = rogue.utilities.fileio.StreamReader()
         time.sleep(0.01)
         # Create the Event reader streaming interface
-        dataStream = feb.LegacyMyFileReader()
+        dataStream = feb.MyFileReader()
         time.sleep(0.01)
         # Connect the file reader to the event reader
         pr.streamConnect(dataReader, dataStream) 
@@ -260,6 +254,7 @@ if nTOA_TOT_Processing == 0:
 
         HitCnt.append(len(HitData))
         if len(HitData) > 0:
+            print(HitData)
             DataMean.append(np.mean(HitData, dtype=np.float64))
             DataStdev.append(math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12))
 
@@ -269,7 +264,7 @@ if nTOA_TOT_Processing == 0:
   
     # Average Std. Dev. Calculation; Points with no data (i.e. Std.Dev.= 0) are ignored
     index = np.where(np.sort(DataStdev))
-    MeanDataStdev = np.mean(np.sort(DataStdev)[index[0][0]:len(np.sort(DataStdev))])
+    MeanDataStdev = np.mean(np.sort(DataStdev)[index[0][0]:len(np.sort(DataStdev))]) #FIXME!!
 
     # LSB estimation based on "DelayStep" value
     index=np.where(DataMean)
@@ -343,7 +338,7 @@ if nTOA_TOT_Processing == 1:
         dataReader = rogue.utilities.fileio.StreamReader()
         time.sleep(0.01)
         # Create the Event reader streaming interface
-        dataStream = LegacyMyFileReader()
+        dataStream = MyFileReader()
         time.sleep(0.01)
         # Connect the file reader to the event reader
         pr.streamConnect(dataReader, dataStream) 
