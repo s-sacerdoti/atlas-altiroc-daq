@@ -193,6 +193,9 @@ if DataAcqusitionTOA == 1:
             
         top.dataWriter._writer.open('TestData/TOA%d.dat' %i)
         for j in range(NofIterationsTOA):
+            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)
+            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
+            time.sleep(0.01)
             top.Fpga[0].Asic.CalPulse.Start()
             time.sleep(0.001)
 
@@ -201,6 +204,9 @@ if DataAcqusitionTOA == 1:
 ########################
 # Data Acquisition TOT #
 ########################
+
+top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValueTOT) 
+
 if DataAcqusitionTOT == 1:
     for i in range(PulserRangeL, PulserRangeH):
 
@@ -214,6 +220,9 @@ if DataAcqusitionTOT == 1:
 
         top.dataWriter._writer.open('TestData/TOT%d.dat' %i)
         for j in range(NofIterationsTOT):
+            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)
+            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
+            time.sleep(0.01)        
             top.Fpga[0].Asic.CalPulse.Start()
             time.sleep(0.001)
 
