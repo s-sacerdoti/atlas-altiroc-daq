@@ -142,7 +142,7 @@ class MyFileReader(rogue.interfaces.stream.Slave):
 
                 #if (dat.Hit > 0) and (dat.ToaOverflow == 0): #FIXME: uncomment this after debugging
                 self.HitData.append(dat.ToaData)
-                print(' Appended!')
+                print('    Appended! ' + self.HitData)
                 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
                     self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
