@@ -46,7 +46,7 @@ LSB_TOTc = 160
 nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
 
 HistDelayTOA1 = 100  # <= Delay Value for Histogram to be plotted in Plot (1,0)
-HistDelayTOA2 = 58   # <= Delay Value for Histogram to be plotted in Plot (1,1)
+HistDelayTOA2 = 200   # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistPulserTOT1 = 32  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
 HistPulserTOT2 = 25  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
 
@@ -168,6 +168,14 @@ def acquire_data(range_low, range_high, range_step, top, asic_pulser, file_prefi
         top.dataWriter._writer.close()
 #################################################################
 
+
+def get_sweep_index(sweep_value, sweep_low, sweep_high, sweep_step):
+    if sweep_value < sweep_low or sweep_high < sweep_value:
+        raise ValueError( 'Sweep value {} outside of sweep range [{}:{}]'.format(sweep_value, sweep_low, sweep_high) )
+    if sweep_value % sweep_step != 0:
+        raise ValueError( 'Sweep value {} is not a multiple of sweep step {}'.format(sweep_value, sweep_step) )
+    return int ( (sweep_value - sweep_low) / sweep_step )
+#################################################################
 
 
 #################################################################
@@ -447,6 +455,11 @@ if nTOA_TOT_Processing == 0:
 
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
 
+HistDelayTOA1_index  = get_sweep_index(HistDelayTOA1 , DelayRange_low, DelayRange_high, DelayRange_step)
+HistDelayTOA2_index  = get_sweep_index(HistDelayTOA2 , DelayRange_low, DelayRange_high, DelayRange_step)
+HistPulserTOT1_index = get_sweep_index(HistPulserTOT1, PulserRangeL, PulserRangeH, PulserRangeStep)
+HistPulserTOT2_index = get_sweep_index(HistPulserTOT2, PulserRangeL, PulserRangeH, PulserRangeStep)
+
 # LSBest = 1
 
 if nTOA_TOT_Processing == 0:
@@ -508,7 +521,7 @@ if nTOA_TOT_Processing == 0:
         ax3.set_title('TOA Measurment for Programmable Delay = %d' % HistDelayTOA1, fontsize = 11)
         ax3.set_xlabel('TOA Measurement [ps]', fontsize = 10)
         ax3.set_ylabel('N of Measrements', fontsize = 10)
-        ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMean[HistDelayTOA1]*LSBest, DataStdev[HistDelayTOA1]*LSBest, HitCnt[HistDelayTOA1])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+        ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMean[HistDelayTOA1_index]*LSBest, DataStdev[HistDelayTOA1_index]*LSBest, HitCnt[HistDelayTOA1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
 else:
     # Plot (1,0)
     #exec("print(HitDataTOT%d)" % HistPulserTOT1)
@@ -524,7 +537,7 @@ else:
             ax3.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT1, fontsize = 11)
             ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
             ax3.set_ylabel('N of Measrements', fontsize = 10)
-            ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT1-PulserRangeL], DataStdevTOT[HistPulserTOT1-PulserRangeL], ValidTOTCnt[HistPulserTOT1-PulserRangeL])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+            ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT1_index], DataStdevTOT[HistPulserTOT1_index], ValidTOTCnt[HistPulserTOT1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     else:
         if TOTf_hist == 1:
             exec("ax3.hist(HitDataTOTf%d, bins = np.arange(9), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistPulserTOT1)
@@ -532,7 +545,7 @@ else:
             ax3.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT1, fontsize = 11)
             ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
             ax3.set_ylabel('N of Measrements', fontsize = 10)
-            ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT1-PulserRangeL], DataStdevTOT[HistPulserTOT1-PulserRangeL], ValidTOTCnt[HistPulserTOT1-PulserRangeL])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+            ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT1_index], DataStdevTOT[HistPulserTOT1_index], ValidTOTCnt[HistPulserTOT1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
         else: 
             if TOTc_hist == 1:
                 exec("ax3.hist(HitDataTOTc%d, bins = np.arange(129), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistPulserTOT1)
@@ -540,7 +553,7 @@ else:
                 ax3.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT1, fontsize = 11)
                 ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
                 ax3.set_ylabel('N of Measrements', fontsize = 10)
-                ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT1-PulserRangeL], DataStdevTOT[HistPulserTOT1-PulserRangeL], ValidTOTCnt[HistPulserTOT1-PulserRangeL])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+                ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT1_index], DataStdevTOT[HistPulserTOT1_index], ValidTOTCnt[HistPulserTOT1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
 
 if nTOA_TOT_Processing == 0:
     # Plot (1,1)
@@ -552,7 +565,7 @@ if nTOA_TOT_Processing == 0:
             ax4.set_title('TOA Measurment for Programmable Delay = %d' % HistDelayTOA2, fontsize = 11)
             ax4.set_xlabel('TOA Measurement [ps]', fontsize = 10)
             ax4.set_ylabel('N of Measrements', fontsize = 10)
-            ax4.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMean[HistDelayTOA2]*LSBest, DataStdev[HistDelayTOA2]*LSBest, HitCnt[HistDelayTOA2])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+            ax4.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMean[HistDelayTOA2_index]*LSBest, DataStdev[HistDelayTOA2_index]*LSBest, HitCnt[HistDelayTOA2_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     else:
         ax4.plot(Delay, HitCnt)
         ax4.grid(True)
@@ -571,7 +584,7 @@ else:
             ax4.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT2, fontsize = 11)
             ax4.set_xlabel('TOT Measurement [ps]', fontsize = 10)
             ax4.set_ylabel('N of Measrements', fontsize = 10)
-            ax4.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT2-PulserRangeL], DataStdevTOT[HistPulserTOT2-PulserRangeL], ValidTOTCnt[HistPulserTOT2-PulserRangeL])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+            ax4.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT2_index], DataStdevTOT[HistPulserTOT2_index], ValidTOTCnt[HistPulserTOT2_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     else:
         ax4.hist(HitDataTOTf_cumulative, bins = np.arange(9), edgecolor = 'k', color = 'royalblue')
         ax4.set_xlim(xmin = -1, xmax = 8)
