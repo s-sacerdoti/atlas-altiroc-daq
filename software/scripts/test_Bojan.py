@@ -17,13 +17,17 @@ Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuratio
 pixel_number = 3 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
-DelayRange = 251        # <= Range of Programmable Delay Sweep 
+#DelayRange = 251        # <= Range of Programmable Delay Sweep 
+DelayRange_low = 0     # <= low end of Programmable Delay Sweep
+DelayRange_high = 4095     # <= high end of Programmable Delay Sweep
+DelayRange_step = 100     # <= step size Programmable Delay Sweep
 #DelayRange = 11        # <= Range of Programmable Delay Sweep 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 
 DataAcqusitionTOT = 0   # <= Enable TOT Data Acquisition (Pulser Sweep)
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
 PulserRangeH = 64       # <= High Value of Pulser Sweep Range
+PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
 NofIterationsTOT = 100   # <= Number of Iterations for each Pulser Value
 DelayValueTOT = 100       # <= Value of Programmable Delay for TOT Pulser Sweep
 
@@ -144,9 +148,9 @@ def set_fpga_for_custom_config(top):
 #################################################################
 
 
-def acquire_data(range_low, range_high, top, asic_pulser, file_prefix, n_iterations): 
-    for i in range(range_low, range_high):
-        print ('Delay =',i)
+def acquire_data(range_low, range_high, range_step, top, asic_pulser, file_prefix, n_iterations): 
+    for i in range(range_low, range_high, range_step):
+        print (file_prefix+'step = %d',i)
         asic_pulser.set(i)
 
         filename = 'TestData/'+file_prefix+'%d.dat' %i
@@ -204,13 +208,13 @@ if Disable_CustomConfig == 0:
 
 # Data Acquisition for TOA and TOT
 if DataAcqusitionTOA == 1:
-    acquire_data(0, DelayRange, top,
+    acquire_data(DelayRange_low, DelayRange_high, DelayRange_step, top,
             top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOA', NofIterationsTOA)
 
 top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValueTOT)
 
 if DataAcqusitionTOT == 1:
-    acquire_data(PulserRangeL, DelayRange, top, 
+    acquire_data(PulserRangeL, PulserRangeH, PulserStep, top, 
             top.Fpga[0].Asic.SlowControl.dac_pulser, 'TOT', NofIterationsTOT)
 
 #######################
@@ -224,7 +228,7 @@ if nTOA_TOT_Processing == 0:
     DataMean = []
     DataStdev = []
 
-    for i in range(DelayRange):
+    for delay_value in range(DelayRange_low, DelayRange_high, DelayRange_step):
         # Create the File reader streaming interface
         dataReader = rogue.utilities.fileio.StreamReader()
         time.sleep(0.01)
@@ -235,22 +239,22 @@ if nTOA_TOT_Processing == 0:
         pr.streamConnect(dataReader, dataStream) 
         time.sleep(0.01)
         # Open the file
-        dataReader.open('TestData/TOA%d.dat' %i)
+        dataReader.open('TestData/TOA%d.dat' %delay_value)
         time.sleep(0.01)
         # Close file once everything processed
         dataReader.closeWait()
         time.sleep(0.01)
     
         try:
-            print('Processing Data for Delay = %d...' % i)
+            print('Processing Data for Delay = %d...' % delay_value)
         except OSError:
             pass  
 
         HitData = dataStream.HitData
 
-        exec("%s = %r" % ('HitData%d' %i, HitData))
+        exec("%s = %r" % ('HitData%d' %delay_value, HitData))
 
-        Delay.append(i)
+        Delay.append(delay_value)
 
         HitCnt.append(len(HitData))
         if len(HitData) > 0:
@@ -415,9 +419,9 @@ if nTOA_TOT_Processing == 1:
 #################################################################
 # Print Data
 if nTOA_TOT_Processing == 0:
-    for i in range(DelayRange):
+    for delay_index, delay_value in enumerate(Delay):
         try:
-            print('Delay = %d, HitCnt = %d, DataMean = %f LSB, DataStDev = %f LSB' % (i, HitCnt[i], DataMean[i], DataStdev[i]))
+            print('Delay = %d, HitCnt = %d, DataMean = %f LSB, DataStDev = %f LSB' % (delay_value, HitCnt[delay_index], DataMean[delay_index], DataStdev[delay_index]))
         except OSError:
             pass   
     try:
@@ -425,9 +429,9 @@ if nTOA_TOT_Processing == 0:
         print('Mean Std Dev = %f LSB' % MeanDataStdev)
     except OSError:
         pass
-    for i in range(DelayRange):
+    for delay_index, delay_value in enumerate(Delay):
         try:
-            print('Delay = %d, HitCnt = %d, DataMean = %f ps, DataStDev = %f ps' % (i, HitCnt[i], DataMean[i]*LSBest, DataStdev[i]*LSBest))
+            print('Delay = %d, HitCnt = %d, DataMean = %f ps, DataStDev = %f ps' % (delay_value, HitCnt[delay_index], DataMean[delay_index]*LSBest, DataStdev[delay_index]*LSBest))
         except OSError:
             pass
     try:
