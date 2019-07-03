@@ -18,15 +18,17 @@ Top:
       CalPulse:
         CalPulseDelay: 0xFFFF
         CalPulseCount: 0x0
+        CalPulseWidth: 0x1
         Continuous: 0x0
       Trig:
         TrigTypeSel: Slave
-        StrobeAlign: 0x0        
+        StrobeAlign: 0x3 
         EnCalPulseTrig: 0x1      
         EnBncExtTrig: 0x0      
         EnPcieLocalTrig: 0x0      
         EnLemoRemoteTrig: 0x0      
         MasterModeSel: AND      
+        ReadoutStartDly: 128 # Units of 6.4ns
         TrigSizeBeforePause: 0x0      
         DeadtimeDuration: 0x0      
       SlowControl:
@@ -105,7 +107,7 @@ Top:
       Readout:
         StartPix: 0
         LastPix: 24
-        PixReadIteration: 0
+        PixReadIteration: 399
         ProbeToRstDly: 0x0
         RstPulseWidth: 0xf
         RstToReadDly: 0xf
@@ -116,4 +118,5 @@ Top:
         SendData: 0x1
         EnProbeWrite: 0x1
         PolarityDout: 0x1
+        PolarityRck: 0x0
         TxDataBitReverse: 0x0

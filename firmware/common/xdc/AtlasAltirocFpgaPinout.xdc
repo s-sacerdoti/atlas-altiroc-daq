@@ -153,5 +153,7 @@ set_property CFGBVS VCCO         [current_design]
 set_property CONFIG_VOLTAGE 3.3  [current_design]
 
 set_property BITSTREAM.CONFIG.CONFIGRATE 50 [current_design] 
+# set_property BITSTREAM.CONFIG.CONFIGRATE 22 [current_design] 
+# set_property BITSTREAM.CONFIG.CONFIGRATE 12 [current_design] 
 
 ##############################################################################

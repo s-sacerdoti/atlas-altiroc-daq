@@ -100,14 +100,16 @@ begin
       rstbTdc        <= r.rstbTdc;
       rstbDll        <= r.rstbDll;
       pllClkSel      <= r.pllClkSel;
-      dlyCal         <= r.dlyCal;
 
-      -- -- Update the upper 2-bit to make the output linear w.r.t. the cascading delay modules
-      -- for i in 1 downto 0 loop
-         -- dlyCal(i)(9 downto 0) <= r.dlyCal(i)(9 downto 0);
-         -- dlyCal(i)(10)         <= r.dlyCal(i)(10) or r.dlyCal(i)(11);
-         -- dlyCal(i)(11)         <= r.dlyCal(i)(11);
-      -- end loop;
+      -- Update the upper 2-bit to make the output linear w.r.t. the cascading delay modules
+      -- Output will be linear [0x000:0xBFF] then saturate [0xC00:0xFFF]
+      for i in 1 downto 0 loop
+         for j in 9 downto 0 loop
+            dlyCal(i)(j) <= r.dlyCal(i)(j) or (r.dlyCal(i)(10) and r.dlyCal(i)(11));
+         end loop;
+         dlyCal(i)(10) <= r.dlyCal(i)(10) or r.dlyCal(i)(11);
+         dlyCal(i)(11) <= r.dlyCal(i)(11);
+      end loop;
 
       -- Reset
       if (axilRst = '1') then

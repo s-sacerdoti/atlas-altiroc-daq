@@ -162,14 +162,27 @@ class AltirocReadout(pr.Device):
             mode         = 'RW',
         ))   
 
-        # self.add(pr.RemoteVariable(
-            # name         = 'BitSize', 
-            # description  = 'Number of RCK cycles per serialized word (zero inclusive)',
-            # offset       = 0x28,
-            # bitSize      = 8, 
+        self.add(pr.RemoteVariable(
+            name         = 'BitSize', 
+            description  = 'Number of RCK cycles per serialized word (zero inclusive) for not the first word',
+            offset       = 0x28,
+            bitSize      = 8, 
+            bitOffset    = 0, 
             # mode         = 'RO',
-            # disp         = '{:d}',            
-        # ))    
+            mode         = 'RW',
+            disp         = '{:d}',            
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'BitSizeFirst', 
+            description  = 'Number of RCK cycles per serialized word (zero inclusive) for the first word',
+            offset       = 0x28,
+            bitSize      = 8, 
+            bitOffset    = 8, 
+            mode         = 'RW',
+            # mode         = 'RO',
+            disp         = '{:d}',            
+        ))          
 
         self.add(pr.RemoteVariable(
             name         = 'TestPattern', 
@@ -213,6 +226,15 @@ class AltirocReadout(pr.Device):
             bitSize      = 1, 
             mode         = 'RW',
         )) 
+        
+        self.add(pr.RemoteVariable(
+            name         = 'PolarityRck', 
+            description  = '1: Inverts RCK polarity, 0: non-inverted RCK polarity',
+            offset       = 0x3C,
+            bitSize      = 1, 
+            bitOffset    = 1, 
+            mode         = 'RW',
+        ))         
 
         self.add(pr.RemoteVariable(
             name         = 'TxDataBitReverse', 

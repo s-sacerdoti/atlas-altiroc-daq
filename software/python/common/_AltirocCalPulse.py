@@ -40,7 +40,25 @@ class AltirocCalPulse(pr.Device):
             disp         = '{:d}',
             dependencies = [self.CalPulseDelay],
             linkedGet    = lambda: (self.CalPulseDelay.value()+1)*25,
-        ))         
+        ))    
+
+        self.add(pr.RemoteVariable(
+            name         = 'CalPulseWidth', 
+            description  = 'cal pulse width (includes zero)',
+            units        = '1/160MHz',
+            offset       = 0x0,
+            bitSize      = 16, 
+            bitOffset    = 16, 
+            mode         = 'RW',
+        ))  
+        
+        self.add(pr.LinkVariable(
+            name         = 'CalPulseWidthNs', 
+            units        = 'ns',            
+            disp         = '{:1.2f}',
+            dependencies = [self.CalPulseWidth],
+            linkedGet    = lambda: self.CalPulseWidth.value()*6.25,
+        ))            
 
         self.add(pr.RemoteVariable(
             name         = 'CalPulseCount', 

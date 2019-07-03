@@ -51,6 +51,7 @@ architecture rtl of AtlasAltirocAsicCalPulse is
       start          : sl;
       continuous     : sl;
       pulseDelay     : slv(15 downto 0);
+      pulseWidth     : slv(15 downto 0);
       pulseCount     : slv(15 downto 0);
       delaycnt       : slv(15 downto 0);
       pulseCnt       : slv(15 downto 0);
@@ -64,6 +65,7 @@ architecture rtl of AtlasAltirocAsicCalPulse is
       start          => '0',
       continuous     => '0',
       pulseDelay     => (others => '0'),
+      pulseWidth     => (others => '0'),
       pulseCount     => (others => '0'),
       delaycnt       => (others => '0'),
       pulseCnt       => (others => '0'),
@@ -74,7 +76,8 @@ architecture rtl of AtlasAltirocAsicCalPulse is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal pulse : sl;
+   signal pulse        : sl;
+   signal pulseOneShot : sl;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
@@ -97,6 +100,7 @@ begin
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       axiSlaveRegister (axilEp, x"0", 0, v.pulseDelay);
+      axiSlaveRegister (axilEp, x"0", 16, v.pulseWidth);
       axiSlaveRegister (axilEp, x"4", 0, v.pulseCount);
       axiSlaveRegister (axilEp, x"8", 0, v.start);
       axiSlaveRegister (axilEp, x"C", 0, v.continuous);
@@ -177,6 +181,7 @@ begin
          v            := REG_INIT_C;
          -- Don't touch register configurations
          v.pulseDelay := r.pulseDelay;
+         v.pulseWidth := r.pulseWidth;
          v.pulseCount := r.pulseCount;
          v.continuous := r.continuous;
       end if;
@@ -193,13 +198,23 @@ begin
       end if;
    end process seq;
 
+   U_oneShot : entity work.AtlasAltirocAsicPulseOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk        => clk160MHz,
+         rst        => rst160MHz,
+         pulseWidth => r.pulseWidth,
+         pulseIn    => r.pulse,
+         pulseOut   => pulseOneShot);
+
    U_cmdPulse : entity work.OutputBufferReg
       generic map (
          TPD_G       => TPD_G,
          DIFF_PAIR_G => true)
       port map (
          C  => clk160MHz,
-         I  => r.pulse,
+         I  => pulseOneShot,
          O  => calPulseP,
          OB => calPulseN);
 
