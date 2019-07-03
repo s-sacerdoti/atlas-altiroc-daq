@@ -19,8 +19,8 @@ pixel_number = 3 # <= Pixel to be Tested
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 #DelayRange = 251        # <= Range of Programmable Delay Sweep 
 DelayRange_low = 0     # <= low end of Programmable Delay Sweep
-DelayRange_high = 4095     # <= high end of Programmable Delay Sweep
-DelayRange_step = 100     # <= step size Programmable Delay Sweep
+DelayRange_high = 251     # <= high end of Programmable Delay Sweep
+DelayRange_step = 1     # <= step size Programmable Delay Sweep
 #DelayRange = 11        # <= Range of Programmable Delay Sweep 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 
@@ -150,7 +150,7 @@ def set_fpga_for_custom_config(top):
 
 def acquire_data(range_low, range_high, range_step, top, asic_pulser, file_prefix, n_iterations): 
     for i in range(range_low, range_high, range_step):
-        print (file_prefix+'step = %d',i)
+        print(file_prefix+'step = %d' %i)
         asic_pulser.set(i)
 
         filename = 'TestData/'+file_prefix+'%d.dat' %i

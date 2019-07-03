@@ -92,17 +92,17 @@ class MyEventReader(rogue.interfaces.stream.Slave):
             eventFrame = ParseFrame(frame)
                 
             # Print out the event
-            if not (dat.ToaOverflow == 1 and dat.ToaData != 0x7f):
-                print('payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
-                      ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
-                      ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
-                      ', StartPix {:#}'.format(eventFrame.StartPix) +
-                      ', StopPix {:#}'.format(eventFrame.StopPix) + 
-                      ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
-                print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
-                for i in range( len(eventFrame.pixValue) ):
-                    pixel = eventFrame.pixValue[i]
-                    pixIndex = pixel.PixelIndex
+            print('payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
+                  ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
+                  ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
+                  ', StartPix {:#}'.format(eventFrame.StartPix) +
+                  ', StopPix {:#}'.format(eventFrame.StopPix) + 
+                  ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
+            print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
+            for i in range( len(eventFrame.pixValue) ):
+                pixel = eventFrame.pixValue[i]
+                pixIndex = pixel.PixelIndex
+                if not (pixel.ToaOverflow == 1 and pixel.ToaData != 0x7f):
                     print('    {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}'.format(
                         pixIndex,
                         pixel.TotOverflow,
