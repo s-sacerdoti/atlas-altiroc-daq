@@ -72,7 +72,7 @@ class AltirocGpio(pr.Device):
         
         self.add(pr.RemoteVariable(
             name         = 'DlyCalPulseSet', 
-            description  = 'Sets the delay of CMD_PULSE_P pulse and EXT_TRIG rising edge delay',
+            description  = 'Sets the delay of CMD_PULSE_P pulse and EXT_TRIG rising edge delay. Delay will be linear [0x000:0xBFF] then saturate to 0xBFF for [0xC00:0xFFF]',
             offset       = 0x14,
             bitSize      = 12, 
             mode         = 'RW',
@@ -81,7 +81,7 @@ class AltirocGpio(pr.Device):
         
         self.add(pr.RemoteVariable(
             name         = 'DlyCalPulseReset', 
-            description  = 'Sets the delay of EXT_TRIG falling edge delay',
+            description  = 'Sets the delay of EXT_TRIG falling edge delay. Delay will be linear [0x000:0xBFF] then saturate to 0xBFF for [0xC00:0xFFF]',
             offset       = 0x18,
             bitSize      = 12, 
             mode         = 'RW',
