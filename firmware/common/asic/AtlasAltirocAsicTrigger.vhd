@@ -55,6 +55,7 @@ architecture rtl of AtlasAltirocAsicTrigger is
 
    type StateType is (
       IDLE_S,
+      READ_DLY_S,
       READOUT_S,
       OSCOPE_DEADTIME_S);
 
@@ -62,12 +63,14 @@ architecture rtl of AtlasAltirocAsicTrigger is
       cntRst              : sl;
       trigMaster          : sl;
       trigMode            : sl;
+      readoutStartDly     : slv(15 downto 0);
+      readoutStartDlyCnt  : slv(15 downto 0);
       readoutStart        : sl;
       dropTrigCnt         : Slv32Array(3 downto 0);
       trigCnt             : Slv32Array(3 downto 0);
       strobeAlign         : slv(1 downto 0);
       enTrigMask          : slv(3 downto 0);
-      trigCounter           : slv(15 downto 0);
+      trigCounter         : slv(15 downto 0);
       trigSizeBeforePause : slv(15 downto 0);
       deadtimeCnt         : slv(7 downto 0);
       deadtimeDuration    : slv(7 downto 0);
@@ -82,12 +85,14 @@ architecture rtl of AtlasAltirocAsicTrigger is
       cntRst              => '0',
       trigMaster          => '0',
       trigMode            => '0',
+      readoutStartDly     => (others => '0'),
+      readoutStartDlyCnt  => (others => '0'),
       readoutStart        => '0',
       dropTrigCnt         => (others => (others => '0')),
       trigCnt             => (others => (others => '0')),
-      strobeAlign         => (others => '0'),
+      strobeAlign         => "11",
       enTrigMask          => (others => '0'),
-      trigCounter           => (others => '0'),
+      trigCounter         => (others => '0'),
       trigSizeBeforePause => (others => '0'),
       deadtimeCnt         => (others => '0'),
       deadtimeDuration    => (others => '0'),
@@ -310,7 +315,8 @@ begin
       axiSlaveRegister (axilEp, x"48", 0, v.enTrigMask);
       axiSlaveRegister (axilEp, x"4C", 0, v.trigMode);
 
-      axiSlaveRegister (axilEp, x"50", 0, v.trigSizeBeforePause);
+      axiSlaveRegister (axilEp, x"50", 0, v.readoutStartDly);
+      axiSlaveRegister (axilEp, x"50", 16, v.trigSizeBeforePause);
       axiSlaveRegister (axilEp, x"54", 0, v.deadtimeDuration);
       axiSlaveRegisterR(axilEp, x"58", 0, r.stateEncode);
       axiSlaveRegisterR(axilEp, x"5C", 0, r.trigCounter);
@@ -395,12 +401,23 @@ begin
             v.stateEncode := x"00";
             -- Check for trigger
             if (trigger = '1') then
-               -- Start the readout
-               v.readoutStart := '1';
                -- Increment the counter
-               v.trigCounter      := r.trigCounter + 1;
+               v.trigCounter := r.trigCounter + 1;
                -- Next state
-               v.state        := READOUT_S;
+               v.state       := READ_DLY_S;
+            end if;
+         ----------------------------------------------------------------------      
+         when READ_DLY_S =>
+            -- Increment the counter
+            v.readoutStartDlyCnt := r.readoutStartDlyCnt + 1;
+            -- Check the counter
+            if (r.readoutStartDlyCnt = r.readoutStartDly) then
+               -- Reset the counter
+               v.readoutStartDlyCnt := (others => '0');
+               -- Start the readout
+               v.readoutStart       := '1';
+               -- Next state
+               v.state              := READOUT_S;
             end if;
          ----------------------------------------------------------------------      
          when READOUT_S =>
@@ -418,7 +435,7 @@ begin
                   if (r.trigCounter = r.trigSizeBeforePause) then
 
                      -- Reset the counters
-                     v.trigCounter     := (others => '0');
+                     v.trigCounter := (others => '0');
                      v.deadtimeCnt := (others => '0');
                      v.timer       := 0;
 
@@ -482,6 +499,7 @@ begin
          v.strobeAlign         := r.strobeAlign;
          v.enTrigMask          := r.enTrigMask;
          v.trigMode            := r.trigMode;
+         v.readoutStartDly     := r.readoutStartDly;
          v.trigSizeBeforePause := r.trigSizeBeforePause;
          v.deadtimeDuration    := r.deadtimeDuration;
       end if;

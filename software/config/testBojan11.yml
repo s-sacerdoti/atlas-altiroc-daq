@@ -69,11 +69,12 @@ Top:
         cBit_s_TOT[2]: 0x0
         cBit_s_TOA[2]: 0x0
         cBit_f_TOA[2]: 0x0
+        ########################
         EN_ck_SRAM[3]: 0x1
-        ON_Ctest[3]: 0x0
-        disable_pa[3]: 0x1
-        bit_vth_cor[3]: 0x8
-        ON_discri[3]: 0x0
+        ON_Ctest[3]: 0x1
+        disable_pa[3]: 0x0
+        bit_vth_cor[3]: 0x40
+        ON_discri[3]: 0x1
         EN_hyst[3]: 0x1
         EN_trig_ext[3]: 0x0
         cBit_f_TOT[3]: 0x0
@@ -81,6 +82,7 @@ Top:
         cBit_s_TOT[3]: 0x0
         cBit_s_TOA[3]: 0x0
         cBit_f_TOA[3]: 0x0
+        ########################
         EN_ck_SRAM[4]: 0x1
         ON_Ctest[4]: 0x1
         disable_pa[4]: 0x0
@@ -363,3 +365,22 @@ Top:
         En_40M: 0x1
         En_640M: 0x1
         rstL: 0x1
+      Probe:
+        en_probe_pa: 0x1
+        en_probe_dig: 0x1 # pix=3
+        pix[3]:
+          probe_pa: 0x1
+          probe_vthc: 0x0
+          probe_dig_out_disc: 0x1
+          probe_toa: 0x0
+          probe_tot: 0x0
+          totf: 0x0
+          tot_overflow: 0x0
+          toa_busy: 0x1
+          # toa_ready: 0x0 # TODO: review this variable
+          tot_busy: 0x0
+          tot_ready: 0x0
+          en_read: 0x1
+      Readout:
+        StartPix: 3
+        LastPix: 3

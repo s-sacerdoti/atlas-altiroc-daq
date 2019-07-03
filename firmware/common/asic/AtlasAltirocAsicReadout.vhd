@@ -76,6 +76,7 @@ architecture rtl of AtlasAltirocAsicReadout is
 
    type RegType is record
       cntRst             : sl;
+      invertRck          : sl;
       invertDout         : sl;
       txDataBitReverse   : sl;
       forceStart         : sl;
@@ -104,6 +105,7 @@ architecture rtl of AtlasAltirocAsicReadout is
       pixIndex           : slv(4 downto 0);
       bitCnt             : slv(7 downto 0);
       bitSize            : slv(7 downto 0);
+      bitSizeFirst       : slv(7 downto 0);
       txData             : slv(20 downto 0);
       txDataDebug        : slv(20 downto 0);
       restoreProbeConfig : sl;
@@ -114,6 +116,7 @@ architecture rtl of AtlasAltirocAsicReadout is
    end record RegType;
    constant REG_INIT_C : RegType := (
       cntRst             => '0',
+      invertRck          => '0',
       invertDout         => '0',
       txDataBitReverse   => '0',
       forceStart         => '0',
@@ -142,6 +145,7 @@ architecture rtl of AtlasAltirocAsicReadout is
       pixIndex           => toSlv(0, 5),
       bitCnt             => (others => '0'),
       bitSize            => toSlv(20, 8),
+      bitSizeFirst       => toSlv(20, 8),
       txData             => (others => '0'),
       txDataDebug        => (others => '0'),
       restoreProbeConfig => '0',
@@ -153,6 +157,7 @@ architecture rtl of AtlasAltirocAsicReadout is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal rdClk   : sl;
    signal dout    : sl;
    signal txSlave : AxiStreamSlaveType;
 
@@ -212,11 +217,13 @@ begin
       axiSlaveRegister (axilEp, x"20", 0, v.rckLowWidth);
       axiSlaveRegister (axilEp, x"24", 0, v.restoreProbeConfig);
       axiSlaveRegisterR(axilEp, x"28", 0, r.bitSize);
+      axiSlaveRegisterR(axilEp, x"28", 8, r.bitSizeFirst);
       axiSlaveRegister (axilEp, x"2C", 0, v.testPattern);
       axiSlaveRegister (axilEp, x"30", 0, v.sendData);
       axiSlaveRegister (axilEp, x"34", 0, v.enProbeWrite);
       axiSlaveRegisterR(axilEp, x"38", 0, r.txDataDebug);
       axiSlaveRegister (axilEp, x"3C", 0, v.invertDout);
+      axiSlaveRegister (axilEp, x"3C", 1, v.invertRck);
       axiSlaveRegister (axilEp, x"40", 0, v.txDataBitReverse);
 
       axiSlaveRegister (axilEp, x"F8", 0, v.forceStart);
@@ -417,7 +424,7 @@ begin
                end if;
 
                -- Check the counter
-               if (r.bitCnt = r.bitSize) then
+               if (r.rdCnt = 0 and r.bitCnt = r.bitSizeFirst) or (r.rdCnt /= 0 and r.bitCnt = r.bitSize) then
                   -- Reset the counter
                   v.bitCnt := (others => '0');
                   -- Check for bit reversal
@@ -438,10 +445,10 @@ begin
          when SEND_DATA_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
-            
+
                -- Reset the output data bus
                v.txMaster.tData := (others => '0');
-               
+
                -- Forward the data
                v.txMaster.tValid              := r.tValid;
                v.txMaster.tData(20 downto 0)  := r.txData;
@@ -503,6 +510,12 @@ begin
       probeValid     <= r.probeValid;
       probeIbData    <= r.probeIbData;
 
+      if (r.invertRck = '0') then
+         rdClk <= r.rdClk;
+      else
+         rdClk <= not(r.rdClk);
+      end if;
+
       -- Reset
       if (rst160MHz = '1') then
          v                    := REG_INIT_C;
@@ -517,10 +530,12 @@ begin
          v.rckLowWidth        := r.rckLowWidth;
          v.restoreProbeConfig := r.restoreProbeConfig;
          v.bitSize            := r.bitSize;
+         v.bitSizeFirst       := r.bitSizeFirst;
          v.testPattern        := r.testPattern;
          v.sendData           := r.sendData;
          v.enProbeWrite       := r.enProbeWrite;
          v.invertDout         := r.invertDout;
+         v.invertRck          := r.invertRck;
          v.txDataBitReverse   := r.txDataBitReverse;
       end if;
 
@@ -559,7 +574,7 @@ begin
          DIFF_PAIR_G => true)
       port map (
          C  => clk160MHz,
-         I  => r.rdClk,
+         I  => rdClk,
          O  => rdClkP,
          OB => rdClkN);
 

@@ -167,12 +167,30 @@ class AltirocTrig(pr.Device):
         )) 
 
         self.add(pr.RemoteVariable(
+            name         = 'ReadoutStartDly', 
+            description  = 'Delay between trigger and asserting RENBLE',
+            offset       = 0x50,
+            bitSize      = 16, 
+            bitOffset    = 0, 
+            mode         = 'RW',     
+        )) 
+
+        self.add(pr.LinkVariable(
+            name         = 'ReadoutStartDlyNs', 
+            units        = 'ns',
+            disp         = '{:1.2f}',
+            dependencies = [self.ReadoutStartDly],
+            linkedGet    = common.getNsValue,
+        ))  
+
+        self.add(pr.RemoteVariable(
             name         = 'TrigSizeBeforePause', 
             description  = 'Number of trigger event before pausing for oscilloscope dead time',
             offset       = 0x50,
             bitSize      = 16, 
+            bitOffset    = 16, 
             mode         = 'RW',     
-        ))  
+        ))         
 
         self.add(pr.RemoteVariable(
             name         = 'DeadtimeDuration', 

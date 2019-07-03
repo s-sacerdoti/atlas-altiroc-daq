@@ -12,6 +12,8 @@
 ##############################################################################
 # Script Settings
 
+asicVersion = 1 # <= Select either V1 or V2 of the ASIC
+
 Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
 
 pixel_number = 3 # <= Pixel to be Tested
@@ -193,11 +195,12 @@ if DataAcqusitionTOA == 1:
             
         top.dataWriter._writer.open('TestData/TOA%d.dat' %i)
         for j in range(NofIterationsTOA):
-            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)
-            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
-            time.sleep(0.01)
-            top.Fpga[0].Asic.CalPulse.Start()
-            time.sleep(0.001)
+            if (asicVersion == 1):
+                top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
+                time.sleep(0.001)            
+            else
+                top.Fpga[0].Asic.CalPulse.Start()
+                time.sleep(0.001)
 
         top.dataWriter._writer.close()
 
@@ -220,11 +223,12 @@ if DataAcqusitionTOT == 1:
 
         top.dataWriter._writer.open('TestData/TOT%d.dat' %i)
         for j in range(NofIterationsTOT):
-            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)
-            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
-            time.sleep(0.01)        
-            top.Fpga[0].Asic.CalPulse.Start()
-            time.sleep(0.001)
+            if (asicVersion == 1):
+                top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
+                time.sleep(0.001)            
+            else
+                top.Fpga[0].Asic.CalPulse.Start()
+                time.sleep(0.001)
 
         top.dataWriter._writer.close()
 

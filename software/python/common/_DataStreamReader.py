@@ -84,19 +84,22 @@ class ExampleEventReader(rogue.interfaces.stream.Slave):
                 eventFrame.pixValue[i] = ParseDataWord(wrdData[2+i])
                 
             # Print out the event
-            print('frame.payloadSize(Bytes)     {:#}'.format(size))
-            print('eventFrame.FormatVersion     {:#}'.format(eventFrame.FormatVersion))
-            print('eventFrame.PixReadIteration  {:#}'.format(eventFrame.PixReadIteration))
-            print('eventFrame.StartPix          {:#}'.format(eventFrame.StartPix))
-            print('eventFrame.StopPix           {:#}'.format(eventFrame.StopPix))
-            print('eventFrame.SeqCnt            {:#}'.format(eventFrame.SeqCnt))            
+            # print('frame.payloadSize(Bytes)     {:#}'.format(size))
+            # print('eventFrame.FormatVersion     {:#}'.format(eventFrame.FormatVersion))
+            # print('eventFrame.PixReadIteration  {:#}'.format(eventFrame.PixReadIteration))
+            # print('eventFrame.StartPix          {:#}'.format(eventFrame.StartPix))
+            # print('eventFrame.StopPix           {:#}'.format(eventFrame.StopPix))
+            # print('eventFrame.SeqCnt            {:#}'.format(eventFrame.SeqCnt))            
+            print('eventFrame.SeqCnt: {:#}'.format(eventFrame.SeqCnt))            
             for i in range(numPixValues):
-                print('eventFrame.pixValue[{:#}].TotOverflow {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].TotOverflow))
-                print('eventFrame.pixValue[{:#}].TotData     {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].TotData))
-                print('eventFrame.pixValue[{:#}].ToaOverflow {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].ToaOverflow))
-                print('eventFrame.pixValue[{:#}].ToaData     {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].ToaData))
-                print('eventFrame.pixValue[{:#}].Hit         {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].Hit))
-                print('eventFrame.pixValue[{:#}].Sof         {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].Sof))
+                if (eventFrame.pixValue[i].Hit == 1):
+                # if (True):
+                    print('eventFrame.pixValue[{:#}].TotOverflow {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].TotOverflow))
+                    print('eventFrame.pixValue[{:#}].TotData     {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].TotData))
+                    print('eventFrame.pixValue[{:#}].ToaOverflow {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].ToaOverflow))
+                    print('eventFrame.pixValue[{:#}].ToaData     {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].ToaData))
+                    print('eventFrame.pixValue[{:#}].Hit         {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].Hit))
+                    print('eventFrame.pixValue[{:#}].Sof         {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].Sof))
 
 #################################################################
 # Class for Reading the Data from File

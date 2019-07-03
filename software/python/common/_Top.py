@@ -37,7 +37,7 @@ class Top(pr.Root):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000024
+        self.minFpgaVersion = 0x20000026
         
         # Cache the parameters
         self.pllConfig   = pllConfig
@@ -130,25 +130,13 @@ class Top(pr.Root):
                     click.secho(errMsg, bg='red')
                     raise ValueError(errMsg)
                 
-                # Hide unused variables
-                self.Fpga[i].AxiVersion.UserReset.hidden = True
-                self.Fpga[i].AxiVersion.DeviceId.hidden  = True
-                
-                # Unhide the ASIC's enable that are dependent on Pll.Locked
-                self.Fpga[i].Asic.TdcClk.enable.hidden   = False
-                self.Fpga[i].Asic.CalPulse.enable.hidden = False
-                self.Fpga[i].Asic.Trig.enable.hidden     = False
-                self.Fpga[i].Asic.Probe.enable.hidden    = False
-                self.Fpga[i].Asic.Readout.enable.hidden  = False
-            
                 if (self.advanceUser):
                     # Prevent FEB from thermal shutdown until FPGA Tj = 100 degC (max. operating temp)  
-                    self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95) 
-        
-            # Loop through the devices
-            for i in range(self.numEthDev):        
+                    self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95)    
+         
                 # Load the PLL configurations
                 self.Fpga[i].Pll.CsvFilePath.set(self.pllConfig)
+                
                 # Check if not locked
                 if (not self.Fpga[i].Pll.Locked.get()):
                     self.Fpga[i].Pll.LoadCsvFile()
@@ -181,6 +169,28 @@ class Top(pr.Root):
                         ***************************************************\n\n"\
                         % i, bg='red',
                     )    
+        
+            # Loop through FPGA devices
+            for i in range(self.numEthDev):
+                
+                # Hide unused variables (clean up GUI display)
+                self.Fpga[i].AxiVersion.UserReset.hidden = True
+                self.Fpga[i].AxiVersion.DeviceId.hidden  = True
+                
+                # Unhide the ASIC's enable that are dependent on Pll.Locked
+                self.Fpga[i].Asic.TdcClk.enable.hidden   = False
+                self.Fpga[i].Asic.CalPulse.enable.hidden = False
+                self.Fpga[i].Asic.Trig.enable.hidden     = False
+                self.Fpga[i].Asic.Probe.enable.hidden    = False
+                self.Fpga[i].Asic.Readout.enable.hidden  = False
+            
+                # Reset the RAM and TDC
+                self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x0)
+                self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x0)
+                time.sleep(0.001)
+                self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x1)                
+                self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x1)
+               
         else:
             # Hide all the "enable" variables
             for enableList in self.find(typ=pr.EnableVariable):
