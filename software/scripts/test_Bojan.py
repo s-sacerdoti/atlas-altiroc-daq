@@ -14,7 +14,7 @@
 
 Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
 
-pixel_number = 3 # <= Pixel to be Tested
+pixel_number = 1 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 #DelayRange = 251        # <= Range of Programmable Delay Sweep 
@@ -272,7 +272,6 @@ if nTOA_TOT_Processing == 0:
 
         HitCnt.append(len(HitData))
         if len(HitData) > 0:
-            print(HitData)
             DataMean.append(np.mean(HitData, dtype=np.float64))
             DataStdev.append(math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12))
 
@@ -282,7 +281,7 @@ if nTOA_TOT_Processing == 0:
   
     # Average Std. Dev. Calculation; Points with no data (i.e. Std.Dev.= 0) are ignored
     index = np.where(np.sort(DataStdev))
-    MeanDataStdev = np.mean(np.sort(DataStdev)[index[0][0]:len(np.sort(DataStdev))]) #FIXME!!
+    MeanDataStdev = np.mean(np.sort(DataStdev)[index[0][0]:len(np.sort(DataStdev))])
 
     # LSB estimation based on "DelayStep" value
     index=np.where(DataMean)

@@ -92,17 +92,21 @@ class MyEventReader(rogue.interfaces.stream.Slave):
             eventFrame = ParseFrame(frame)
                 
             # Print out the event
-            print('payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
-                  ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
-                  ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
-                  ', StartPix {:#}'.format(eventFrame.StartPix) +
-                  ', StopPix {:#}'.format(eventFrame.StopPix) + 
-                  ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
-            print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
+            header_still_needs_to_be_printed = True
             for i in range( len(eventFrame.pixValue) ):
                 pixel = eventFrame.pixValue[i]
                 pixIndex = pixel.PixelIndex
-                if not (pixel.ToaOverflow == 1 and pixel.ToaData != 0x7f):
+                if pixel.ToaOverflow != 1: #make sure this pixel is worth printing
+                    if header_still_needs_to_be_printed: #print the header only once per pixel
+                        print('payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
+                              ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
+                              ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
+                              ', StartPix {:#}'.format(eventFrame.StartPix) +
+                              ', StopPix {:#}'.format(eventFrame.StopPix) + 
+                              ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
+                        print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
+                        header_still_needs_to_be_printed = False
+
                     print('    {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}'.format(
                         pixIndex,
                         pixel.TotOverflow,
@@ -140,8 +144,8 @@ class MyFileReader(rogue.interfaces.stream.Slave):
             for i in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[i]
 
-                #if (dat.Hit > 0) and (dat.ToaOverflow == 0): #FIXME: uncomment this after debugging
-                self.HitData.append(dat.ToaData)
+                if (dat.Hit > 0) and (dat.ToaOverflow == 0):
+                    self.HitData.append(dat.ToaData)
                 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
                     self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
