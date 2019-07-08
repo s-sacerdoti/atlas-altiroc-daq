@@ -61,7 +61,7 @@ def setupRogue(argip,configFile):
     
     # Load the default YAML file
     print('Loading Configuration File...')
-    top.ReadConfig(arg = configFile)
+    top.LoadConfig(arg = configFile)
     top.Asic.DoutDebug.ForwardData.set(0x0)
     
     # Tap the streaming data interface (same interface that writes to file)

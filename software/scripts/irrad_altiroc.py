@@ -44,7 +44,7 @@ def main():
 
   # Load the default YAML file
   print('Loading Configuration File...')
-  #top.ReadConfig(arg = configFile)
+  #top.LoadConfig(arg = configFile)
   #top.Asic.DoutDebug.ForwardData.set(0x0)
 
   ## Tap the streaming data interface (same interface that writes to file)
@@ -58,7 +58,7 @@ def main():
     ch9_scopeData = []
     ch14_scopeData = []
 
-    top.ReadConfig(arg = configFile)
+    top.LoadConfig(arg = configFile)
     top.Asic.DoutDebug.ForwardData.set(0x0)
 
     startTime=time.ctime()
