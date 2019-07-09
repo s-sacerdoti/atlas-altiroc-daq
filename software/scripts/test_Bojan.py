@@ -47,8 +47,8 @@ LSB_TOTc = 160
 
 nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
 
-HistDelayTOA1 = DelayRange_low  # <= Delay Value for Histogram to be plotted in Plot (1,0)
-HistDelayTOA2 = DelayRange_high-DelayRange_step   # <= Delay Value for Histogram to be plotted in Plot (1,1)
+HistDelayTOA1 = 2350  # <= Delay Value for Histogram to be plotted in Plot (1,0)
+HistDelayTOA2 = 2500 # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistPulserTOT1 = 32  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
 HistPulserTOT2 = 25  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
 
@@ -478,7 +478,7 @@ fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7
 # LSBest = 1
 
 if nTOA_TOT_Processing == 0:
-    # Plot (0,0)
+    # Plot (0,0) ; top left
     ax1.plot(Delay, np.multiply(DataMean,LSBest))
     ax1.grid(True)
     ax1.set_title('TOA Measurment VS Programmable Delay Value', fontsize = 11)
@@ -488,7 +488,7 @@ if nTOA_TOT_Processing == 0:
     ax1.set_xlim(xmin = np.min(Delay), xmax = np.max(Delay))
     ax1.set_ylim(ymin = 0, ymax = np.max(np.multiply(DataMean,LSBest))+100)
 else:
-    # Plot (0,0)
+    # Plot (0,0) ; top left
     ax1.plot(Pulser, DataMeanTOT)
     ax1.grid(True)
     ax1.set_title('TOT Measurment VS Injected Charge', fontsize = 11)
@@ -498,7 +498,7 @@ else:
     ax1.set_ylim(ymin = 0, ymax = np.max(DataMeanTOT)*1.1)
 
 if nTOA_TOT_Processing == 0:
-    # Plot (0,1)
+    # Plot (0,1) ; top right
     ax2.scatter(Delay, np.multiply(DataStdev,LSBest))
     ax2.grid(True)
     ax2.set_title('TOA Jitter VS Programmable Delay Value', fontsize = 11)
@@ -508,7 +508,7 @@ if nTOA_TOT_Processing == 0:
     ax2.set_xlim(xmin = np.min(Delay), xmax = np.max(Delay))
     ax2.set_ylim(ymin = 0, ymax = np.max(np.multiply(DataStdev,LSBest))+20)
 else:
-    # Plot (0,1)
+    # Plot (0,1) ; top right
     if PlotValidCnt == 0:
         ax2.scatter(Pulser, DataStdevTOT)
         ax2.grid(True)
@@ -528,11 +528,12 @@ else:
         ax2.set_ylim(ymin = 0, ymax = np.max(ValidTOTCnt)*1.1)
 
 if nTOA_TOT_Processing == 0:
-    # Plot (1,0)
+    # Plot (1,0) ; bottom left
     exec("DataL = len(HitData%d)" % HistDelayTOA1)
     if DataL:
-        exec("ax3.hist(np.multiply(HitData%d,LSBest), bins = np.multiply(Delay,LSBest), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
-        exec("ax3.set_xlim(xmin = np.min(np.multiply(HitData%d,LSBest))-4*LSBest, xmax = np.max(np.multiply(HitData%d,LSBest))+4*LSBest)" % (HistDelayTOA1, HistDelayTOA1))
+        #exec("ax3.hist(np.multiply(HitData%d,LSBest), bins = np.multiply(Delay,LSBest), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
+        exec("ax3.hist(np.multiply(HitData%d,LSBest), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
+        #exec("ax3.set_xlim(xmin = np.min(np.multiply(HitData%d,LSBest))-4*LSBest, xmax = np.max(np.multiply(HitData%d,LSBest))+4*LSBest)" % (HistDelayTOA1, HistDelayTOA1))
         ax3.set_title('TOA Measurment for Programmable Delay = %d' % HistDelayTOA1, fontsize = 11)
         ax3.set_xlabel('TOA Measurement [ps]', fontsize = 10)
         ax3.set_ylabel('N of Measrements', fontsize = 10)
@@ -575,8 +576,9 @@ if nTOA_TOT_Processing == 0:
     if PlotValidCnt == 0:
         exec("DataL = len(HitData%d)" % HistDelayTOA2)
         if DataL:
-            exec("ax4.hist(np.multiply(HitData%d,LSBest), bins = np.multiply(Delay,LSBest), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA2)
-            exec("ax4.set_xlim(xmin = np.min(np.multiply(HitData%d,LSBest))-10*LSBest, xmax = np.max(np.multiply(HitData%d,LSBest))+10*LSBest)" % (HistDelayTOA2, HistDelayTOA2))
+            #exec("ax4.hist(np.multiply(HitData%d,LSBest), bins = np.multiply(Delay,LSBest), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA2)
+            exec("ax4.hist(np.multiply(HitData%d,LSBest), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA2)
+            #exec("ax4.set_xlim(xmin = np.min(np.multiply(HitData%d,LSBest))-10*LSBest, xmax = np.max(np.multiply(HitData%d,LSBest))+10*LSBest)" % (HistDelayTOA2, HistDelayTOA2))
             ax4.set_title('TOA Measurment for Programmable Delay = %d' % HistDelayTOA2, fontsize = 11)
             ax4.set_xlabel('TOA Measurement [ps]', fontsize = 10)
             ax4.set_ylabel('N of Measrements', fontsize = 10)
