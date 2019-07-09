@@ -174,7 +174,7 @@ if Disable_CustomConfig == 0:
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(0x19f) #173 / 183
 
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(0x0)   # Rising edge of EXT_TRIG or CMD_PULSE delay
-    top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(0xfff) # Falling edge of EXT_TRIG (independent of CMD_PULSE)
+    top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0xfff) # Falling edge of EXT_TRIG (independent of CMD_PULSE)
 
     top.Fpga[0].Asic.Readout.StartPix.set(pixel_number)
     top.Fpga[0].Asic.Readout.LastPix.set(pixel_number)

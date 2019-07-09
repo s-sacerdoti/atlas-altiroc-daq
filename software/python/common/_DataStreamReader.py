@@ -90,10 +90,11 @@ class ExampleEventReader(rogue.interfaces.stream.Slave):
             # print('eventFrame.StartPix          {:#}'.format(eventFrame.StartPix))
             # print('eventFrame.StopPix           {:#}'.format(eventFrame.StopPix))
             # print('eventFrame.SeqCnt            {:#}'.format(eventFrame.SeqCnt))            
-            print('eventFrame.SeqCnt: {:#}'.format(eventFrame.SeqCnt))            
             for i in range(numPixValues):
                 if (eventFrame.pixValue[i].Hit == 1):
+                # if (eventFrame.pixValue[i].ToaOverflow != 1) and (eventFrame.pixValue[i].ToaData != 0x7f):
                 # if (True):
+                    print('eventFrame.SeqCnt: {:#}'.format(eventFrame.SeqCnt))            
                     print('eventFrame.pixValue[{:#}].TotOverflow {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].TotOverflow))
                     print('eventFrame.pixValue[{:#}].TotData     {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].TotData))
                     print('eventFrame.pixValue[{:#}].ToaOverflow {:#}'.format(eventFrame.pixValue[i].PixelIndex,eventFrame.pixValue[i].ToaOverflow))

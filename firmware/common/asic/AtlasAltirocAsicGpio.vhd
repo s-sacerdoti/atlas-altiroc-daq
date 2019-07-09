@@ -60,7 +60,7 @@ architecture mapping of AtlasAltirocAsicGpio is
       rstCounter     => '0',
       rstbTdc        => '1',
       rstbDll        => '1',
-      dlyCal         => (0 => (others => '0'), 1 => (others => '1')),
+      dlyCal         => (0 => (others => '0'), 1 => toSlv(2500,12)),
       pllClkSel      => (others => '0'),
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);

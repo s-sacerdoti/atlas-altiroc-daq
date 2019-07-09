@@ -87,12 +87,10 @@ class Altiroc(pr.Device):
             # Resets
             self.Gpio.RSTB_RAM.set(0x0)
             self.Gpio.RSTB_TDC.set(0x0)
-            time.sleep(0.001)
             
             # Clears
             self.Gpio.RSTB_RAM.set(0x1)                
-            self.Gpio.RSTB_TDC.set(0x1)        
-            time.sleep(0.001)
+            self.Gpio.RSTB_TDC.set(0x1) 
             
             # Start the Cal pulse
             self.CalPulse.Start()
