@@ -12,14 +12,16 @@
 ##############################################################################
 # Script Settings
 
+asicVersion = 1 # <= Select either V1 or V2 of the ASIC
+
 Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
 
 pixel_number = 3 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 #DelayRange = 251        # <= Range of Programmable Delay Sweep 
-DelayRange_low = 0     # <= low end of Programmable Delay Sweep
-DelayRange_high = 251     # <= high end of Programmable Delay Sweep
+DelayRange_low = 2290     # <= low end of Programmable Delay Sweep
+DelayRange_high = 2530     # <= high end of Programmable Delay Sweep
 DelayRange_step = 1     # <= step size Programmable Delay Sweep
 #DelayRange = 11        # <= Range of Programmable Delay Sweep 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
@@ -45,8 +47,8 @@ LSB_TOTc = 160
 
 nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
 
-HistDelayTOA1 = 100  # <= Delay Value for Histogram to be plotted in Plot (1,0)
-HistDelayTOA2 = 200   # <= Delay Value for Histogram to be plotted in Plot (1,1)
+HistDelayTOA1 = DelayRange_low  # <= Delay Value for Histogram to be plotted in Plot (1,0)
+HistDelayTOA2 = DelayRange_high-DelayRange_step   # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistPulserTOT1 = 32  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
 HistPulserTOT2 = 25  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
 
@@ -141,7 +143,7 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(0x19f) #173 / 183
 
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(0x0)   # Rising edge of EXT_TRIG or CMD_PULSE delay
-    top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(0xfff) # Falling edge of EXT_TRIG (independent of CMD_PULSE)
+    top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0xfff) # Falling edge of EXT_TRIG (independent of CMD_PULSE)
 
     top.Fpga[0].Asic.Readout.StartPix.set(pixel_number)
     top.Fpga[0].Asic.Readout.LastPix.set(pixel_number)
@@ -156,14 +158,16 @@ def acquire_data(range_low, range_high, range_step, top, asic_pulser, file_prefi
         filename = 'TestData/'+file_prefix+'%d.dat' %i
         try: os.remove(filename)
         except OSError: pass
+
         top.dataWriter._writer.open(filename)
 
         for j in range(n_iterations):
-            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)
-            top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
-            time.sleep(0.01)
-            top.Fpga[0].Asic.CalPulse.Start()
-            time.sleep(0.001)
+            if (asicVersion == 1):
+                top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
+                time.sleep(0.001)            
+            else:
+                top.Fpga[0].Asic.CalPulse.Start()
+                time.sleep(0.001)
 
         top.dataWriter._writer.close()
 #################################################################
