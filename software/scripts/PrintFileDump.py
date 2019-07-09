@@ -44,7 +44,7 @@ dataReader = rogue.utilities.fileio.StreamReader()
 unzip = rogue.utilities.StreamUnZip()
 
 # Create the Event reader streaming interface
-dataStream = feb.ExampleEventReader()
+dataStream = feb.MyEventReader()
 
 # Connect the file reader ---> unzip --> event reader
 pr.streamConnect(dataReader, unzip) 

@@ -62,6 +62,9 @@ args = parser.parse_args()
 #################################################################
 
 # Setup root class
+print(args.ip)
+print(args.pollEn)
+print(args.initRead)
 top = feb.Top(
     ip       = args.ip,
     pollEn   = args.pollEn,
@@ -70,7 +73,7 @@ top = feb.Top(
 
 if (args.printEvents):
     # Create the Event reader streaming interface
-    eventReader = feb.ExampleEventReader()
+    eventReader = feb.MyEventReader()
 
     # Connect the file reader to the event reader
     pr.streamConnect(top.dataStream[0], eventReader) 
