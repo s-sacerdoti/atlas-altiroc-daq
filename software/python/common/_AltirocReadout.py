@@ -43,14 +43,14 @@ class AltirocReadout(pr.Device):
             disp         = '{:d}',
         ))   
 
-        self.add(pr.RemoteVariable(
-            name         = 'PixReadIteration', 
-            description  = 'Sets the number of times that each pixel is readout (zero inclusive). Example: To readout all 400 samples in the ASIC buffer, set to PixReadIteration=399(0x18F)',
-            offset       = 0x08,
-            bitSize      = 9, 
-            mode         = 'RW',
-            disp         = '{:d}',
-        ))           
+        # self.add(pr.RemoteVariable(
+            # name         = 'PixReadIteration', 
+            # description  = 'Sets the number of times that each pixel is readout (zero inclusive). Example: To readout all 400 samples in the ASIC buffer, set to PixReadIteration=399(0x18F)',
+            # offset       = 0x08,
+            # bitSize      = 9, 
+            # mode         = 'RW',
+            # disp         = '{:d}',
+        # ))           
         
         self.add(pr.RemoteVariable(
             name         = 'SeqCnt', 
@@ -154,59 +154,57 @@ class AltirocReadout(pr.Device):
             linkedGet    = common.getMhzValue,
         ))         
         
-        self.add(pr.RemoteVariable(
-            name         = 'RestoreProbeConfig', 
-            description  = '0: leaves the probe registers in readout state.  1: restores the probe registers back to state before readout',
-            offset       = 0x24,
-            bitSize      = 1, 
-            mode         = 'RW',
-        ))   
+        # self.add(pr.RemoteVariable(
+            # name         = 'RestoreProbeConfig', 
+            # description  = '0: leaves the probe registers in readout state.  1: restores the probe registers back to state before readout',
+            # offset       = 0x24,
+            # bitSize      = 1, 
+            # mode         = 'RW',
+        # ))   
 
-        self.add(pr.RemoteVariable(
-            name         = 'BitSize', 
-            description  = 'Number of RCK cycles per serialized word (zero inclusive) for not the first word',
-            offset       = 0x28,
-            bitSize      = 8, 
-            bitOffset    = 0, 
+        # self.add(pr.RemoteVariable(
+            # name         = 'BitSize', 
+            # description  = 'Number of RCK cycles per serialized word (zero inclusive) for not the first word',
+            # offset       = 0x28,
+            # bitSize      = 8, 
+            # bitOffset    = 0, 
             # mode         = 'RO',
-            mode         = 'RW',
-            disp         = '{:d}',            
-        ))  
+            # disp         = '{:d}',            
+        # ))  
 
-        self.add(pr.RemoteVariable(
-            name         = 'BitSizeFirst', 
-            description  = 'Number of RCK cycles per serialized word (zero inclusive) for the first word',
-            offset       = 0x28,
-            bitSize      = 8, 
-            bitOffset    = 8, 
-            mode         = 'RW',
+        # self.add(pr.RemoteVariable(
+            # name         = 'BitSizeFirst', 
+            # description  = 'Number of RCK cycles per serialized word (zero inclusive) for the first word',
+            # offset       = 0x28,
+            # bitSize      = 8, 
+            # bitOffset    = 8, 
             # mode         = 'RO',
-            disp         = '{:d}',            
-        ))          
+            # disp         = '{:d}',            
+        # ))          
 
-        self.add(pr.RemoteVariable(
-            name         = 'TestPattern', 
-            description  = 'Force the data word to be all zeros with <01> marker',
-            offset       = 0x2C,
-            bitSize      = 1, 
-            mode         = 'RW',
-        ))            
+        # self.add(pr.RemoteVariable(
+            # name         = 'TestPattern', 
+            # description  = 'Force the data word to be all zeros with <01> marker',
+            # offset       = 0x2C,
+            # bitSize      = 1, 
+            # mode         = 'RW',
+        # ))            
         
-        self.add(pr.RemoteVariable(
-            name         = 'SendData', 
-            description  = '0x1: Send the data to software, 0x0: Drops the data',
-            offset       = 0x30,
-            bitSize      = 1, 
-            mode         = 'RW',
-        )) 
+        # self.add(pr.RemoteVariable(
+            # name         = 'SendData', 
+            # description  = '0x1: Send the data to software, 0x0: Drops the data',
+            # offset       = 0x30,
+            # bitSize      = 1, 
+            # mode         = 'RW',
+        # )) 
 
-        self.add(pr.RemoteVariable(
-            name         = 'EnProbeWrite', 
-            description  = 'Enable Readout FSM to write/update the PROBE registers',
-            offset       = 0x34,
-            bitSize      = 1, 
-            mode         = 'RW',
-        ))         
+        # self.add(pr.RemoteVariable(
+            # name         = 'EnProbeWrite', 
+            # description  = 'Enable Readout FSM to write/update the PROBE registers',
+            # offset       = 0x34,
+            # bitSize      = 1, 
+            # mode         = 'RW',
+        # ))         
         
         self.add(pr.RemoteVariable(
             name         = 'TxDataDebug', 
@@ -227,22 +225,22 @@ class AltirocReadout(pr.Device):
             mode         = 'RW',
         )) 
         
-        self.add(pr.RemoteVariable(
-            name         = 'PolarityRck', 
-            description  = '1: Inverts RCK polarity, 0: non-inverted RCK polarity',
-            offset       = 0x3C,
-            bitSize      = 1, 
-            bitOffset    = 1, 
-            mode         = 'RW',
-        ))         
+        # self.add(pr.RemoteVariable(
+            # name         = 'PolarityRck', 
+            # description  = '1: Inverts RCK polarity, 0: non-inverted RCK polarity',
+            # offset       = 0x3C,
+            # bitSize      = 1, 
+            # bitOffset    = 1, 
+            # mode         = 'RW',
+        # ))         
 
-        self.add(pr.RemoteVariable(
-            name         = 'TxDataBitReverse', 
-            description  = '1: reserves the TX data bit ordering, 0: no change to TX data bit ordering',
-            offset       = 0x40,
-            bitSize      = 1, 
-            mode         = 'RW',
-        ))         
+        # self.add(pr.RemoteVariable(
+            # name         = 'TxDataBitReverse', 
+            # description  = '1: reserves the TX data bit ordering, 0: no change to TX data bit ordering',
+            # offset       = 0x40,
+            # bitSize      = 1, 
+            # mode         = 'RW',
+        # ))         
         
         self.add(pr.RemoteCommand(   
             name         = 'ForceStart',

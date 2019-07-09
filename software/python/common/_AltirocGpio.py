@@ -77,6 +77,7 @@ class AltirocGpio(pr.Device):
             bitSize      = 12, 
             mode         = 'RW',
             units        = '10ps',
+            disp         = '{:d}',
         ))         
         
         self.add(pr.RemoteVariable(
@@ -86,6 +87,7 @@ class AltirocGpio(pr.Device):
             bitSize      = 12, 
             mode         = 'RW',
             units        = '10ps',
+            disp         = '{:d}',
         ))        
         
         self.add(pr.RemoteVariable(

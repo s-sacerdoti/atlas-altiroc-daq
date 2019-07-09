@@ -117,7 +117,7 @@ architecture rtl of AtlasAltirocAsicReadout is
    constant REG_INIT_C : RegType := (
       cntRst             => '0',
       invertRck          => '0',
-      invertDout         => '0',
+      invertDout         => '1',
       txDataBitReverse   => '0',
       forceStart         => '0',
       sendData           => '1',
@@ -131,15 +131,15 @@ architecture rtl of AtlasAltirocAsicReadout is
       probeIbData        => (others => '0'),
       probeCache         => (others => '0'),
       cnt                => (others => '0'),
-      probeToRstDly      => (others => '0'),
-      rstPulseWidth      => (others => '0'),
-      rstToReadDly       => (others => '0'),
+      probeToRstDly      => x"000",
+      rstPulseWidth      => x"00f",
+      rstToReadDly       => x"00f",
       rckHighWidth       => toSlv(3, 12),
       rckLowWidth        => toSlv(3, 12),
       seqCnt             => (others => '0'),
       header             => (others => (others => '0')),
       rdCnt              => (others => '0'),
-      rdSize             => (others => '0'),
+      rdSize             => toSlv(399,9),
       startPix           => toSlv(0, 5),
       stopPix            => toSlv(24, 5),
       pixIndex           => toSlv(0, 5),
@@ -427,10 +427,10 @@ begin
                if (r.rdCnt = 0 and r.bitCnt = r.bitSizeFirst) or (r.rdCnt /= 0 and r.bitCnt = r.bitSize) then
                   -- Reset the counter
                   v.bitCnt := (others => '0');
-                  -- Check for bit reversal
-                  if (r.txDataBitReverse = '1') then
-                     v.txData := bitReverse(v.txData);
-                  end if;
+                  -- -- Check for bit reversal
+                  -- if (r.txDataBitReverse = '1') then
+                     -- v.txData := bitReverse(v.txData);
+                  -- end if;
                   -- Next state
                   v.state := SEND_DATA_S;
                else
