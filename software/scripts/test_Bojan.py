@@ -246,19 +246,23 @@ if nTOA_TOT_Processing == 0:
     for i in range(DelayRange):
         # Create the File reader streaming interface
         dataReader = rogue.utilities.fileio.StreamReader()
-        time.sleep(0.01)
+
         # Create the Event reader streaming interface
         dataStream = feb.LegacyMyFileReader()
-        time.sleep(0.01)
-        # Connect the file reader to the event reader
-        pr.streamConnect(dataReader, dataStream) 
-        time.sleep(0.01)
+
+        # Create unzip decompression
+        unzip = rogue.utilities.StreamUnZip()
+
+        # Connect the file reader ---> unzip --> event reader
+        pr.streamConnect(dataReader, unzip) 
+        pr.streamConnect(unzip, dataStream) 
+
         # Open the file
         dataReader.open('TestData/TOA%d.dat' %i)
-        time.sleep(0.01)
+
         # Close file once everything processed
         dataReader.closeWait()
-        time.sleep(0.01)
+
     
         try:
             print('Processing Data for Delay = %d...' % i)
@@ -295,13 +299,16 @@ if nTOA_TOT_Processing == 0:
 if nTOA_TOT_Processing == 1 and TOT_f_Calibration_En == 1:
     # Create the File reader streaming interface
     dataReader = rogue.utilities.fileio.StreamReader()
-    time.sleep(0.01)
+
+    # Create unzip decompression
+    unzip = rogue.utilities.StreamUnZip()
+
     # Create the Event reader streaming interface
     dataStream = feb.MyFileReader()
-    time.sleep(0.01)
-    # Connect the file reader to the event reader
-    pr.streamConnect(dataReader, dataStream) 
-    time.sleep(0.01)
+
+    # Connect the file reader ---> unzip --> event reader
+    pr.streamConnect(dataReader, unzip) 
+    pr.streamConnect(unzip, dataStream) 
 
     for i in range(PulserRangeL, PulserRangeH):
         # Open the file
@@ -354,19 +361,23 @@ if nTOA_TOT_Processing == 1:
     for i in range(PulserRangeL, PulserRangeH):
         # Create the File reader streaming interface
         dataReader = rogue.utilities.fileio.StreamReader()
-        time.sleep(0.01)
+
+        # Create unzip decompression
+        unzip = rogue.utilities.StreamUnZip()
+
         # Create the Event reader streaming interface
         dataStream = LegacyMyFileReader()
-        time.sleep(0.01)
-        # Connect the file reader to the event reader
-        pr.streamConnect(dataReader, dataStream) 
-        time.sleep(0.01)
+
+        # Connect the file reader ---> unzip --> event reader
+        pr.streamConnect(dataReader, unzip) 
+        pr.streamConnect(unzip, dataStream) 
+
         # Open the file
         dataReader.open('TestData/TOT%d.dat' %i)
-        time.sleep(0.01)
+
         # Close file once everything processed
         dataReader.closeWait()
-        time.sleep(0.01)
+
     
         try:
             print('Processing Data for Pulser = %d...' % i)

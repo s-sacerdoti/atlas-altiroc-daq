@@ -40,11 +40,15 @@ args = parser.parse_args()
 # Create the File reader streaming interface
 dataReader = rogue.utilities.fileio.StreamReader()
 
+# Create unzip decompression
+unzip = rogue.utilities.StreamUnZip()
+
 # Create the Event reader streaming interface
 dataStream = feb.ExampleEventReader()
 
-# Connect the file reader to the event reader
-pr.streamConnect(dataReader, dataStream) 
+# Connect the file reader ---> unzip --> event reader
+pr.streamConnect(dataReader, unzip) 
+pr.streamConnect(unzip, dataStream) 
 
 # Open the file
 dataReader.open(args.dataFile)
