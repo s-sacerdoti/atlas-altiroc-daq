@@ -42,7 +42,7 @@ TOT_f_Calibration_En = 0                                       	   # <= Enables 
 TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_calibration2.txt'  # <= Path to the TOT Fine-Interpolation Calibration File used in TOT Data Processing
 TOT_f_Calibration_SAVE_file = 'TestData/TOT_fine_calibration2.txt'  # <= Path to the File where TOT Fine-Interpolation Calibration Data are Saved
 
-DelayStep = 9.27  # <= Estimate of the Programmable Delay Step in ps
+DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
 LSB_TOTc = 190    # <= Estimate of TOT coarse LSB in ps
 LSB_TOTc = 160
 #LSB_TOTc = 1
