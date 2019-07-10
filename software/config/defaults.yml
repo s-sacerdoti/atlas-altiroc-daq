@@ -116,5 +116,5 @@ Top:
         #####################
         RestoreProbeConfig: 0x0
         EnProbeWrite: 0x1
-        OnlySendFirstHit: 0x0
+        OnlySendFirstHit: 0x1
         #####################

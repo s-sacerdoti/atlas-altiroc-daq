@@ -33,6 +33,7 @@ class EventValue(object):
      self.StopPix           = None
      self.SeqCnt            = None
      self.pixValue          = None
+     self.footer            = None
 
 
 def ParseDataWord(dataWord):
@@ -60,7 +61,7 @@ def ParseFrame(frame):
     frame.read(fullData,0)
 
     # Fill an array of 32-bit formatted word
-    wrdData = [None for i in range(2+512*32)]
+    wrdData = [None for i in range(2+512*32+1)]
     wrdData = np.frombuffer(fullData, dtype='uint32', count=(size>>2))
     
     # Parse the data and data to data frame
@@ -74,6 +75,7 @@ def ParseFrame(frame):
     eventFrame.pixValue  = [None for i in range(numPixValues)]
     for i in range(numPixValues):
         eventFrame.pixValue[i] = ParseDataWord(wrdData[2+i])
+    eventFrame.footer = wrdData[numPixValues+2]
 
     return eventFrame
 
@@ -104,6 +106,7 @@ class MyEventReader(rogue.interfaces.stream.Slave):
                               ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
                               ', StartPix {:#}'.format(eventFrame.StartPix) +
                               ', StopPix {:#}'.format(eventFrame.StopPix) + 
+                              ', footer 0x{:X}'.format(eventFrame.footer) + 
                               ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
                         print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
                         header_still_needs_to_be_printed = False
