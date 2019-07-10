@@ -22,8 +22,8 @@ pixel_number = 3 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 #DelayRange = 251        # <= Range of Programmable Delay Sweep 
-DelayRange_low = 2290     # <= low end of Programmable Delay Sweep
-DelayRange_high = 2600     # <= high end of Programmable Delay Sweep
+DelayRange_low = 2400     # <= low end of Programmable Delay Sweep
+DelayRange_high = 2570     # <= high end of Programmable Delay Sweep
 DelayRange_step = 1     # <= step size Programmable Delay Sweep
 #DelayRange = 11        # <= Range of Programmable Delay Sweep 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
@@ -49,8 +49,8 @@ LSB_TOTc = 160
 
 nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
 
-HistDelayTOA1 = 2350  # <= Delay Value for Histogram to be plotted in Plot (1,0)
-HistDelayTOA2 = 2500 # <= Delay Value for Histogram to be plotted in Plot (1,1)
+HistDelayTOA1 = 2425  # <= Delay Value for Histogram to be plotted in Plot (1,0)
+HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistPulserTOT1 = 32  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
 HistPulserTOT2 = 25  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
 
@@ -115,7 +115,7 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
 
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
-    top.Fpga[0].Asic.SlowControl.CP_b.set(0x7) #5
+    top.Fpga[0].Asic.SlowControl.CP_b.set(0x5) #5
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x0) #0
     top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #1
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #0
@@ -129,12 +129,12 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.SatFTz.set(0x4)
     top.Fpga[0].Asic.SlowControl.IntFTz.set(0x1)
     
-    top.Fpga[0].Asic.SlowControl.cBitf.set(0xf) #0
-    top.Fpga[0].Asic.SlowControl.cBits.set(0x0) #f
+    top.Fpga[0].Asic.SlowControl.cBitf.set(0x0) #0
+    top.Fpga[0].Asic.SlowControl.cBits.set(0xf) #f
     top.Fpga[0].Asic.SlowControl.cBitc.set(0xf) #f
 
     top.Fpga[0].Asic.SlowControl.cBit_f_TOA[pixel_number].set(0x0)  #0
-    top.Fpga[0].Asic.SlowControl.cBit_s_TOA[pixel_number].set(0xf)  #0
+    top.Fpga[0].Asic.SlowControl.cBit_s_TOA[pixel_number].set(0x0)  #0
     top.Fpga[0].Asic.SlowControl.cBit_f_TOT[pixel_number].set(0xf)  #f
     top.Fpga[0].Asic.SlowControl.cBit_s_TOT[pixel_number].set(0x0)  #0
     top.Fpga[0].Asic.SlowControl.cBit_c_TOT[pixel_number].set(0xf)  #f
