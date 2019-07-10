@@ -258,12 +258,8 @@ if nTOA_TOT_Processing == 0:
         # Create the Event reader streaming interface
         dataStream = feb.MyFileReader()
 
-        # Create unzip decompression
-        unzip = rogue.utilities.StreamUnZip()
-
-        # Connect the file reader ---> unzip --> event reader
-        pr.streamConnect(dataReader, unzip) 
-        pr.streamConnect(unzip, dataStream) 
+        # Connect the file reader ---> event reader
+        pr.streamConnect(dataReader, dataStream) 
 
         # Open the file
         dataReader.open('TestData/TOA%d.dat' %delay_value)
@@ -308,15 +304,11 @@ if nTOA_TOT_Processing == 1 and TOT_f_Calibration_En == 1:
     # Create the File reader streaming interface
     dataReader = rogue.utilities.fileio.StreamReader()
 
-    # Create unzip decompression
-    unzip = rogue.utilities.StreamUnZip()
-
     # Create the Event reader streaming interface
     dataStream = feb.MyFileReader()
 
-    # Connect the file reader ---> unzip --> event reader
-    pr.streamConnect(dataReader, unzip) 
-    pr.streamConnect(unzip, dataStream) 
+    # Connect the file reader ---> event reader
+    pr.streamConnect(dataReader, dataStream) 
 
     for i in range(PulserRangeL, PulserRangeH):
         # Open the file
@@ -370,15 +362,11 @@ if nTOA_TOT_Processing == 1:
         # Create the File reader streaming interface
         dataReader = rogue.utilities.fileio.StreamReader()
 
-        # Create unzip decompression
-        unzip = rogue.utilities.StreamUnZip()
-
         # Create the Event reader streaming interface
         dataStream = MyFileReader()
 
-        # Connect the file reader ---> unzip --> event reader
-        pr.streamConnect(dataReader, unzip) 
-        pr.streamConnect(unzip, dataStream) 
+        # Connect the file reader ---> event reader
+        pr.streamConnect(dataReader, dataStream) 
 
         # Open the file
         dataReader.open('TestData/TOT%d.dat' %i)

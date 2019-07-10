@@ -52,9 +52,6 @@ class Top(pr.Root):
         # File writer
         self.dataWriter = pr.utilities.fileio.StreamWriter()
         self.add(self.dataWriter)
-        
-        # ZIP Compression
-        self.zip = [rogue.utilities.StreamZip() for i in range(self.numEthDev)]
                 
         # Create arrays to be filled
         self.rudp       = [None for i in range(self.numEthDev)]
@@ -80,11 +77,8 @@ class Top(pr.Root):
             self.memMap[i] = rogue.protocols.srp.SrpV3()                
             pr.streamConnectBiDir( self.memMap[i], self.srpStream[i] )             
             
-            # Compress the data steam
-            pr.streamConnect(self.dataStream[i],self.zip[i])
-            
-            # Add the compressed data stream to file as channel to dataStream
-            pr.streamConnect(self.zip[i],self.dataWriter.getChannel(i))
+            # Connect data stream to file as channel to dataStream
+            pr.streamConnect(self.dataStream[i],self.dataWriter.getChannel(i))
                 
             ######################################################################
             
