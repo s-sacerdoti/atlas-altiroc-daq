@@ -72,7 +72,8 @@ architecture rtl of AtlasAltirocAsicReadout is
       RST_TO_RCK_DLY_S,
       RCK_HIGH_CYCLE_S,
       RCK_LOW_CYCLE_S,
-      SEND_DATA_S);
+      SEND_DATA_S,
+      FOOTER_S);
 
    type RegType is record
       hitDetected        : sl;
@@ -496,15 +497,13 @@ begin
 
                   -- Check the pixel index
                   if (r.pixIndex >= stopPix) then
-                     -- Set the EOF flag
-                     v.txMaster.tLast := '1';
                      -- Restore the probe bus
-                     v.probeValid     := r.restoreProbeConfig;
-                     v.probeIbData    := r.probeCache;
+                     v.probeValid  := r.restoreProbeConfig;
+                     v.probeIbData := r.probeCache;
                      -- Reset the flag
-                     v.renable        := '0';
+                     v.renable     := '0';
                      -- Next state
-                     v.state          := IDLE_S;
+                     v.state       := FOOTER_S;
                   else
                      -- Next state
                      v.state := PROBE_CONFIG_S;
@@ -515,6 +514,16 @@ begin
                   v.state := RCK_HIGH_CYCLE_S;
                end if;
 
+            end if;
+         ----------------------------------------------------------------------      
+         when FOOTER_S =>
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then
+               v.txMaster.tLast              := '1';
+               v.txMaster.tValid             := r.tValid;
+               v.txMaster.tData(31 downto 0) := x"DEAD_BEEF";
+               -- Next state
+               v.state                       := IDLE_S;
             end if;
       ----------------------------------------------------------------------      
       end case;
