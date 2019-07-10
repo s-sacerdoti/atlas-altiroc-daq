@@ -22,7 +22,7 @@ Top:
         Continuous: 0x0
       Trig:
         TrigTypeSel: Slave
-        StrobeAlign: 0x3 
+        StrobeAlign: 0x3
         EnCalPulseTrig: 0x1      
         EnBncExtTrig: 0x0      
         EnPcieLocalTrig: 0x0      
@@ -111,5 +111,10 @@ Top:
         ProbeToRstDly: 0x0
         RstPulseWidth: 0xf
         RstToReadDly: 0xf
-        RckHighWidth: 0x3
-        RckLowWidth: 0x3
+        RckHighWidth: 0xf
+        RckLowWidth: 0xf
+        #####################
+        RestoreProbeConfig: 0x0
+        EnProbeWrite: 0x1
+        OnlySendFirstHit: 0x0
+        #####################

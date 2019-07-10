@@ -97,7 +97,7 @@ class MyEventReader(rogue.interfaces.stream.Slave):
                 pixel = eventFrame.pixValue[i]
                 pixIndex = pixel.PixelIndex
                 #if pixel.ToaOverflow != 1: #make sure this pixel is worth printing
-                if pixel.Hit != 0: #make sure this pixel is worth printing
+                if (pixel.Hit != 0) and (pixel.ToaData != 0x7F): #make sure this pixel is worth printing
                     if header_still_needs_to_be_printed: #print the header only once per pixel
                         print('payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
                               ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +

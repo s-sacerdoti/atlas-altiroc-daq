@@ -75,10 +75,11 @@ architecture rtl of AtlasAltirocAsicReadout is
       SEND_DATA_S);
 
    type RegType is record
+      hitDetected        : sl;
+      onlySendFirstHit   : sl;
       cntRst             : sl;
       invertRck          : sl;
       invertDout         : sl;
-      txDataBitReverse   : sl;
       forceStart         : sl;
       sendData           : sl;
       tValid             : sl;
@@ -115,10 +116,11 @@ architecture rtl of AtlasAltirocAsicReadout is
       state              : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      hitDetected        => '0',
+      onlySendFirstHit   => '1',
       cntRst             => '0',
       invertRck          => '0',
       invertDout         => '1',
-      txDataBitReverse   => '0',
       forceStart         => '0',
       sendData           => '1',
       tValid             => '1',
@@ -139,7 +141,7 @@ architecture rtl of AtlasAltirocAsicReadout is
       seqCnt             => (others => '0'),
       header             => (others => (others => '0')),
       rdCnt              => (others => '0'),
-      rdSize             => toSlv(399,9),
+      rdSize             => toSlv(399, 9),
       startPix           => toSlv(0, 5),
       stopPix            => toSlv(24, 5),
       pixIndex           => toSlv(0, 5),
@@ -177,14 +179,12 @@ begin
                    probeObData, r, readoutStart, rst160MHz, txSlave) is
       variable v       : RegType;
       variable axilEp  : AxiLiteEndPointType;
-      variable rdSize  : slv(8 downto 0);
       variable stopPix : slv(4 downto 0);
    begin
       -- Latch the current value
       v := r;
 
       -- Update local variables (in used in cased changed during readout)
-      rdSize  := r.header(0)(20 downto 12);
       stopPix := r.header(0)(31 downto 27);
 
       -- Reset strobes
@@ -208,7 +208,7 @@ begin
 
       axiSlaveRegister (axilEp, x"00", 0, v.startPix);
       axiSlaveRegister (axilEp, x"04", 0, v.stopPix);
-      axiSlaveRegister (axilEp, x"08", 0, v.rdSize);
+      -- axiSlaveRegister (axilEp, x"08", 0, v.rdSize);
       axiSlaveRegisterR(axilEp, x"0C", 0, r.seqCnt);
       axiSlaveRegister (axilEp, x"10", 0, v.probeToRstDly);
       axiSlaveRegister (axilEp, x"14", 0, v.rstPulseWidth);
@@ -216,15 +216,16 @@ begin
       axiSlaveRegister (axilEp, x"1C", 0, v.rckHighWidth);
       axiSlaveRegister (axilEp, x"20", 0, v.rckLowWidth);
       axiSlaveRegister (axilEp, x"24", 0, v.restoreProbeConfig);
-      axiSlaveRegisterR(axilEp, x"28", 0, r.bitSize);
-      axiSlaveRegisterR(axilEp, x"28", 8, r.bitSizeFirst);
-      axiSlaveRegister (axilEp, x"2C", 0, v.testPattern);
+      -- axiSlaveRegisterR(axilEp, x"28", 0, r.bitSize);
+      -- axiSlaveRegisterR(axilEp, x"28", 8, r.bitSizeFirst);
+      -- axiSlaveRegister (axilEp, x"2C", 0, v.testPattern);
       axiSlaveRegister (axilEp, x"30", 0, v.sendData);
       axiSlaveRegister (axilEp, x"34", 0, v.enProbeWrite);
       axiSlaveRegisterR(axilEp, x"38", 0, r.txDataDebug);
-      axiSlaveRegister (axilEp, x"3C", 0, v.invertDout);
-      axiSlaveRegister (axilEp, x"3C", 1, v.invertRck);
-      axiSlaveRegister (axilEp, x"40", 0, v.txDataBitReverse);
+      -- axiSlaveRegister (axilEp, x"3C", 0, v.invertDout);
+      -- axiSlaveRegister (axilEp, x"3C", 1, v.invertRck);
+      -- axiSlaveRegister (axilEp, x"40", 0, v.txDataBitReverse);
+      axiSlaveRegister (axilEp, x"44", 0, v.onlySendFirstHit);
 
       axiSlaveRegister (axilEp, x"F8", 0, v.forceStart);
       axiSlaveRegister (axilEp, x"FC", 0, v.cntRst);
@@ -247,8 +248,15 @@ begin
                --                   Generate the header                    --
                --------------------------------------------------------------               
                -- HDR[0]: Format Version, start and stop
-               v.header(0)(11 downto 0)  := x"001";  -- Version = 0x1   
-               v.header(0)(21 downto 12) := '0' & r.rdSize;
+               v.header(0)(11 downto 0) := x"001";  -- Version = 0x1
+
+               -- Check if only sending 1st hit per pixel
+               if (r.onlySendFirstHit = '1') then
+                  v.header(0)(21 downto 12) := (others => '0');  -- pixel iteration = 0 for SW
+               else
+                  v.header(0)(21 downto 12) := '0' & r.rdSize;
+               end if;
+
                v.header(0)(26 downto 22) := r.startPix;
                v.header(0)(31 downto 27) := r.stopPix;
                -- HDR[1]: Sequence counter
@@ -380,10 +388,11 @@ begin
             end if;
          ----------------------------------------------------------------------      
          when RST_TO_RCK_DLY_S =>
-            -- Set the flag
-            v.rstbRead := '1';
+            -- Set the flags
+            v.rstbRead    := '1';
+            v.hitDetected := '0';
             -- Increment the counter
-            v.cnt      := r.cnt + 1;
+            v.cnt         := r.cnt + 1;
             -- Check the counter size
             if (r.cnt = r.rstToReadDly) then
                -- Reset the counter
@@ -427,12 +436,8 @@ begin
                if (r.rdCnt = 0 and r.bitCnt = r.bitSizeFirst) or (r.rdCnt /= 0 and r.bitCnt = r.bitSize) then
                   -- Reset the counter
                   v.bitCnt := (others => '0');
-                  -- -- Check for bit reversal
-                  -- if (r.txDataBitReverse = '1') then
-                     -- v.txData := bitReverse(v.txData);
-                  -- end if;
                   -- Next state
-                  v.state := SEND_DATA_S;
+                  v.state  := SEND_DATA_S;
                else
                   -- Increment the counter
                   v.bitCnt := r.bitCnt + 1;
@@ -450,18 +455,24 @@ begin
                v.txMaster.tData := (others => '0');
 
                -- Forward the data
-               v.txMaster.tValid              := r.tValid;
                v.txMaster.tData(20 downto 0)  := r.txData;
                v.txMaster.tData(28 downto 24) := r.pixIndex;
 
-               -- Check for test pattern insertion
-               if (r.testPattern = '1') then
-                  v.txMaster.tData(1 downto 0)  := "01";  -- SOF
-                  v.txMaster.tData(20 downto 2) := (others => '0');
+               -- Check if sending all data
+               if (r.onlySendFirstHit = '0') then
+                  v.txMaster.tValid := r.tValid;
+               else
+                  -- Check for first hit
+                  if (r.txData(2 downto 0) = "101") and (r.hitDetected = '0') then
+                     v.hitDetected     := '1';
+                     v.txMaster.tValid := r.tValid;
+                  end if;
                end if;
 
                -- Latch the value for debugging
-               v.txDataDebug := r.txData;
+               if (v.txMaster.tValid = '1') then
+                  v.txDataDebug := r.txData;
+               end if;
 
                -- Reset the shift register
                v.txData := (others => '0');
@@ -470,7 +481,12 @@ begin
                v.rdCnt := r.rdCnt + 1;
 
                -- Check the read size
-               if (r.rdCnt = rdSize) then
+               if (r.rdCnt = r.rdSize) then
+
+                  -- Check for no hit in the pixel readout
+                  if (v.hitDetected = '0') then
+                     v.txMaster.tValid := r.tValid;
+                  end if;
 
                   -- Reset the counter
                   v.rdCnt := (others => '0');
@@ -536,7 +552,6 @@ begin
          v.enProbeWrite       := r.enProbeWrite;
          v.invertDout         := r.invertDout;
          v.invertRck          := r.invertRck;
-         v.txDataBitReverse   := r.txDataBitReverse;
       end if;
 
 

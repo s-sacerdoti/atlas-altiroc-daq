@@ -154,13 +154,13 @@ class AltirocReadout(pr.Device):
             linkedGet    = common.getMhzValue,
         ))         
         
-        # self.add(pr.RemoteVariable(
-            # name         = 'RestoreProbeConfig', 
-            # description  = '0: leaves the probe registers in readout state.  1: restores the probe registers back to state before readout',
-            # offset       = 0x24,
-            # bitSize      = 1, 
-            # mode         = 'RW',
-        # ))   
+        self.add(pr.RemoteVariable(
+            name         = 'RestoreProbeConfig', 
+            description  = '0: leaves the probe registers in readout state.  1: restores the probe registers back to state before readout',
+            offset       = 0x24,
+            bitSize      = 1, 
+            mode         = 'RW',
+        ))   
 
         # self.add(pr.RemoteVariable(
             # name         = 'BitSize', 
@@ -198,13 +198,13 @@ class AltirocReadout(pr.Device):
             # mode         = 'RW',
         # )) 
 
-        # self.add(pr.RemoteVariable(
-            # name         = 'EnProbeWrite', 
-            # description  = 'Enable Readout FSM to write/update the PROBE registers',
-            # offset       = 0x34,
-            # bitSize      = 1, 
-            # mode         = 'RW',
-        # ))         
+        self.add(pr.RemoteVariable(
+            name         = 'EnProbeWrite', 
+            description  = 'Enable Readout FSM to write/update the PROBE registers',
+            offset       = 0x34,
+            bitSize      = 1, 
+            mode         = 'RW',
+        ))         
         
         self.add(pr.RemoteVariable(
             name         = 'TxDataDebug', 
@@ -217,13 +217,13 @@ class AltirocReadout(pr.Device):
             pollInterval = 1,
         ))             
         
-        self.add(pr.RemoteVariable(
-            name         = 'PolarityDout', 
-            description  = '1: Inverts the DOUT RX polarity, 0: non-inverted DOUT RX polarity',
-            offset       = 0x3C,
-            bitSize      = 1, 
-            mode         = 'RW',
-        )) 
+        # self.add(pr.RemoteVariable(
+            # name         = 'PolarityDout', 
+            # description  = '1: Inverts the DOUT RX polarity, 0: non-inverted DOUT RX polarity',
+            # offset       = 0x3C,
+            # bitSize      = 1, 
+            # mode         = 'RW',
+        # )) 
         
         # self.add(pr.RemoteVariable(
             # name         = 'PolarityRck', 
@@ -240,7 +240,15 @@ class AltirocReadout(pr.Device):
             # offset       = 0x40,
             # bitSize      = 1, 
             # mode         = 'RW',
-        # ))         
+        # )) 
+
+        self.add(pr.RemoteVariable(
+            name         = 'OnlySendFirstHit',
+            description  = 'only Send First Hit',
+            offset       = 0x44,
+            bitSize      = 1, 
+            mode         = 'RW',
+        ))         
         
         self.add(pr.RemoteCommand(   
             name         = 'ForceStart',

@@ -14,6 +14,8 @@
 
 asicVersion = 1 # <= Select either V1 or V2 of the ASIC
 
+DebugPrint = True
+
 Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
 
 pixel_number = 3 # <= Pixel to be Tested
@@ -21,7 +23,7 @@ pixel_number = 3 # <= Pixel to be Tested
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 #DelayRange = 251        # <= Range of Programmable Delay Sweep 
 DelayRange_low = 2290     # <= low end of Programmable Delay Sweep
-DelayRange_high = 2530     # <= high end of Programmable Delay Sweep
+DelayRange_high = 2600     # <= high end of Programmable Delay Sweep
 DelayRange_step = 1     # <= step size Programmable Delay Sweep
 #DelayRange = 11        # <= Range of Programmable Delay Sweep 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
@@ -107,7 +109,7 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x0)
     top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)
     top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x1)
-    top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(0x40)
+    top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(0x30)
 
     top.Fpga[0].Asic.SlowControl.Write_opt.set(0x0)
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
@@ -147,6 +149,7 @@ def set_fpga_for_custom_config(top):
 
     top.Fpga[0].Asic.Readout.StartPix.set(pixel_number)
     top.Fpga[0].Asic.Readout.LastPix.set(pixel_number)
+
 #################################################################
 
 
@@ -164,11 +167,12 @@ def acquire_data(range_low, range_high, range_step, top, asic_pulser, file_prefi
         for j in range(n_iterations):
             if (asicVersion == 1):
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
-                time.sleep(0.001)            
+                time.sleep(0.001)
             else:
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
 
+        time.sleep(0.1)
         top.dataWriter._writer.close()
 #################################################################
 
@@ -216,9 +220,10 @@ top.LoadConfig(arg='config/defaults.yml')
 # ... then load the User YAML file
 top.LoadConfig(arg = Configuration_LOAD_file)
 
-# Tap the streaming data interface (same interface that writes to file)
-dataStream = feb.MyEventReader()    
-pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
+if DebugPrint:
+    # Tap the streaming data interface (same interface that writes to file)
+    dataStream = feb.MyEventReader()    
+    pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
 
 # Custom Configuration
 if Disable_CustomConfig == 0:

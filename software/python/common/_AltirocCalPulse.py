@@ -74,6 +74,7 @@ class AltirocCalPulse(pr.Device):
             offset       = 0x8,
             bitSize      = 1,
             function     = pr.BaseCommand.touchOne
+            # function     = lambda cmd: cmd.post(1),
         ))
        
         self.add(pr.RemoteVariable(
