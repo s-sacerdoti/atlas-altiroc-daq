@@ -23,50 +23,18 @@ pixel_range_high = 4
 pixel_iteration = 1
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
-#DelayRange = 251        # <= Range of Programmable Delay Sweep 
+
 DelayRange_initial_low = 0     # <= low end of Programmable Delay Sweep search
 DelayRange_initial_high = 4000     # <= high end of Programmable Delay Sweep search
-DelayRange_max_recursion_depth = 5    # <= how many passes will be made to find the optimal delay range
-#NOTE: This number effectively provides the initial delay_range step size,
-#with the initial step size = 2^DelayRange_max_recursion_depth.
-#The larger this number, the faster the sweep will converge.
-#If the number is too large though, it may skip over the optimal range entirely
+DelayRange_initial_step_size = 100 # <= step size of initial delay range sweep
+DelayRange_constriction_factor = 4 # <= how much tighter each new sweep is
+DelayRange_final_size = 150 # <= length the optimal delay range should have
 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 
-DataAcqusitionTOT = 0   # <= Enable TOT Data Acquisition (Pulser Sweep)
-PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
-PulserRangeH = 64       # <= High Value of Pulser Sweep Range
-PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
-NofIterationsTOT = 100   # <= Number of Iterations for each Pulser Value
-DelayValueTOT = 100       # <= Value of Programmable Delay for TOT Pulser Sweep
-
-nTOA_TOT_Processing = 0 # <= Selects the Data to be Processed and Plotted (0 = TOA, 1 = TOT) 
-
-TOT_f_Calibration_En = 0                                       	   # <= Enables Calculation of TOT Fine-Interpolation Calibration Data and Saves them
-#TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_nocalibration.txt'
-TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_calibration2.txt'  # <= Path to the TOT Fine-Interpolation Calibration File used in TOT Data Processing
-TOT_f_Calibration_SAVE_file = 'TestData/TOT_fine_calibration2.txt'  # <= Path to the File where TOT Fine-Interpolation Calibration Data are Saved
 
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
-LSB_TOTc = 190    # <= Estimate of TOT coarse LSB in ps
-LSB_TOTc = 160
-#LSB_TOTc = 1
-
-nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
-
-HistDelayTOA1 = 2425  # <= Delay Value for Histogram to be plotted in Plot (1,0)
-HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
-HistPulserTOT1 = 32  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
-HistPulserTOT2 = 25  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
-
 Disable_CustomConfig = 0 # <= Disables the ASIC Configuration Customization inside the Script (Section Below) => all Configuration Parameters are taken from Configuration File   
-
-TOTf_hist = 0
-TOTc_hist = 0
-Plot_TOTf_lin = 1
-PlotValidCnt = 0
-
 ##############################################################################
 
 #################################################################
@@ -158,16 +126,23 @@ def set_fpga_for_custom_config(top, pixel_number):
 #################################################################
 
 
-def find_optimal_delay_range(top, dataStream, delay_range_low, delay_range_high, recursion_level):
-    print('\nSearching for delay range at recursion level ' + str(recursion_level) + '\n')
-    delay_range_step = 2**recursion_level
+def find_optimal_delay_range(top, dataStream, delay_range_low, delay_range_high, delay_range_step):
+    delay_range_size = delay_range_high - delay_range_low
+    if ( delay_range_size < DelayRange_final_size ):
+        expansion_amount = DelayRange_final_size - delay_range_size
+        delay_range_low -= int(expansion_amount / 2)
+        delay_range_high += int(expansion_amount / 2)
+        delay_range_step = 1
+
+
+    print('\nSearching for delay range at step size ' + str(delay_range_step) + '\n')
     HitData_lengths = []
     weighted_sum = 0
     total_hits = 0
     optimal_HitData = []
     for delay_value in range( delay_range_low, delay_range_high, delay_range_step ):
         print('\nstep = %d' %delay_value)
-        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay_value)
+        top.Fpga[0].Asic.Gpio.DlyCalPulseSet
 
         for i in range(NofIterationsTOA):
             if (asicVersion == 1):
@@ -182,44 +157,40 @@ def find_optimal_delay_range(top, dataStream, delay_range_low, delay_range_high,
         HitData = dataStream.HitData
         weighted_sum += delay_value * len(HitData)
         total_hits += len(HitData)
-        if recursion_level == 0: optimal_HitData.append( HitData.copy() )
+        if delay_range_step == 1: optimal_HitData.append( HitData.copy() )
         print( str(total_hits) + ' ' + str(weighted_sum) )
         print(HitData)
         dataStream.HitData.clear()
 
-    if recursion_level > 0:
+    if delay_range_step == 1:
+        return (delay_range_low, delay_range_high, recursion_level)
+    else:
         #calculate weighted average of hit counts
         weighted_average = int(weighted_sum / total_hits)
 
         #create tighter delay range around weighted average
-        tighter_delay_radius = int( (delay_range_high-delay_range_low) / 4 )
+        tighter_step = delay_range_step / DelayRange_constriction_factor
+        tighter_delay_radius = int( delay_range_size / (DelayRange_constriction_factor*2) )
+        #If step size has dropped to 1, skip all other recursion steps by forcing delay_radius to zero
+        if tighter_step < 1: tighter_delay_radius = 0
         tighter_delay_range_low = weighted_average - tighter_delay_radius
         tighter_delay_range_high = weighted_average + tighter_delay_radius
         print(weighted_average)
         print(tighter_delay_radius)
         print(tighter_delay_range_low)
         print(tighter_delay_range_high)
-
-        return find_optimal_delay_range(top,dataStream, tighter_delay_range_low, tighter_delay_range_high, recursion_level-1)
-    else:
-        return (delay_range_low, delay_range_high, optimal_HitData)
+        return find_optimal_delay_range(top, dataStream, tighter_delay_range_low, tighter_delay_range_high, tighter_step)
     
 
     
 #################################################################
 
 
-def run_pixel_calibration(top, dataReader, pixel_number):
+def run_pixel_calibration(top, dataStream, pixel_number):
     # Custom Configuration
-    if Disable_CustomConfig == 0:
-        set_fpga_for_custom_config(top, pixel_number)
+    if Disable_CustomConfig == 0: set_fpga_for_custom_config(top, pixel_number)
 
-    # Create the Event reader streaming interface
-    dataStream = feb.MyFileReader()
-    # Connect the file reader ---> event reader
-    pr.streamConnect(dataReader, dataStream) 
-
-    find_optimal_delay_range(top, dataStream, DelayRange_initial_low, DelayRange_initial_high, DelayRange_max_recursion_depth)
+    find_optimal_delay_range(top, dataStream, DelayRange_initial_low, DelayRange_initial_high, DelayRange_initial_step_size)
 #################################################################
 
 
@@ -256,17 +227,15 @@ if DebugPrint:
 
 # Create the data reader streaming interface
 dataReader = top.dataStream[0]
+# Create the Event reader streaming interface
+dataStream = feb.MyFileReader()
+# Connect the file reader ---> event reader
+pr.streamConnect(dataReader, dataStream) 
+print('stream connected!')
+
 
 for pixel_number in range(pixel_range_low, pixel_range_high, pixel_iteration):
-    run_pixel_calibration(top, dataReader, pixel_number) 
-
-
-
-
-
-# Close file once everything processed
-#!#dataReader.closeWait()
-    
+    run_pixel_calibration(top, dataStream, pixel_number) 
 
 
 
