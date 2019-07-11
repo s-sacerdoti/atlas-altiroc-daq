@@ -18,7 +18,7 @@ DebugPrint = True
 
 Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
 
-pixel_number = 3 # <= Pixel to be Tested
+pixel_number = 6 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 #DelayRange = 251        # <= Range of Programmable Delay Sweep 
@@ -288,6 +288,9 @@ if nTOA_TOT_Processing == 0:
             DataMean.append(0)
             DataStdev.append(0)
   
+    if len(DataMean) == 0:
+        raise ValueError('No hits were detected during delay sweep. Aborting!')
+
     # Average Std. Dev. Calculation; Points with no data (i.e. Std.Dev.= 0) are ignored
     index = np.where(np.sort(DataStdev))
     MeanDataStdev = np.mean(np.sort(DataStdev)[index[0][0]:len(np.sort(DataStdev))])
@@ -524,8 +527,12 @@ if nTOA_TOT_Processing == 0:
     # Plot (1,0) ; bottom left
     exec("DataL = len(HitData%d)" % HistDelayTOA1)
     if DataL:
-        #exec("ax3.hist(np.multiply(HitData%d,LSBest), bins = np.multiply(Delay,LSBest), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
-        exec("ax3.hist(np.multiply(HitData%d,LSBest), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
+        #exec("ax3.hist(np.multiply(HitData%d,LSBest), bins = LSBest, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
+        hist_range = 10
+        binlow = ( int(DataMean[HistDelayTOA1_index])-hist_range ) * LSBest
+        binhigh = ( int(DataMean[HistDelayTOA1_index])+hist_range ) * LSBest
+        hist_bin_list = np.arange(binlow, binhigh, LSBest)
+        exec("ax3.hist(np.multiply(HitData%d,LSBest), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
         #exec("ax3.set_xlim(xmin = np.min(np.multiply(HitData%d,LSBest))-4*LSBest, xmax = np.max(np.multiply(HitData%d,LSBest))+4*LSBest)" % (HistDelayTOA1, HistDelayTOA1))
         ax3.set_title('TOA Measurment for Programmable Delay = %d' % HistDelayTOA1, fontsize = 11)
         ax3.set_xlabel('TOA Measurement [ps]', fontsize = 10)
@@ -569,8 +576,11 @@ if nTOA_TOT_Processing == 0:
     if PlotValidCnt == 0:
         exec("DataL = len(HitData%d)" % HistDelayTOA2)
         if DataL:
-            #exec("ax4.hist(np.multiply(HitData%d,LSBest), bins = np.multiply(Delay,LSBest), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA2)
-            exec("ax4.hist(np.multiply(HitData%d,LSBest), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA2)
+            hist_range = 10
+            binlow = ( int(DataMean[HistDelayTOA2_index])-hist_range ) * LSBest
+            binhigh = ( int(DataMean[HistDelayTOA2_index])+hist_range ) * LSBest
+            hist_bin_list = np.arange(binlow, binhigh, LSBest)
+            exec("ax4.hist(np.multiply(HitData%d,LSBest), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA2)
             #exec("ax4.set_xlim(xmin = np.min(np.multiply(HitData%d,LSBest))-10*LSBest, xmax = np.max(np.multiply(HitData%d,LSBest))+10*LSBest)" % (HistDelayTOA2, HistDelayTOA2))
             ax4.set_title('TOA Measurment for Programmable Delay = %d' % HistDelayTOA2, fontsize = 11)
             ax4.set_xlabel('TOA Measurement [ps]', fontsize = 10)
