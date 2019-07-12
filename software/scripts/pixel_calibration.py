@@ -14,20 +14,23 @@
 
 asicVersion = 1 # <= Select either V1 or V2 of the ASIC
 
-DebugPrint = True
+DebugPrint = False
 
 Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
 
-pixel_range_low = 3
-pixel_range_high = 4
-pixel_iteration = 1
+Number_of_pixels = 25
+Pixel_range_low = 0
+Pixel_range_high = 25 #NOT inclusive
+Pixel_iteration = 1
+No_hits_error_value = -1
+
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 
 DelayRange_initial_low = 0     # <= low end of Programmable Delay Sweep search
 DelayRange_initial_high = 4000     # <= high end of Programmable Delay Sweep search
 DelayRange_initial_step_size = 100 # <= step size of initial delay range sweep
-DelayRange_constriction_factor = 4 # <= how much tighter each new sweep is
+DelayRange_constriction_factor = 8 # <= how much tighter each new sweep is
 DelayRange_final_size = 150 # <= length the optimal delay range should have
 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
@@ -130,7 +133,6 @@ def scan_delay_range(top, delay_range, optimal_HitData):
     weighted_sum = 0
     total_hits = 0
     for delay_value in delay_range:
-        print('\nstep = %d' %delay_value)
         top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay_value)
 
         for i in range(NofIterationsTOA):
@@ -147,11 +149,14 @@ def scan_delay_range(top, delay_range, optimal_HitData):
         weighted_sum += delay_value * len(HitData)
         total_hits += len(HitData)
         if delay_range.step == 1: optimal_HitData.append( HitData.copy() )
-        print( str(total_hits) + ' ' + str(weighted_sum) )
-        print(HitData)
+        print( '| {:>4} | {:>4} | {:>10} | {:>12} |'.format(
+            delay_value, len(HitData), total_hits, weighted_sum)
+        )
+        #print(HitData)
         dataStream.HitData.clear()
 
     #calculate weighted average of hit counts
+    if total_hits == 0: return No_hits_error_value
     weighted_hit_average = int(weighted_sum / total_hits)
 
     return weighted_hit_average
@@ -163,11 +168,20 @@ def find_optimal_delay_range(top, dataStream, delay_range, optimal_HitData):
     delay_range_size = delay_range.stop - delay_range.start
     if ( delay_range_size < DelayRange_final_size ):
         expansion = int( (DelayRange_final_size-delay_range_size) / 2 )
-        expanded_delay_range = range( delay_range.start-expansion, delay_range.stop+expansion, 1 )
-        delay_range = expanded_delay_range
+        delay_range = range( delay_range.start-expansion, delay_range.stop+expansion, 1 )
 
-    print('\nIterating through delay range at step size ' + str(delay_range.step) + '\n')
+    #ensure delay range does not exceed initial boundaries
+    if delay_range.start < DelayRange_initial_low:
+        shift = DelayRange_initial_low - delay_range.start
+        delay_range = range(DelayRange_initial_low, delay_range.stop+shift, delay_range.step)
+    if delay_range.stop > DelayRange_initial_high:
+        shift = delay_range.stopi - DelayRange_initial_high 
+        delay_range = range(delay_range.start-shift, DelayRange_initial_high, delay_range.step)
+
+    print( '\nDelay Range = ' + str(delay_range) )
+    print( '| step | hits | total_hits | weighted_sum |')
     weighted_hit_average = scan_delay_range(top, delay_range, optimal_HitData)
+    if weighted_hit_average == No_hits_error_value: return No_hits_error_value
 
     if delay_range.step == 1:
         return delay_range
@@ -188,12 +202,40 @@ def find_optimal_delay_range(top, dataStream, delay_range, optimal_HitData):
 
 
 def run_pixel_calibration(top, dataStream, pixel_number):
+    print( '\n\n########################' )
+    print( '# Calibrating pixel {:>2} #'.format(pixel_number) )
+    print( '########################' )
     # Custom Configuration
     if Disable_CustomConfig == 0: set_fpga_for_custom_config(top, pixel_number)
 
     initial_delay_range = range(DelayRange_initial_low, DelayRange_initial_high, DelayRange_initial_step_size)
     optimal_HitData = []
-    find_optimal_delay_range(top, dataStream, initial_delay_range, optimal_HitData)
+    optimal_delay_range = find_optimal_delay_range(top, dataStream, initial_delay_range, optimal_HitData)
+    if optimal_delay_range == No_hits_error_value: 
+        return (No_hits_error_value, 'No hits detected...')
+
+    DataMean = np.zeros( len(optimal_HitData) )
+    DataStdev = np.zeros( len(optimal_HitData) )
+    for delay_value, HitData_list in enumerate(optimal_HitData):
+        if len(HitData_list) > 0:
+            DataMean[delay_value] = np.mean(HitData_list, dtype=np.float64)
+            DataStdev[delay_value] = math.sqrt(math.pow(np.std(HitData_list, dtype=np.float64),2)+1/12)
+  
+    # The following calculations ignore points with no data (i.e. Std.Dev = 0)
+    nonzero = DataMean != 0
+
+    # Average Std. Dev. Calculation; Points with no data (i.e. Std.Dev.= 0) are ignored
+    MeanDataStdev = np.mean( DataStdev[nonzero] )
+
+    # LSB estimation based on "DelayStep" value, again ignoring zero values
+    safety_bound = 5
+    Delay = np.array(optimal_delay_range)
+    fit_x_values = Delay[nonzero][safety_bound:-safety_bound]
+    fit_y_values = DataMean[nonzero][safety_bound:-safety_bound]
+    linear_fit_slope = np.polyfit(fit_x_values, fit_y_values, 1)[0]
+    LSB_est = DelayStep/abs(linear_fit_slope)
+
+    return (LSB_est, optimal_delay_range)
 #################################################################
 
 
@@ -236,8 +278,21 @@ dataStream = feb.MyPixelReader()
 pr.streamConnect(dataReader, dataStream) 
 
 
-for pixel_number in range(pixel_range_low, pixel_range_high, pixel_iteration):
-    run_pixel_calibration(top, dataStream, pixel_number) 
+LSB_estimate_array = np.zeros(Number_of_pixels)
+range_list = [0]*Number_of_pixels
+for pixel_number in range(Pixel_range_low, Pixel_range_high, Pixel_iteration):
+    LSB_est, optimal_range = run_pixel_calibration(top, dataStream, pixel_number)
+    LSB_estimate_array[pixel_number] = LSB_est
+    range_list[pixel_number] = optimal_range
 
+#print results
+print('\n\n\n')
+print('#################')
+print('# Final Results #')
+print('#################')
+print('Pixel | LSB_est | Range')
+print('------+---------+------------')
+for pixel_number in range(Pixel_range_low, Pixel_range_high, Pixel_iteration):
+    print( '   {:<2} | {:<7.3f} | {}'.format(pixel_number, LSB_estimate_array[pixel_number], range_list[pixel_number]) )
 
 top.stop()
