@@ -142,7 +142,7 @@ def find_optimal_delay_range(top, dataStream, delay_range_low, delay_range_high,
     optimal_HitData = []
     for delay_value in range( delay_range_low, delay_range_high, delay_range_step ):
         print('\nstep = %d' %delay_value)
-        top.Fpga[0].Asic.Gpio.DlyCalPulseSet
+        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay_value)
 
         for i in range(NofIterationsTOA):
             if (asicVersion == 1):
@@ -163,13 +163,13 @@ def find_optimal_delay_range(top, dataStream, delay_range_low, delay_range_high,
         dataStream.HitData.clear()
 
     if delay_range_step == 1:
-        return (delay_range_low, delay_range_high, recursion_level)
+        return (delay_range_low, delay_range_high, optimal_HitData)
     else:
         #calculate weighted average of hit counts
         weighted_average = int(weighted_sum / total_hits)
 
         #create tighter delay range around weighted average
-        tighter_step = delay_range_step / DelayRange_constriction_factor
+        tighter_step = int( delay_range_step / DelayRange_constriction_factor )
         tighter_delay_radius = int( delay_range_size / (DelayRange_constriction_factor*2) )
         #If step size has dropped to 1, skip all other recursion steps by forcing delay_radius to zero
         if tighter_step < 1: tighter_delay_radius = 0
@@ -231,12 +231,10 @@ dataReader = top.dataStream[0]
 dataStream = feb.MyFileReader()
 # Connect the file reader ---> event reader
 pr.streamConnect(dataReader, dataStream) 
-print('stream connected!')
 
 
 for pixel_number in range(pixel_range_low, pixel_range_high, pixel_iteration):
     run_pixel_calibration(top, dataStream, pixel_number) 
-
 
 
 top.stop()
