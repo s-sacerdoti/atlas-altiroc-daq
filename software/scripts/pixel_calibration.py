@@ -126,21 +126,10 @@ def set_fpga_for_custom_config(top, pixel_number):
 #################################################################
 
 
-def find_optimal_delay_range(top, dataStream, delay_range_low, delay_range_high, delay_range_step):
-    delay_range_size = delay_range_high - delay_range_low
-    if ( delay_range_size < DelayRange_final_size ):
-        expansion_amount = DelayRange_final_size - delay_range_size
-        delay_range_low -= int(expansion_amount / 2)
-        delay_range_high += int(expansion_amount / 2)
-        delay_range_step = 1
-
-
-    print('\nSearching for delay range at step size ' + str(delay_range_step) + '\n')
-    HitData_lengths = []
+def scan_delay_range(top, delay_range, optimal_HitData):
     weighted_sum = 0
     total_hits = 0
-    optimal_HitData = []
-    for delay_value in range( delay_range_low, delay_range_high, delay_range_step ):
+    for delay_value in delay_range:
         print('\nstep = %d' %delay_value)
         top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay_value)
 
@@ -157,32 +146,44 @@ def find_optimal_delay_range(top, dataStream, delay_range_low, delay_range_high,
         HitData = dataStream.HitData
         weighted_sum += delay_value * len(HitData)
         total_hits += len(HitData)
-        if delay_range_step == 1: optimal_HitData.append( HitData.copy() )
+        if delay_range.step == 1: optimal_HitData.append( HitData.copy() )
         print( str(total_hits) + ' ' + str(weighted_sum) )
         print(HitData)
         dataStream.HitData.clear()
 
-    if delay_range_step == 1:
-        return (delay_range_low, delay_range_high, optimal_HitData)
+    #calculate weighted average of hit counts
+    weighted_hit_average = int(weighted_sum / total_hits)
+
+    return weighted_hit_average
+#################################################################
+
+
+def find_optimal_delay_range(top, dataStream, delay_range, optimal_HitData):
+    #ensure delay range size is no smaller than specified minimum "DelayRange_final_size"
+    delay_range_size = delay_range.stop - delay_range.start
+    if ( delay_range_size < DelayRange_final_size ):
+        expansion = int( (DelayRange_final_size-delay_range_size) / 2 )
+        expanded_delay_range = range( delay_range.start-expansion, delay_range.stop+expansion, 1 )
+        delay_range = expanded_delay_range
+
+    print('\nIterating through delay range at step size ' + str(delay_range.step) + '\n')
+    weighted_hit_average = scan_delay_range(top, delay_range, optimal_HitData)
+
+    if delay_range.step == 1:
+        return delay_range
     else:
-        #calculate weighted average of hit counts
-        weighted_average = int(weighted_sum / total_hits)
-
-        #create tighter delay range around weighted average
-        tighter_step = int( delay_range_step / DelayRange_constriction_factor )
+        #create tighter delay range around weighted hit average
+        tighter_step = int( delay_range.step / DelayRange_constriction_factor )
         tighter_delay_radius = int( delay_range_size / (DelayRange_constriction_factor*2) )
-        #If step size has dropped to 1, skip all other recursion steps by forcing delay_radius to zero
-        if tighter_step < 1: tighter_delay_radius = 0
-        tighter_delay_range_low = weighted_average - tighter_delay_radius
-        tighter_delay_range_high = weighted_average + tighter_delay_radius
-        print(weighted_average)
-        print(tighter_delay_radius)
-        print(tighter_delay_range_low)
-        print(tighter_delay_range_high)
-        return find_optimal_delay_range(top, dataStream, tighter_delay_range_low, tighter_delay_range_high, tighter_step)
-    
 
-    
+        #If step size has dropped to 1, skip all other recursion steps by forcing delay_radius to zero
+        if tighter_step < 1:
+            tighter_delay_radius = 0
+
+        tighter_delay_range_low = weighted_hit_average - tighter_delay_radius
+        tighter_delay_range_high = weighted_hit_average + tighter_delay_radius
+        tighter_delay_range = range( tighter_delay_range_low, tighter_delay_range_high, tighter_step)
+        return find_optimal_delay_range(top, dataStream, tighter_delay_range, optimal_HitData)
 #################################################################
 
 
@@ -190,7 +191,9 @@ def run_pixel_calibration(top, dataStream, pixel_number):
     # Custom Configuration
     if Disable_CustomConfig == 0: set_fpga_for_custom_config(top, pixel_number)
 
-    find_optimal_delay_range(top, dataStream, DelayRange_initial_low, DelayRange_initial_high, DelayRange_initial_step_size)
+    initial_delay_range = range(DelayRange_initial_low, DelayRange_initial_high, DelayRange_initial_step_size)
+    optimal_HitData = []
+    find_optimal_delay_range(top, dataStream, initial_delay_range, optimal_HitData)
 #################################################################
 
 
@@ -223,12 +226,12 @@ top.LoadConfig(arg = Configuration_LOAD_file)
 if DebugPrint:
     # Tap the streaming data interface (same interface that writes to file)
     debugStream = feb.MyEventReader()    
-    pyrogue.streamConnect(top.dataStream[0], debugStream) # Assuming only 1 FPGA
+    pyrogue.streamTap(top.dataStream[0], debugStream) # Assuming only 1 FPGA
 
 # Create the data reader streaming interface
 dataReader = top.dataStream[0]
 # Create the Event reader streaming interface
-dataStream = feb.MyFileReader()
+dataStream = feb.MyPixelReader()
 # Connect the file reader ---> event reader
 pr.streamConnect(dataReader, dataStream) 
 
