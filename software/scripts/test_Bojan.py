@@ -589,7 +589,7 @@ if nTOA_TOT_Processing == 0:
     else:
         ax4.plot(Delay, HitCnt)
         ax4.grid(True)
-        ax4.set_title('TOA Valid Counts VS Injected Charge', fontsize = 11)
+        ax4.set_title('TOA Valid Counts VS Programmable Delay Value', fontsize = 11)
         ax4.set_xlabel('Programmable Delay Value', fontsize = 10)
         ax4.set_ylabel('Valid Measurements', fontsize = 10)
         ax4.set_xlim(xmin = np.min(Delay), xmax = np.max(Delay))
