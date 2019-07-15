@@ -180,14 +180,12 @@ begin
                    probeObData, r, readoutStart, rst160MHz, txSlave) is
       variable v       : RegType;
       variable axilEp  : AxiLiteEndPointType;
-      variable rdSize  : slv(8 downto 0);
       variable stopPix : slv(4 downto 0);
    begin
       -- Latch the current value
       v := r;
 
       -- Update local variables (in used in cased changed during readout)
-      rdSize  := r.header(0)(20 downto 12);
       stopPix := r.header(0)(31 downto 27);
 
       -- Reset strobes
@@ -251,8 +249,15 @@ begin
                --                   Generate the header                    --
                --------------------------------------------------------------               
                -- HDR[0]: Format Version, start and stop
-               v.header(0)(11 downto 0)  := x"001";  -- Version = 0x1   
-               v.header(0)(21 downto 12) := '0' & r.rdSize;
+               v.header(0)(11 downto 0) := x"001";  -- Version = 0x1   
+
+               -- Check if only sending 1st hit per pixel
+               if (r.onlySendFirstHit = '1') then
+                  v.header(0)(21 downto 12) := (others => '0');  -- pixel iteration = 0 for SW
+               else
+                  v.header(0)(21 downto 12) := '0' & r.rdSize;
+               end if;
+
                v.header(0)(26 downto 22) := r.startPix;
                v.header(0)(31 downto 27) := r.stopPix;
                -- HDR[1]: Sequence counter
@@ -431,12 +436,8 @@ begin
                if (r.rdCnt = 0 and r.bitCnt = r.bitSizeFirst) or (r.rdCnt /= 0 and r.bitCnt = r.bitSize) then
                   -- Reset the counter
                   v.bitCnt := (others => '0');
-                  -- -- Check for bit reversal
-                  -- if (r.txDataBitReverse = '1') then
-                     -- v.txData := bitReverse(v.txData);
-                  -- end if;
                   -- Next state
-                  v.state := SEND_DATA_S;
+                  v.state  := SEND_DATA_S;
                else
                   -- Increment the counter
                   v.bitCnt := r.bitCnt + 1;
@@ -454,18 +455,25 @@ begin
                v.txMaster.tData := (others => '0');
 
                -- Forward the data
-               v.txMaster.tValid              := r.tValid;
+               -- v.txMaster.tValid              := r.tValid;
                v.txMaster.tData(20 downto 0)  := r.txData;
                v.txMaster.tData(28 downto 24) := r.pixIndex;
 
-               -- Check for test pattern insertion
-               if (r.testPattern = '1') then
-                  v.txMaster.tData(1 downto 0)  := "01";  -- SOF
-                  v.txMaster.tData(20 downto 2) := (others => '0');
+               -- Check if sending all data
+               if (r.onlySendFirstHit = '0') then
+                  v.txMaster.tValid := r.tValid;
+               else
+                  -- Check for first hit
+                  if (r.txData(2) = '1') and (r.hitDetected = '0') then
+                     v.hitDetected     := '1';
+                     v.txMaster.tValid := r.tValid;
+                  end if;
                end if;
 
                -- Latch the value for debugging
-               v.txDataDebug := r.txData;
+               if (v.txMaster.tValid = '1') then
+                  v.txDataDebug := r.txData;
+               end if;
 
                -- Reset the shift register
                v.txData := (others => '0');
@@ -474,7 +482,15 @@ begin
                v.rdCnt := r.rdCnt + 1;
 
                -- Check the read size
-               if (r.rdCnt = rdSize) then
+               if (r.rdCnt = r.rdSize) then
+
+                  -- Check for no hit in the pixel readout
+                  if (v.hitDetected = '0') then
+                     v.txMaster.tValid := r.tValid;
+                  end if;
+
+                  -- Reset the flag
+                  v.hitDetected := '0';
 
                   -- Reset the counter
                   v.rdCnt := (others => '0');
@@ -485,12 +501,12 @@ begin
                   -- Check the pixel index
                   if (r.pixIndex >= stopPix) then
                      -- Restore the probe bus
-                     v.probeValid     := r.restoreProbeConfig;
-                     v.probeIbData    := r.probeCache;
+                     v.probeValid  := r.restoreProbeConfig;
+                     v.probeIbData := r.probeCache;
                      -- Reset the flag
-                     v.renable        := '0';
+                     v.renable     := '0';
                      -- Next state
-                     v.state          := FOOTER_S;
+                     v.state       := FOOTER_S;
                   else
                      -- Next state
                      v.state := PROBE_CONFIG_S;
