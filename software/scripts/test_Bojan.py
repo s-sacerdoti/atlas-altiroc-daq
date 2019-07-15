@@ -153,7 +153,9 @@ def set_fpga_for_custom_config(top):
 #################################################################
 
 
-def acquire_data(range_low, range_high, range_step, top, asic_pulser, file_prefix, n_iterations): 
+def acquire_data(range_low, range_high, range_step, top, 
+        asic_pulser, file_prefix, n_iterations, dataStream): 
+
     for i in range(range_low, range_high, range_step):
         print(file_prefix+'step = %d' %i)
         asic_pulser.set(i)
@@ -172,8 +174,9 @@ def acquire_data(range_low, range_high, range_step, top, asic_pulser, file_prefi
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
 
-        time.sleep(0.1)
+        while dataStream.count < n_iterations: pass
         top.dataWriter._writer.close()
+        dataStream.count = 0
 #################################################################
 
 
@@ -232,13 +235,13 @@ if Disable_CustomConfig == 0:
 # Data Acquisition for TOA and TOT
 if DataAcqusitionTOA == 1:
     acquire_data(DelayRange_low, DelayRange_high, DelayRange_step, top,
-            top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOA', NofIterationsTOA)
+            top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOA', NofIterationsTOA, dataStream)
 
 top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValueTOT)
 
 if DataAcqusitionTOT == 1:
     acquire_data(PulserRangeL, PulserRangeH, PulserStep, top, 
-            top.Fpga[0].Asic.SlowControl.dac_pulser, 'TOT', NofIterationsTOT)
+            top.Fpga[0].Asic.SlowControl.dac_pulser, 'TOT', NofIterationsTOT, dataStream)
 
 #######################
 # Data Processing TOA #
