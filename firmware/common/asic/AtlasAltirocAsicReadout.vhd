@@ -249,7 +249,7 @@ begin
                --                   Generate the header                    --
                --------------------------------------------------------------               
                -- HDR[0]: Format Version, start and stop
-               v.header(0)(11 downto 0) := x"001";  -- Version = 0x1
+               v.header(0)(11 downto 0) := x"001";  -- Version = 0x1   
 
                -- Check if only sending 1st hit per pixel
                if (r.onlySendFirstHit = '1') then
@@ -389,11 +389,10 @@ begin
             end if;
          ----------------------------------------------------------------------      
          when RST_TO_RCK_DLY_S =>
-            -- Set the flags
-            v.rstbRead    := '1';
-            v.hitDetected := '0';
+            -- Set the flag
+            v.rstbRead := '1';
             -- Increment the counter
-            v.cnt         := r.cnt + 1;
+            v.cnt      := r.cnt + 1;
             -- Check the counter size
             if (r.cnt = r.rstToReadDly) then
                -- Reset the counter
@@ -456,6 +455,7 @@ begin
                v.txMaster.tData := (others => '0');
 
                -- Forward the data
+               -- v.txMaster.tValid              := r.tValid;
                v.txMaster.tData(20 downto 0)  := r.txData;
                v.txMaster.tData(28 downto 24) := r.pixIndex;
 
@@ -464,7 +464,7 @@ begin
                   v.txMaster.tValid := r.tValid;
                else
                   -- Check for first hit
-                  if (r.txData(2 downto 0) = "101") and (r.hitDetected = '0') then
+                  if (r.txData(2) = '1') and (r.hitDetected = '0') then
                      v.hitDetected     := '1';
                      v.txMaster.tValid := r.tValid;
                   end if;
@@ -488,6 +488,9 @@ begin
                   if (v.hitDetected = '0') then
                      v.txMaster.tValid := r.tValid;
                   end if;
+
+                  -- Reset the flag
+                  v.hitDetected := '0';
 
                   -- Reset the counter
                   v.rdCnt := (others => '0');
