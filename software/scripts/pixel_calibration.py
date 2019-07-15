@@ -30,6 +30,7 @@ DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 DelayRange_initial_low = 0     # <= low end of Programmable Delay Sweep search
 DelayRange_initial_high = 4000     # <= high end of Programmable Delay Sweep search
 DelayRange_initial_step_size = 100 # <= step size of initial delay range sweep
+DelayRange_final_step_size = 1 # <= step size that final optimal range will be stepped through with
 DelayRange_constriction_factor = 8 # <= how much tighter each new sweep is
 DelayRange_final_size = 150 # <= length the optimal delay range should have
 
@@ -148,7 +149,9 @@ def scan_delay_range(top, delay_range, optimal_HitData):
         HitData = dataStream.HitData
         weighted_sum += delay_value * len(HitData)
         total_hits += len(HitData)
-        if delay_range.step == 1: optimal_HitData.append( HitData.copy() )
+        if delay_range.step == DelayRange_final_step_size:
+            optimal_HitData.append( HitData.copy() )
+
         print( '| {:>4} | {:>4} | {:>10} | {:>12} |'.format(
             delay_value, len(HitData), total_hits, weighted_sum)
         )
@@ -164,11 +167,12 @@ def scan_delay_range(top, delay_range, optimal_HitData):
 
 
 def find_optimal_delay_range(top, dataStream, delay_range, optimal_HitData):
-    #ensure delay range size is no smaller than specified minimum "DelayRange_final_size"
+    #Ensure delay range size is no smaller than specified minimum "DelayRange_final_size".
+    #If it is, force step size to final value, and perform final sweep
     delay_range_size = delay_range.stop - delay_range.start
     if ( delay_range_size < DelayRange_final_size ):
         expansion = int( (DelayRange_final_size-delay_range_size) / 2 )
-        delay_range = range( delay_range.start-expansion, delay_range.stop+expansion, 1 )
+        delay_range = range( delay_range.start-expansion, delay_range.stop+expansion, DelayRange_final_step_size )
 
     #ensure delay range does not exceed initial boundaries
     if delay_range.start < DelayRange_initial_low:
@@ -183,15 +187,20 @@ def find_optimal_delay_range(top, dataStream, delay_range, optimal_HitData):
     weighted_hit_average = scan_delay_range(top, delay_range, optimal_HitData)
     if weighted_hit_average == No_hits_error_value: return No_hits_error_value
 
-    if delay_range.step == 1:
+    #Recursively sweep over smaller delay ranges with smaller step sizes,
+    #until we reach the final step size. Then simply return the optimal delay range
+    if delay_range.step == DelayRange_final_step_size:
         return delay_range
     else:
         #create tighter delay range around weighted hit average
         tighter_step = int( delay_range.step / DelayRange_constriction_factor )
         tighter_delay_radius = int( delay_range_size / (DelayRange_constriction_factor*2) )
 
-        #If step size has dropped to 1, skip all other recursion steps by forcing delay_radius to zero
-        if tighter_step < 1:
+        #If step size has dropped to final size,
+        #skip all other recursion steps by forcing delay_radius to zero.
+        #Then at the beginning of the next call to find_optimal_delay_range,
+        #the zero size delay range will be expanded to the required minumum final size.
+        if tighter_step < DelayRange_final_step_size:
             tighter_delay_radius = 0
 
         tighter_delay_range_low = weighted_hit_average - tighter_delay_radius
