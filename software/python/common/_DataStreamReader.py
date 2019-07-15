@@ -85,6 +85,7 @@ class MyEventReader(rogue.interfaces.stream.Slave):
     # Init method must call the parent class init
     def __init__(self):
         super().__init__()
+        self.count = 0
 
     # Method which is called when a frame is received
     def _acceptFrame(self,frame):
@@ -120,6 +121,7 @@ class MyEventReader(rogue.interfaces.stream.Slave):
                         pixel.Hit,
                         pixel.Sof)
                     )
+            self.count += 1
 #################################################################
 
 # Class for Reading the Data from File
