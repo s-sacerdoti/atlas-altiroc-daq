@@ -30,7 +30,7 @@ DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 DelayRange_initial_low = 0     # <= low end of Programmable Delay Sweep search
 DelayRange_initial_high = 4000     # <= high end of Programmable Delay Sweep search
 DelayRange_initial_step_size = 100 # <= step size of initial delay range sweep
-DelayRange_final_step_size = 1 # <= step size that final optimal range will be stepped through with
+DelayRange_final_step_size = 2 # <= step size that final optimal range will be stepped through with
 DelayRange_constriction_factor = 8 # <= how much tighter each new sweep is
 DelayRange_final_size = 150 # <= length the optimal delay range should have
 
@@ -179,7 +179,7 @@ def find_optimal_delay_range(top, dataStream, delay_range, optimal_HitData):
         shift = DelayRange_initial_low - delay_range.start
         delay_range = range(DelayRange_initial_low, delay_range.stop+shift, delay_range.step)
     if delay_range.stop > DelayRange_initial_high:
-        shift = delay_range.stopi - DelayRange_initial_high 
+        shift = delay_range.stop - DelayRange_initial_high 
         delay_range = range(delay_range.start-shift, DelayRange_initial_high, delay_range.step)
 
     print( '\nDelay Range = ' + str(delay_range) )
@@ -188,7 +188,10 @@ def find_optimal_delay_range(top, dataStream, delay_range, optimal_HitData):
     if weighted_hit_average == No_hits_error_value: return No_hits_error_value
 
     #Recursively sweep over smaller delay ranges with smaller step sizes,
-    #until we reach the final step size. Then simply return the optimal delay range
+    #until we reach the final step size. Then simply return the optimal delay range.
+    #The center of the next delay range is computed as the weighted average of the
+    #pixels' hit counts. The next delay range is then expanded about this center
+    #by an amount 'tighter_delay_radius'.
     if delay_range.step == DelayRange_final_step_size:
         return delay_range
     else:
@@ -217,12 +220,14 @@ def run_pixel_calibration(top, dataStream, pixel_number):
     # Custom Configuration
     if Disable_CustomConfig == 0: set_fpga_for_custom_config(top, pixel_number)
 
+    #Determine optimal delay range for pixel
     initial_delay_range = range(DelayRange_initial_low, DelayRange_initial_high, DelayRange_initial_step_size)
     optimal_HitData = []
     optimal_delay_range = find_optimal_delay_range(top, dataStream, initial_delay_range, optimal_HitData)
     if optimal_delay_range == No_hits_error_value: 
         return (No_hits_error_value, 'No hits detected...')
 
+    #Collect statistics about TOA data values
     DataMean = np.zeros( len(optimal_HitData) )
     DataStdev = np.zeros( len(optimal_HitData) )
     for delay_value, HitData_list in enumerate(optimal_HitData):
