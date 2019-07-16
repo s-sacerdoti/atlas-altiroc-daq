@@ -59,7 +59,7 @@ Disable_CustomConfig = 0 # <= Disables the ASIC Configuration Customization insi
 TOTf_hist = 0
 TOTc_hist = 0
 Plot_TOTf_lin = 1
-PlotValidCnt = 0
+PlotValidCnt = 1
 
 ##############################################################################
 
@@ -484,8 +484,8 @@ if nTOA_TOT_Processing == 0:
     ax1.set_xlabel('Programmable Delay Value [step estimate = %f ps]' % DelayStep, fontsize = 10)
     ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
     ax1.legend(['LSB estimate: %f ps' % LSBest],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-    ax1.set_xlim(xmin = np.min(Delay), xmax = np.max(Delay))
-    ax1.set_ylim(ymin = 0, ymax = np.max(np.multiply(DataMean,LSBest))+100)
+    ax1.set_xlim(left = np.min(Delay), right = np.max(Delay))
+    ax1.set_ylim(bottom = 0, top = np.max(np.multiply(DataMean,LSBest))+100)
 else:
     # Plot (0,0) ; top left
     ax1.plot(Pulser, DataMeanTOT)
@@ -493,8 +493,8 @@ else:
     ax1.set_title('TOT Measurment VS Injected Charge', fontsize = 11)
     ax1.set_xlabel('Pulser DAC Value', fontsize = 10)
     ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
-    ax1.set_xlim(xmin = np.min(Pulser), xmax = np.max(Pulser))
-    ax1.set_ylim(ymin = 0, ymax = np.max(DataMeanTOT)*1.1)
+    ax1.set_xlim(left = np.min(Pulser), right = np.max(Pulser))
+    ax1.set_ylim(bottom = 0, top = np.max(DataMeanTOT)*1.1)
 
 if nTOA_TOT_Processing == 0:
     # Plot (0,1) ; top right
@@ -504,8 +504,8 @@ if nTOA_TOT_Processing == 0:
     ax2.set_xlabel('Programmable Delay Value', fontsize = 10)
     ax2.set_ylabel('Std. Dev. [ps]', fontsize = 10)
     ax2.legend(['Average Std. Dev. = %f ps' % (MeanDataStdev*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-    ax2.set_xlim(xmin = np.min(Delay), xmax = np.max(Delay))
-    ax2.set_ylim(ymin = 0, ymax = np.max(np.multiply(DataStdev,LSBest))+20)
+    ax2.set_xlim(left = np.min(Delay), right = np.max(Delay))
+    ax2.set_ylim(bottom = 0, top = np.max(np.multiply(DataStdev,LSBest))+20)
 else:
     # Plot (0,1) ; top right
     if PlotValidCnt == 0:
@@ -515,16 +515,16 @@ else:
         ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
         ax2.set_ylabel('Std. Dev. [ps]', fontsize = 10)
         ax2.legend(['Average Std. Dev. = %f ps' % MeanDataStdevTOT], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-        ax2.set_xlim(xmin = np.min(Pulser), xmax = np.max(Pulser))
-        ax2.set_ylim(ymin = 0, ymax = np.max(DataStdevTOT)*1.1)
+        ax2.set_xlim(left = np.min(Pulser), right = np.max(Pulser))
+        ax2.set_ylim(bottom = 0, top = np.max(DataStdevTOT)*1.1)
     else:
         ax2.plot(Pulser, ValidTOTCnt)
         ax2.grid(True)
         ax2.set_title('TOT Valid Counts VS Injected Charge', fontsize = 11)
         ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
         ax2.set_ylabel('Valid Measurements', fontsize = 10)
-        ax2.set_xlim(xmin = np.min(Pulser), xmax = np.max(Pulser))
-        ax2.set_ylim(ymin = 0, ymax = np.max(ValidTOTCnt)*1.1)
+        ax2.set_xlim(left = np.min(Pulser), right = np.max(Pulser))
+        ax2.set_ylim(bottom = 0, top = np.max(ValidTOTCnt)*1.1)
 
 if nTOA_TOT_Processing == 0:
     # Plot (1,0) ; bottom left
@@ -536,7 +536,7 @@ if nTOA_TOT_Processing == 0:
         binhigh = ( int(DataMean[HistDelayTOA1_index])+hist_range ) * LSBest
         hist_bin_list = np.arange(binlow, binhigh, LSBest)
         exec("ax3.hist(np.multiply(HitData%d,LSBest), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
-        #exec("ax3.set_xlim(xmin = np.min(np.multiply(HitData%d,LSBest))-4*LSBest, xmax = np.max(np.multiply(HitData%d,LSBest))+4*LSBest)" % (HistDelayTOA1, HistDelayTOA1))
+        #exec("ax3.set_xlim(left = np.min(np.multiply(HitData%d,LSBest))-4*LSBest, right = np.max(np.multiply(HitData%d,LSBest))+4*LSBest)" % (HistDelayTOA1, HistDelayTOA1))
         ax3.set_title('TOA Measurment for Programmable Delay = %d' % HistDelayTOA1, fontsize = 11)
         ax3.set_xlabel('TOA Measurement [ps]', fontsize = 10)
         ax3.set_ylabel('N of Measrements', fontsize = 10)
@@ -552,7 +552,7 @@ else:
         exec("DataL = len(HitDataTOT%d)" % HistPulserTOT1)
         if DataL:
             exec("ax3.hist(HitDataTOT%d, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistPulserTOT1)
-            exec("ax3.set_xlim(xmin = np.min(HitDataTOT%d)-10*LSB_TOTf_mean, xmax = np.max(HitDataTOT%d)+10*LSB_TOTf_mean)" % (HistPulserTOT1, HistPulserTOT1))
+            exec("ax3.set_xlim(left = np.min(HitDataTOT%d)-10*LSB_TOTf_mean, right = np.max(HitDataTOT%d)+10*LSB_TOTf_mean)" % (HistPulserTOT1, HistPulserTOT1))
             ax3.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT1, fontsize = 11)
             ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
             ax3.set_ylabel('N of Measrements', fontsize = 10)
@@ -560,7 +560,7 @@ else:
     else:
         if TOTf_hist == 1:
             exec("ax3.hist(HitDataTOTf%d, bins = np.arange(9), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistPulserTOT1)
-            ax3.set_xlim(xmin = -1, xmax = 8)
+            ax3.set_xlim(left = -1, right = 8)
             ax3.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT1, fontsize = 11)
             ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
             ax3.set_ylabel('N of Measrements', fontsize = 10)
@@ -568,7 +568,7 @@ else:
         else: 
             if TOTc_hist == 1:
                 exec("ax3.hist(HitDataTOTc%d, bins = np.arange(129), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistPulserTOT1)
-                ax3.set_xlim(xmin = -1, xmax = 128)
+                ax3.set_xlim(left = -1, right = 128)
                 ax3.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT1, fontsize = 11)
                 ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
                 ax3.set_ylabel('N of Measrements', fontsize = 10)
@@ -584,7 +584,7 @@ if nTOA_TOT_Processing == 0:
             binhigh = ( int(DataMean[HistDelayTOA2_index])+hist_range ) * LSBest
             hist_bin_list = np.arange(binlow, binhigh, LSBest)
             exec("ax4.hist(np.multiply(HitData%d,LSBest), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA2)
-            #exec("ax4.set_xlim(xmin = np.min(np.multiply(HitData%d,LSBest))-10*LSBest, xmax = np.max(np.multiply(HitData%d,LSBest))+10*LSBest)" % (HistDelayTOA2, HistDelayTOA2))
+            #exec("ax4.set_xlim(left = np.min(np.multiply(HitData%d,LSBest))-10*LSBest, right = np.max(np.multiply(HitData%d,LSBest))+10*LSBest)" % (HistDelayTOA2, HistDelayTOA2))
             ax4.set_title('TOA Measurment for Programmable Delay = %d' % HistDelayTOA2, fontsize = 11)
             ax4.set_xlabel('TOA Measurement [ps]', fontsize = 10)
             ax4.set_ylabel('N of Measrements', fontsize = 10)
@@ -595,22 +595,22 @@ if nTOA_TOT_Processing == 0:
         ax4.set_title('TOA Valid Counts VS Programmable Delay Value', fontsize = 11)
         ax4.set_xlabel('Programmable Delay Value', fontsize = 10)
         ax4.set_ylabel('Valid Measurements', fontsize = 10)
-        ax4.set_xlim(xmin = np.min(Delay), xmax = np.max(Delay))
-        ax4.set_ylim(ymin = 0, ymax = np.max(HitCnt)*1.1)
+        ax4.set_xlim(left = np.min(Delay), right = np.max(Delay))
+        ax4.set_ylim(bottom = 0, top = np.max(HitCnt)*1.1)
 else:
     # Plot (1,1)
     if Plot_TOTf_lin == 0:
         exec("DataL = len(HitDataTOT%d)" % HistPulserTOT2)
         if DataL:
             exec("ax4.hist(HitDataTOT%d, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistPulserTOT2)
-            exec("ax4.set_xlim(xmin = np.min(HitDataTOT%d)-4*LSB_TOTf_mean, xmax = np.max(HitDataTOT%d)+4*LSB_TOTf_mean)" % (HistPulserTOT2, HistPulserTOT2))
+            exec("ax4.set_xlim(left = np.min(HitDataTOT%d)-4*LSB_TOTf_mean, right = np.max(HitDataTOT%d)+4*LSB_TOTf_mean)" % (HistPulserTOT2, HistPulserTOT2))
             ax4.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT2, fontsize = 11)
             ax4.set_xlabel('TOT Measurement [ps]', fontsize = 10)
             ax4.set_ylabel('N of Measrements', fontsize = 10)
             ax4.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT2_index], DataStdevTOT[HistPulserTOT2_index], ValidTOTCnt[HistPulserTOT2_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     else:
         ax4.hist(HitDataTOTf_cumulative, bins = np.arange(9), edgecolor = 'k', color = 'royalblue')
-        ax4.set_xlim(xmin = -1, xmax = 8)
+        ax4.set_xlim(left = -1, right = 8)
         ax4.grid(True)
         ax4.set_title('TOT Fine Interpolation Linearity', fontsize = 11)
         ax4.set_xlabel('TOT Fine Code', fontsize = 10)
