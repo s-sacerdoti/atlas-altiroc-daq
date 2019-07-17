@@ -177,7 +177,6 @@ class MyPixelReader(rogue.interfaces.stream.Slave):
     def __init__(self):
         rogue.interfaces.stream.Slave.__init__(self)
         self.HitData = []
-        self.PixelData_list = []
         self.HitDataTOTf_vpa = []
         self.HitDataTOTf_tz = []
         self.HitDataTOTc_vpa = []
@@ -192,15 +191,12 @@ class MyPixelReader(rogue.interfaces.stream.Slave):
         self.HitDataTOTc_int1_tz_temp = 0
 
     def _acceptFrame(self,frame):
-        print('Frame Accepted!')
         # First it is good practice to hold a lock on the frame data.
         with frame.lock():
             eventFrame = ParseFrame(frame)
 
-            pixelData = []
             for i in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[i]
-                pixelData.append(dat)
 
                 if (dat.Hit > 0) and (dat.ToaOverflow == 0):
                     self.HitData.append(dat.ToaData)
@@ -220,7 +216,6 @@ class MyPixelReader(rogue.interfaces.stream.Slave):
                     self.HitDataTOTf_tz.append(self.HitDataTOTf_tz_temp)                    
                     self.HitDataTOTc_tz.append(self.HitDataTOTc_tz_temp)
                     self.HitDataTOTc_int1_tz.append(self.HitDataTOTc_int1_tz_temp)
-            self.PixelData_list.append(pixelData)
                    
 #################################################################
 #################################################################

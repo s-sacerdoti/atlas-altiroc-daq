@@ -15,7 +15,6 @@ import pyrogue as pr
 import pyrogue.gui
 import argparse
 import common as feb
-import numpy as np
 import time
 import threading
 
@@ -23,36 +22,14 @@ import threading
 
 Keep_display_alive = True
 Live_display_interval = 1
-Number_of_pixels = 25
-
-
-
 
 #################################################################
-def runLiveDisplay(pixel_data_list, event_display):
+def runLiveDisplay(event_display):
     while(Keep_display_alive):
-        print('Start of loop')
-        for pixel_data in pixel_data_list:
-            toa_data = np.zeros(Number_of_pixels)
-            tot_data = np.zeros(Number_of_pixels)
-            hit_data = np.zeros(Number_of_pixels)
-            for pixel in pixel_data:
-                #if pixel.Hit and not pixel.ToaOverflow
-                hit_data[pixel.PixelIndex] = pixel.Hit
-                toa_data[pixel.PixelIndex] = pixel.ToaData
-                #scale down tot data so we can use 128 bins for tot and toa
-                tot_data[pixel.PixelIndex] = pixel.TotData/64
-                event_display.updateData(toa_data, tot_data, hit_data)
-            print(toa_data)
-            print(tot_data)
-            print(hit_data)
-            print()
-        print('Pixel data read or nonexistent')
-
-        if len(pixel_data_list) > 0:
-            pixel_data_list.clear()
+        if event_display.has_new_data:
+            print('Refreshing Display... ')
             event_display.refreshDisplay()
-        print('End of loop')
+            print('Display Refreshed')
         time.sleep(Live_display_interval)
 #################################################################
 
@@ -132,14 +109,12 @@ if args.liveDisplay:
     # Connect the device reader ---> fifo
     pr.streamConnect(top.dataStream[0], fifo) 
     # Create the pixelreader streaming interface
-    dataStream = feb.MyPixelReader()
-    # Connect the fifo ---> stream reader
-    pr.streamConnect(fifo, dataStream) 
-    # Retrieve pixel data streaming object
-    pixel_data_list = dataStream.PixelData_list
     event_display = feb.onlineEventDisplay(
             submitDir='display_snapshots',font_size=4, fig_size=(10,6), overwrite=True  )
-    display_thread = threading.Thread( target=runLiveDisplay, args=(pixel_data_list,event_display,) )
+    # Connect the fifo ---> stream reader
+    pr.streamConnect(fifo, event_display) 
+    # Retrieve pixel data streaming object
+    display_thread = threading.Thread( target=runLiveDisplay, args=(event_display,) )
     display_thread.start()
 
 # Create GUI

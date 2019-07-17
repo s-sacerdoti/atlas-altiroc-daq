@@ -1,11 +1,13 @@
 import datetime
+import rogue
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import os
+import common as feb
 
 
-class onlineEventDisplay:
+class onlineEventDisplay(rogue.interfaces.stream.Slave):
     '''
     Python 3 compatible
     Requires numpy, matplotlib, datetime, os, shutil packages
@@ -80,6 +82,8 @@ class onlineEventDisplay:
             2. Medium:  Font Size = 6, Figure Size = (15,8)
             3. Small :  Font Size = 4, Figure Size = (10,6)
         '''
+        rogue.interfaces.stream.Slave.__init__(self)
+        self.has_new_data = False
         self.toa_xrange, self.toa_yrange, self.toa_xbins, self.toa_ybins = toa_xrange, toa_yrange, toa_xbins,toa_ybins
         self.tot_xrange, self.tot_yrange, self.tot_xbins, self.tot_ybins = tot_xrange, tot_yrange, tot_xbins,tot_ybins
         self.xpixels, self.ypixels, self.submitDir, self.overwrite = xpixels, ypixels, submitDir, overwrite
@@ -198,34 +202,33 @@ class onlineEventDisplay:
                           snap=True)
     
 
-    def updateData(self, toa_data, tot_data, hits_toa_data, snap=False, instant=False):
-        '''
-        To update the plots and stored arrays with new data:
-            myObject.update(1D_array_of_length=number_of_pixels_of_TOA_values, 
-                            1D_array_of_length=number_of_pixels_of_TOT_values,
-                            1D_array_of_pixel_indices_that_recorded_TOA_hit_not_overflow)
-        '''
-        toa_data, tot_data = np.array(toa_data, dtype='int').ravel(), np.array(tot_data, dtype='int').ravel()
-        toa_data_binary = np.zeros((self.toa_ybins, self.toa_xbins), dtype=int)
-        tot_data_binary = np.zeros((self.tot_ybins, self.tot_xbins), dtype=int)
-        toa_data_binary[np.arange(self.toa_ybins), toa_data] = 1
-        tot_data_binary[np.arange(self.tot_ybins), tot_data] = 1
-        self.toa_array = self.toa_array + toa_data_binary
-        self.tot_array = self.tot_array + tot_data_binary
-        print('**********************')
-        print(self.toa_array)
-        print('**********************')
-        
-        #hits_toa_data = np.array(hits_toa_data, dtype='int').ravel()
-        #hits_toa_data_binary = np.zeros((self.ypixels*self.xpixels), dtype=int)
-        #hits_toa_data_binary[hits_toa_data] = 1
-        hits_toa_data_binary = np.reshape(hits_toa_data, (self.ypixels,self.xpixels), order='F')
-        self.hits_toa_array = self.hits_toa_array + hits_toa_data_binary
+    def _acceptFrame(self,frame):
+        snap=False 
+        instant=False
+        # First it is good practice to hold a lock on the frame data.
+        with frame.lock():
+            eventFrame = feb.ParseFrame(frame)
+
+            hit_data = np.zeros(self.xpixels*self.ypixels, dtype=int)
+            for i in range( len(eventFrame.pixValue) ):
+                pixel = eventFrame.pixValue[i]
+                #if pixel.Hit and not pixel.ToaOverflow:
+                if True:
+                    hit_data[pixel.PixelIndex] = pixel.Hit
+                    self.toa_array[pixel.PixelIndex][pixel.ToaData] += 1
+                    #scale down tot data so we can use 128 bins for tot and toa
+                    tot_bin = int(pixel.TotData/64)
+                    self.tot_array[tot_bin][pixel.PixelIndex] += 1
+
+        hits_toa_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
+        self.hits_toa_array += hits_toa_data_binary
         if(snap): self.snapshot()
         if(instant): self.instantaneous(toa_data_binary, tot_data_binary, hits_toa_data_binary)
+        self.has_new_data = True
 
 
     def refreshDisplay(self):
+        self.has_new_data = False
         self.__makeDisplay(self.toa_array, self.tot_array, self.hits_toa_array)
         
 
@@ -237,21 +240,35 @@ class onlineEventDisplay:
         
         the plt.pause() can be uncommented if one wishes to keep the plot constantly in the foreground
         '''
+        print('---|setting data...')
         self.im.set_data(toa_data)
         self.im1.set_data(tot_data)
         self.im2.set_data(hits_toa_data)
+        print('---|Done setting data')
         self.cbar.mappable.set_clim(vmin=np.amin(toa_data),vmax=np.amax(toa_data))
+        print('---|Set clim')
         self.cbar.draw_all() 
+        print('---|drawn')
         self.cbar1.mappable.set_clim(vmin=np.amin(tot_data),vmax=np.amax(tot_data))
+        print('---|set cbar1 clim')
         self.cbar1.draw_all() 
+        print('---|cbar1 drawn')
         self.cbar2.mappable.set_clim(vmin=np.amin(hits_toa_data),vmax=np.amax(hits_toa_data))
+        print('---|set cbar2 clim')
         self.cbar2.draw_all() 
-        self.fig.tight_layout()
+        print('---|cbar2 drawn. Tightening layout...')
+        #self.fig.tight_layout()
+        print('---|layout tightened')
         if(snap):
             self.fig.savefig(self.submitDir+"/"+ figname + ".pdf")
+        print('---|Drawing canvas...')
         self.fig.canvas.draw()
+        print('---|Canvas drawn')
+        
 #         plt.pause(0.00000001)
+        print('---|flushing events...')
         self.fig.canvas.flush_events()
+        print('---|flushed.')
 
     __makeDisplay = makeDisplay
 
