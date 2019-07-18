@@ -218,9 +218,6 @@ top = feb.Top(ip= args.ip)
 
 # Load the default YAML file
 print('Loading Configuration File...')
-top.LoadConfig(arg='config/defaults.yml')
-
-# ... then load the User YAML file
 top.LoadConfig(arg = Configuration_LOAD_file)
 
 if DebugPrint:

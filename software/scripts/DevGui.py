@@ -31,7 +31,6 @@ def runLiveDisplay(event_display):
         time.sleep(Live_display_interval)
 #################################################################
 
-
 # Set the argument parser
 parser = argparse.ArgumentParser()
 
@@ -63,11 +62,11 @@ parser.add_argument(
 )  
 
 parser.add_argument(
-    "--printEvents", 
+    "--loadYaml", 
     type     = argBool,
     required = False,
-    default  = False,
-    help     = "prints the stream data event frames",
+    default  = True,
+    help     = "Enable loading of the defaults at start",
 )  
 
 parser.add_argument(
@@ -91,14 +90,8 @@ top = feb.Top(
     ip       = args.ip,
     pollEn   = args.pollEn,
     initRead = args.initRead,       
+    loadYaml = args.loadYaml,       
 )    
-
-if (args.printEvents):
-    # Create the Event reader streaming interface
-    eventReader = feb.MyEventReader()
-
-    # Connect the file reader to the event reader
-    pr.streamConnect(top.dataStream[0], eventReader) 
 
 # Create Live Display
 if args.liveDisplay:
