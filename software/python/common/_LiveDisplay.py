@@ -1,8 +1,10 @@
 import datetime
 import rogue
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+matplotlib.use('QT5Agg')
 import os
 import common as feb
 
@@ -212,16 +214,15 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
             hit_data = np.zeros(self.xpixels*self.ypixels, dtype=int)
             for i in range( len(eventFrame.pixValue) ):
                 pixel = eventFrame.pixValue[i]
-                #if pixel.Hit and not pixel.ToaOverflow:
-                if True:
+                if pixel.Hit and not pixel.ToaOverflow:
                     hit_data[pixel.PixelIndex] = pixel.Hit
                     self.toa_array[pixel.PixelIndex][pixel.ToaData] += 1
                     #scale down tot data so we can use 128 bins for tot and toa
                     tot_bin = int(pixel.TotData/64)
                     self.tot_array[tot_bin][pixel.PixelIndex] += 1
 
-        hits_toa_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
-        self.hits_toa_array += hits_toa_data_binary
+            hits_toa_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
+            self.hits_toa_array += hits_toa_data_binary
         if(snap): self.snapshot()
         if(instant): self.instantaneous(toa_data_binary, tot_data_binary, hits_toa_data_binary)
         self.has_new_data = True
