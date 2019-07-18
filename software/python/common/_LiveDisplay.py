@@ -240,38 +240,55 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         
         the plt.pause() can be uncommented if one wishes to keep the plot constantly in the foreground
         '''
-        print('---|setting data...')
         self.im.set_data(toa_data)
         self.im1.set_data(tot_data)
         self.im2.set_data(hits_toa_data)
-        print('---|Done setting data')
         self.cbar.mappable.set_clim(vmin=np.amin(toa_data),vmax=np.amax(toa_data))
-        print('---|Set clim')
-        self.cbar.draw_all() 
-        print('---|drawn')
         self.cbar1.mappable.set_clim(vmin=np.amin(tot_data),vmax=np.amax(tot_data))
-        print('---|set cbar1 clim')
-        self.cbar1.draw_all() 
-        print('---|cbar1 drawn')
         self.cbar2.mappable.set_clim(vmin=np.amin(hits_toa_data),vmax=np.amax(hits_toa_data))
-        print('---|set cbar2 clim')
+        self.cbar.draw_all() 
+        self.cbar1.draw_all() 
         self.cbar2.draw_all() 
-        print('---|cbar2 drawn. Tightening layout...')
         #self.fig.tight_layout()
-        print('---|layout tightened')
-        if(snap):
-            self.fig.savefig(self.submitDir+"/"+ figname + ".pdf")
+        if(snap): self.fig.savefig(self.submitDir+"/"+ figname + ".pdf")
         print('---|Drawing canvas...')
-        self.fig.canvas.draw()
+        #self.fig.canvas.draw()
+        self.ax.draw_artist(self.im)
+        self.ax1.draw_artist(self.im1)
+        self.ax2.draw_artist(self.im2)
+        self.fig.canvas.update()
+
         print('---|Canvas drawn')
         
-#         plt.pause(0.00000001)
-        print('---|flushing events...')
         self.fig.canvas.flush_events()
-        print('---|flushed.')
 
     __makeDisplay = makeDisplay
 
+'''
+[<matplotlib.spines.Spine object at 0x7f48313be518>, 
+<matplotlib.spines.Spine object at 0x7f48313be5f8>,
+<matplotlib.spines.Spine object at 0x7f48313be6d8>
+<matplotlib.spines.Spine object at 0x7f48313be7b8>
+<matplotlib.axis.XAxis object at 0x7f48313be4a8>
+<matplotlib.axis.YAxis object at 0x7f48313beb70> Text(0.5, 1, 'TOA'), Text(0.0, 1, ''), Text(1.0, 1, ''),
+<matplotlib.image.AxesImage object at 0x7f48315cfeb8>,
+<matplotlib.patches.Rectangle object at 0x7f48315cfef0>] 
 
+[<matplotlib.spines.Spine object at 0x7f4830608630>,
+<matplotlib.spines.Spine object at 0x7f483063ad30>,
+<matplotlib.spines.Spine object at 0x7f483063a908>,
+<matplotlib.spines.Spine object at 0x7f483063a4e0>,
+<matplotlib.axis.XAxis object at 0x7f483063a400>,
+<matplotlib.axis.YAxis object at 0x7f4830618048>, Text(0.5, 1, 'TOT'), Text(0.0, 1, ''), Text(1.0, 1, ''),
+<matplotlib.image.AxesImage object at 0x7f48305d37f0>,
+<matplotlib.patches.Rectangle object at 0x7f48305d3828>]
 
-
+[<matplotlib.spines.Spine object at 0x7f48382bec50>,
+<matplotlib.spines.Spine object at 0x7f48382bed68>,
+<matplotlib.spines.Spine object at 0x7f48382bee48>,
+<matplotlib.spines.Spine object at 0x7f48382bef28>,
+<matplotlib.axis.XAxis object at 0x7f48382bebe0>,
+<matplotlib.axis.YAxis object at 0x7f48382942b0>, Text(0.5, 1, 'TOA - Hits'), Text(0.0, 1, ''), Text(1.0, 1, ''),
+<matplotlib.image.AxesImage object at 0x7f48382b10f0>,
+<matplotlib.patches.Rectangle object at 0x7f48382b1128>]
+'''
