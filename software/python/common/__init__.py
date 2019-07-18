@@ -20,6 +20,7 @@ from common._Dac                import *
 from common._DataStreamReader   import *
 from common._Fpga               import *
 from common._Top                import *
+from common._LiveDisplay        import *
 
 def getNsValue(var):
     return ( var.dependencies[0].value() + 1 )*6.25 

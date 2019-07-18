@@ -15,8 +15,22 @@ import pyrogue as pr
 import pyrogue.gui
 import argparse
 import common as feb
+import time
+import threading
 
 #################################################################
+
+Keep_display_alive = True
+Live_display_interval = 1
+
+#################################################################
+def runLiveDisplay(event_display):
+    while(Keep_display_alive):
+        if event_display.has_new_data:
+            event_display.refreshDisplay()
+        time.sleep(Live_display_interval)
+#################################################################
+
 
 # Set the argument parser
 parser = argparse.ArgumentParser()
@@ -56,6 +70,14 @@ parser.add_argument(
     help     = "prints the stream data event frames",
 )  
 
+parser.add_argument(
+    "--liveDisplay", 
+    type     = argBool,
+    required = False,
+    default  = False,
+    help     = "Displays live plots of pixel information",
+)  
+
 # Get the arguments
 args = parser.parse_args()
 
@@ -78,6 +100,21 @@ if (args.printEvents):
     # Connect the file reader to the event reader
     pr.streamConnect(top.dataStream[0], eventReader) 
 
+# Create Live Display
+if args.liveDisplay:
+    # Create the fifo to ensure there is no back-pressure
+    fifo = rogue.interfaces.stream.Fifo(100, 0, True)
+    # Connect the device reader ---> fifo
+    pr.streamConnect(top.dataStream[0], fifo) 
+    # Create the pixelreader streaming interface
+    event_display = feb.onlineEventDisplay(
+            submitDir='display_snapshots',font_size=4, fig_size=(10,6), overwrite=True  )
+    # Connect the fifo ---> stream reader
+    pr.streamConnect(fifo, event_display) 
+    # Retrieve pixel data streaming object
+    display_thread = threading.Thread( target=runLiveDisplay, args=(event_display,) )
+    display_thread.start()
+
 # Create GUI
 appTop = pr.gui.application(sys.argv)
 guiTop = pr.gui.GuiTop(group='rootMesh')
@@ -87,9 +124,11 @@ guiTop.resize(600, 800)
 
 print("Starting GUI...\n");
 
+    
 # Run GUI
 appTop.exec_()    
-    
+
 # Close
+Keep_display_alive = False
 top.stop()
 exit()   
