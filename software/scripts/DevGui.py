@@ -70,6 +70,14 @@ parser.add_argument(
 )  
 
 parser.add_argument(
+    "--printEvents", 
+    type     = argBool,
+    required = False,
+    default  = False,
+    help     = "prints the stream data event frames",
+)  
+
+parser.add_argument(
     "--liveDisplay", 
     type     = argBool,
     required = False,
@@ -84,14 +92,19 @@ args = parser.parse_args()
 
 # Setup root class
 print(args.ip)
-print(args.pollEn)
-print(args.initRead)
 top = feb.Top(
     ip       = args.ip,
     pollEn   = args.pollEn,
     initRead = args.initRead,       
     loadYaml = args.loadYaml,       
 )    
+
+# Create the Event reader streaming interface
+if (args.printEvents):
+    eventReader = feb.MyEventReader()
+
+    # Connect the file reader to the event reader
+    pr.streamConnect(top.dataStream[0], eventReader) 
 
 # Create Live Display
 if args.liveDisplay:
