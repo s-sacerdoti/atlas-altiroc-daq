@@ -39,7 +39,7 @@ class Top(pr.Root):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000035
+        self.minFpgaVersion = 0x20000037
         
         # Cache the parameters
         self.pllConfig   = pllConfig
