@@ -33,11 +33,13 @@ class Top(pr.Root):
             configProm  = False,
             advanceUser = False,
             pllConfig   = 'config/pll-config/Si5345-RevD-Registers.csv',
+            loadYaml    = True,
+            defaultFile = 'config/defaults.yml',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000035
+        self.minFpgaVersion = 0x20000037
         
         # Cache the parameters
         self.pllConfig   = pllConfig
@@ -48,6 +50,8 @@ class Top(pr.Root):
         self._timeout    = 1.0      if (ip[0] != 'simulation') else 100.0 
         self._pollEn     = pollEn   if (ip[0] != 'simulation') else False
         self._initRead   = initRead if (ip[0] != 'simulation') else False      
+        self.loadYaml    = loadYaml
+        self.defaultFile = defaultFile
         
         # File writer
         self.dataWriter = pr.utilities.fileio.StreamWriter()
@@ -190,7 +194,12 @@ class Top(pr.Root):
                 time.sleep(0.001)
                 self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x1)                
                 self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x1)
-               
+                
+                # Check if we should load the default YAML file
+                if self.loadYaml: 
+                    print(f'Loading {self.defaultFile} Configuration File...')
+                    self.LoadConfig(arg=self.defaultFile)
+                    
         else:
             # Hide all the "enable" variables
             for enableList in self.find(typ=pr.EnableVariable):

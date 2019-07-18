@@ -384,3 +384,4 @@ Top:
       Readout:
         StartPix: 3
         LastPix: 3
+        OnlySendFirstHit: 0x1

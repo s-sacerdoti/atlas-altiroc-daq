@@ -217,10 +217,7 @@ args = parser.parse_args()
 top = feb.Top(ip= args.ip)    
 
 # Load the default YAML file
-print('Loading Configuration File...')
-top.LoadConfig(arg='config/defaults.yml')
-
-# ... then load the User YAML file
+print(f'Loading {Configuration_LOAD_file} Configuration File...')
 top.LoadConfig(arg = Configuration_LOAD_file)
 
 if DebugPrint:
