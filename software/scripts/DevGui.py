@@ -27,9 +27,7 @@ Live_display_interval = 1
 def runLiveDisplay(event_display):
     while(Keep_display_alive):
         if event_display.has_new_data:
-            print('Refreshing Display... ')
             event_display.refreshDisplay()
-            print('Display Refreshed')
         time.sleep(Live_display_interval)
 #################################################################
 
