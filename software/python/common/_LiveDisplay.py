@@ -219,7 +219,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
                     self.toa_array[pixel.PixelIndex][pixel.ToaData] += 1
                     #scale down tot data so we can use 128 bins for tot and toa
                     tot_bin = int(pixel.TotData/64)
-                    self.tot_array[tot_bin][pixel.PixelIndex] += 1
+                    self.tot_array[pixel.PixelIndex][tot_bin] += 1
 
             hits_toa_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
             self.hits_toa_array += hits_toa_data_binary
