@@ -251,44 +251,12 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         self.cbar2.draw_all() 
         #self.fig.tight_layout()
         if(snap): self.fig.savefig(self.submitDir+"/"+ figname + ".pdf")
-        print('---|Drawing canvas...')
-        #self.fig.canvas.draw()
-        self.ax.draw_artist(self.im)
-        self.ax1.draw_artist(self.im1)
-        self.ax2.draw_artist(self.im2)
-        self.fig.canvas.update()
+        self.fig.canvas.draw()
+        #self.ax.draw_artist(self.im)
+        #self.ax1.draw_artist(self.im1)
+        #self.ax2.draw_artist(self.im2)
+        #self.fig.canvas.update()
 
-        print('---|Canvas drawn')
-        
         self.fig.canvas.flush_events()
 
     __makeDisplay = makeDisplay
-
-'''
-[<matplotlib.spines.Spine object at 0x7f48313be518>, 
-<matplotlib.spines.Spine object at 0x7f48313be5f8>,
-<matplotlib.spines.Spine object at 0x7f48313be6d8>
-<matplotlib.spines.Spine object at 0x7f48313be7b8>
-<matplotlib.axis.XAxis object at 0x7f48313be4a8>
-<matplotlib.axis.YAxis object at 0x7f48313beb70> Text(0.5, 1, 'TOA'), Text(0.0, 1, ''), Text(1.0, 1, ''),
-<matplotlib.image.AxesImage object at 0x7f48315cfeb8>,
-<matplotlib.patches.Rectangle object at 0x7f48315cfef0>] 
-
-[<matplotlib.spines.Spine object at 0x7f4830608630>,
-<matplotlib.spines.Spine object at 0x7f483063ad30>,
-<matplotlib.spines.Spine object at 0x7f483063a908>,
-<matplotlib.spines.Spine object at 0x7f483063a4e0>,
-<matplotlib.axis.XAxis object at 0x7f483063a400>,
-<matplotlib.axis.YAxis object at 0x7f4830618048>, Text(0.5, 1, 'TOT'), Text(0.0, 1, ''), Text(1.0, 1, ''),
-<matplotlib.image.AxesImage object at 0x7f48305d37f0>,
-<matplotlib.patches.Rectangle object at 0x7f48305d3828>]
-
-[<matplotlib.spines.Spine object at 0x7f48382bec50>,
-<matplotlib.spines.Spine object at 0x7f48382bed68>,
-<matplotlib.spines.Spine object at 0x7f48382bee48>,
-<matplotlib.spines.Spine object at 0x7f48382bef28>,
-<matplotlib.axis.XAxis object at 0x7f48382bebe0>,
-<matplotlib.axis.YAxis object at 0x7f48382942b0>, Text(0.5, 1, 'TOA - Hits'), Text(0.0, 1, ''), Text(1.0, 1, ''),
-<matplotlib.image.AxesImage object at 0x7f48382b10f0>,
-<matplotlib.patches.Rectangle object at 0x7f48382b1128>]
-'''
