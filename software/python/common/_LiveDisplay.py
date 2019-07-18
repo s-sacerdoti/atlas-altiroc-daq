@@ -64,7 +64,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
                     1D_array_of_pixel_indices_that_recorded_TOA_hit_not_overflow,
                     instant=True)
     '''
-    def __init__(self, toa_xrange=(0,127), toa_yrange=(0,24), toa_xbins=128, toa_ybins=25, 
+    def __init__(self, plot_title='Live Display', toa_xrange=(0,127), toa_yrange=(0,24), toa_xbins=128, toa_ybins=25, 
                  tot_xrange=(0,8192), tot_yrange=(0,24), tot_xbins=128, tot_ybins=25, 
                  xpixels=5, ypixels=5, font_size=6, fig_size=(15,8), submitDir='./', overwrite=False):
         '''
@@ -110,7 +110,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         plt.rcParams.update({'font.size': font_size})
 #         plt.ion()
 
-        self.fig = plt.figure(figsize=fig_size, dpi=100)
+        self.fig = plt.figure(num=plot_title, figsize=fig_size, dpi=100)
         self.gs = gridspec.GridSpec(6, 16)
         
         self.ax = self.fig.add_subplot(self.gs[:3, :14])
@@ -135,8 +135,8 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         
         self.ax2 = self.fig.add_subplot(self.gs[2:5, 14:])
         self.ax2.set_title('TOA - Hits')
-        self.ax2.set_xlabel('X index')
-        self.ax2.set_ylabel('Y index')
+        self.ax2.set_xlabel('Row')
+        self.ax2.set_ylabel('Column')
         self.im2 = self.ax2.imshow(self.hits_toa_array, aspect='equal', cmap='cividis')
         self.cbar2 = self.ax2.figure.colorbar(self.im2, ax=self.ax2, orientation='horizontal', aspect=20, pad=.15)
         self.cbar2.ax.set_ylabel("Scale")
@@ -184,6 +184,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         self.toa_array = np.zeros((self.toa_ybins,self.toa_xbins), dtype=int)
         self.tot_array = np.zeros((self.tot_ybins,self.tot_xbins), dtype=int)
         self.hits_toa_array = np.zeros((self.ypixels,self.xpixels), dtype=int)
+        self.refreshDisplay()
         
     def snapshot(self):
         '''

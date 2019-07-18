@@ -24,7 +24,7 @@ Keep_display_alive = True
 Live_display_interval = 1
 
 #################################################################
-def runLiveDisplay(event_display):
+def runLiveDisplay(event_display,fpga_index):
     while(Keep_display_alive):
         if event_display.has_new_data:
             event_display.refreshDisplay()
@@ -107,19 +107,26 @@ if (args.printEvents):
     pr.streamConnect(top.dataStream[0], eventReader) 
 
 # Create Live Display
+live_display_reset = []
 if args.liveDisplay:
-    # Create the fifo to ensure there is no back-pressure
-    fifo = rogue.interfaces.stream.Fifo(100, 0, True)
-    # Connect the device reader ---> fifo
-    pr.streamConnect(top.dataStream[0], fifo) 
-    # Create the pixelreader streaming interface
-    event_display = feb.onlineEventDisplay(
-            submitDir='display_snapshots',font_size=4, fig_size=(10,6), overwrite=True  )
-    # Connect the fifo ---> stream reader
-    pr.streamConnect(fifo, event_display) 
-    # Retrieve pixel data streaming object
-    display_thread = threading.Thread( target=runLiveDisplay, args=(event_display,) )
-    display_thread.start()
+    for fpga_index in range( len(args.ip) ):
+        # Create the fifo to ensure there is no back-pressure
+        fifo = rogue.interfaces.stream.Fifo(100, 0, True)
+        # Connect the device reader ---> fifo
+        pr.streamConnect(top.dataStream[fpga_index], fifo) 
+        # Create the pixelreader streaming interface
+        event_display = feb.onlineEventDisplay(
+                plot_title='FPGA ' + str(fpga_index),
+                submitDir='display_snapshots',
+                font_size=4,
+                fig_size=(10,6),
+                overwrite=True  )
+        live_display_reset.append( event_display.reset )
+        # Connect the fifo ---> stream reader
+        pr.streamConnect(fifo, event_display) 
+        # Retrieve pixel data streaming object
+        display_thread = threading.Thread( target=runLiveDisplay, args=(event_display,fpga_index,) )
+        display_thread.start()
 
 # Create GUI
 appTop = pr.gui.application(sys.argv)
