@@ -108,13 +108,13 @@ Top:
         StartPix: 0
         LastPix: 24
         #####################
-        ProbeToRstDly: 0x0
-        RstPulseWidth: 0xf
-        RstToReadDly: 0xf
-        RckHighWidth: 0xf
-        RckLowWidth: 0xf
+        ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
+        RstPulseWidth: 0xF
+        RstToReadDly: 0x0   # Min. tuned on 18JULY2019:LLR
+        RckHighWidth: 0x2   # Min. tuned on 18JULY2019:LLR
+        RckLowWidth: 0x2    # Min. tuned on 18JULY2019:LLR
         #####################
         RestoreProbeConfig: 0x0
         EnProbeWrite: 0x1
-        OnlySendFirstHit: 0x1
+        OnlySendFirstHit: 0x0
         #####################
