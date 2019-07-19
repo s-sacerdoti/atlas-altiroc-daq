@@ -135,8 +135,8 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         
         self.ax2 = self.fig.add_subplot(self.gs[2:5, 14:])
         self.ax2.set_title('TOA - Hits')
-        self.ax2.set_xlabel('Row')
-        self.ax2.set_ylabel('Column')
+        self.ax2.set_xlabel('Column')
+        self.ax2.set_ylabel('Row')
         self.im2 = self.ax2.imshow(self.hits_toa_array, aspect='equal', cmap='cividis')
         self.cbar2 = self.ax2.figure.colorbar(self.im2, ax=self.ax2, orientation='horizontal', aspect=20, pad=.15)
         self.cbar2.ax.set_ylabel("Scale")
