@@ -193,9 +193,11 @@ class Top(pr.Root):
                 # Reset the RAM and TDC
                 self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x0)
                 self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x0)
+                self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x0)
                 time.sleep(0.001)
                 self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x1)                
                 self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x1)
+                self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x1)
                 
                 # Check if we should load the default YAML file
                 if self.loadYaml: 
