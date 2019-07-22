@@ -203,7 +203,11 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x1)                
                 self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x1)
                 self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x1)
-                    
+                
+                # Reset the sequence and trigger counters
+                self.Fpga[i].Asic.Trig.CountReset()
+                self.Fpga[i].Asic.Readout.SeqCntRst()
+                
         else:
             # Hide all the "enable" variables
             for enableList in self.find(typ=pr.EnableVariable):

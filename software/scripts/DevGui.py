@@ -67,6 +67,14 @@ parser.add_argument(
     required = False,
     default  = True,
     help     = "Enable loading of the defaults at start",
+) 
+
+parser.add_argument(
+    "--defaultFile", 
+    nargs    ='+',
+    required = False,
+    default  = ['config/defaults.yml'],
+    help     = "List of YAML files to load at the root.start()",
 )  
 
 parser.add_argument(
@@ -93,10 +101,11 @@ args = parser.parse_args()
 # Setup root class
 print(args.ip)
 top = feb.Top(
-    ip       = args.ip,
-    pollEn   = args.pollEn,
-    initRead = args.initRead,       
-    loadYaml = args.loadYaml,       
+    ip          = args.ip,
+    pollEn      = args.pollEn,
+    initRead    = args.initRead,       
+    loadYaml    = args.loadYaml,       
+    defaultFile = args.defaultFile,       
 )    
 
 # Create the Event reader streaming interface
