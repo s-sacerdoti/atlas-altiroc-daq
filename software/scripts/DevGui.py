@@ -101,7 +101,7 @@ top = feb.Top(
 
 # Create the Event reader streaming interface
 if (args.printEvents):
-    eventReader = feb.MyEventReader()
+    eventReader = feb.PrintEventReader()
 
     # Connect the file reader to the event reader
     pr.streamConnect(top.dataStream[0], eventReader) 

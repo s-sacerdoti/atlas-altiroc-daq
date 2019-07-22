@@ -36,7 +36,7 @@ class Top(pr.Root):
             advanceUser = False,
             pllConfig   = 'config/pll-config/Si5345-RevD-Registers.csv',
             loadYaml    = True,
-            defaultFile = 'config/defaults.yml',
+            defaultFile = ['config/defaults.yml'],
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
@@ -189,8 +189,13 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.Trig.enable.hidden     = False
                 self.Fpga[i].Asic.Probe.enable.hidden    = False
                 self.Fpga[i].Asic.Readout.enable.hidden  = False
+                
+                # Check if we should load the default YAML file
+                for idx in range(len(self.defaultFile)):
+                    print(f'Loading {self.defaultFile[idx]} Configuration File...')
+                    self.LoadConfig(self.defaultFile[idx])
             
-                # Reset the RAM and TDC
+                # Reset the RAM, TDC and DLL resets
                 self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x0)
                 self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x0)
                 self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x0)
@@ -198,11 +203,6 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x1)                
                 self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x1)
                 self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x1)
-                
-                # Check if we should load the default YAML file
-                if self.loadYaml: 
-                    print(f'Loading {self.defaultFile} Configuration File...')
-                    self.LoadConfig(arg=self.defaultFile)
                     
         else:
             # Hide all the "enable" variables

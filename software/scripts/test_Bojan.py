@@ -214,15 +214,14 @@ args = parser.parse_args()
 
 #################################################################
 # Setup root class
-top = feb.Top(ip= args.ip)    
-
-# Load the default YAML file
-print(f'Loading {Configuration_LOAD_file} Configuration File...')
-top.LoadConfig(arg = Configuration_LOAD_file)
+top = feb.Top(
+    ip          = args.ip,
+    defaultFile = ['config/defaults.yml',Configuration_LOAD_file],
+    )    
 
 if DebugPrint:
     # Tap the streaming data interface (same interface that writes to file)
-    dataStream = feb.MyEventReader()    
+    dataStream = feb.PrintEventReader()    
     pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
 
 # Custom Configuration
