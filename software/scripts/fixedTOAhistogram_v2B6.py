@@ -42,7 +42,7 @@ def parse_arguments():
 
     # Add arguments
     parser.add_argument("--ip", nargs = '+', required = True, help = "IP address")
-    parser.add_argument("--cfg", type = str, required = False, default = 'config/config_v2B6_noPAprobe.yml', help = "config file")
+    parser.add_argument("--cfg", type = str, required = False, default = 'config/config_v2B6_def.yml', help = "config file")
     parser.add_argument("--ch", type = int, required = True, help = "channel")
     parser.add_argument("--Q", type = int, required = True, help = "injected charge DAC")
     parser.add_argument("--DAC", type = int, required = True, help = "DAC vth")
@@ -55,7 +55,7 @@ def parse_arguments():
 #################################################################
 def setupRogue(argip,configFile):
     # Setup root class
-    top = feb.Top(ip= argip)    
+    top = feb.Top(ip= argip, loadYaml= False)    
     
     # Start the system
     #top.start(initRead=True)

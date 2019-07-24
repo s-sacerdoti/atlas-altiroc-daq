@@ -18,7 +18,7 @@ DebugPrint = True
 
 #Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
 Configuration_LOAD_file = 'config/config_v2B6_noPAprobe.yml' # <= Path to the Configuration File to be Loaded
-#Configuration_LOAD_file = 'config/config_v2B6.yml' # <= Path to the Configuration File to be Loaded
+#Configuration_LOAD_file = 'config/config_v2B6_def.yml' # <= Path to the Configuration File to be Loaded
 
 pixel_number = 4 # <= Pixel to be Tested
 
@@ -264,6 +264,7 @@ args = parser.parse_args()
 
 #################################################################
 # Setup root class
+#top = feb.Top(ip= args.ip, loadYaml= False)    
 top = feb.Top(ip= args.ip)    
 
 # Load the default YAML file
