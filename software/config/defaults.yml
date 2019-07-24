@@ -16,10 +16,10 @@ Top:
         FpgaTdcClkHigh: 0x1
         FpgaTdcClkLow: 0x1
       CalPulse:
-        CalPulseDelay: 0xFFFF
+        CalPulseDelay: 0x16
         CalPulseCount: 0x0
-        CalPulseWidth: 0x1
-        Continuous: 0x0
+        CalPulseWidth: 0x8
+        Continuous: 0x1
       Trig:
         TrigTypeSel: Slave
         StrobeAlign: 0x3
@@ -37,14 +37,14 @@ Top:
         Write_opt: 0x0
         Precharge_opt: 0x0
         ref_bg: 0x1
-        dac_pulser: 0x7
+        dac_pulser: 0xc
         Ccomp_TZ: 0x0
         Rin_Vpa: 0x0
         Cp_Vpa: 0x0
-        dac_biaspa: 0xc
+        dac_biaspa: 0x1e
         ON_dac_biaspa: 0x1
         ON_ota_dac: 0x1
-        DAC10bit: 0x80
+        DAC10bit: 320
         SatFVa: 0x0
         IntFVa: 0x0
         SatFTz: 0x0
@@ -52,7 +52,7 @@ Top:
         totf_satovfw: 0x0
         totc_satovfw: 0x0
         toa_satovfw: 0x0
-        Ck40_choice: 0x0
+        Ck40_choice: 0x1
         cBitf: 0x0
         DLL_ALockR_en: 0x1
         CP_b: 0x3
@@ -61,12 +61,12 @@ Top:
         ext_Vcrtls_en: 0x0
         cBitc: 0x0
         ext_Vcrtlc_en: 0x0
-        en_8drivers: 0x0
+        en_8drivers: 0x1
         EN_ck_SRAM[:]: 0x1
         ON_Ctest[:]: 0x0
-        disable_pa[:]: 0x0
-        bit_vth_cor[:]: 0x8
-        ON_discri[:]: 0x1
+        disable_pa[:]: 0x1
+        bit_vth_cor[:]: 0x40
+        ON_discri[:]: 0x0
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
         cBit_f_TOT[:]: 0x0
@@ -74,11 +74,11 @@ Top:
         cBit_s_TOT[:]: 0x0
         cBit_s_TOA[:]: 0x0
         cBit_f_TOA[:]: 0x0
-        cd[0]: 0x0
-        cd[1]: 0x0
-        cd[2]: 0x0
-        cd[3]: 0x0
-        cd[4]: 0x0
+        cd[0]: 0x7
+        cd[1]: 0x7
+        cd[2]: 0x7
+        cd[3]: 0x7
+        cd[4]: 0x7
         PLL: 0x1
         dac_icpb: 0xa
         # dac_CP_BWb: 0x20 # Legacy V1 value
@@ -86,7 +86,7 @@ Top:
         dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
         EN_Ext_Vin_VCO: 0x0
         setN: 0x3
-        setProbe: 0x0
+        setProbe: 0x1
         EN_500: 0x0
         EN_1000: 0x0
         EN_2000: 0x1
@@ -104,17 +104,17 @@ Top:
         En_40M: 0x1
         En_640M: 0x1
         rstL: 0x1       
-      Readout:
-        StartPix: 0
-        LastPix: 24
-        #####################
-        ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
-        RstPulseWidth: 0xF
-        RstToReadDly: 0x0   # Min. tuned on 18JULY2019:LLR
-        RckHighWidth: 0x2   # Min. tuned on 18JULY2019:LLR
-        RckLowWidth: 0x2    # Min. tuned on 18JULY2019:LLR
-        #####################
-        RestoreProbeConfig: 0x0
-        EnProbeWrite: 0x1
-        OnlySendFirstHit: 0x0
-        #####################
+      #Readout:
+      #  StartPix: 0
+      #  LastPix: 24
+      #  #####################
+      #  ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
+      #  RstPulseWidth: 0xF
+      #  RstToReadDly: 0x0   # Min. tuned on 18JULY2019:LLR
+      #  RckHighWidth: 0x2   # Min. tuned on 18JULY2019:LLR
+      #  RckLowWidth: 0x2    # Min. tuned on 18JULY2019:LLR
+      #  #####################
+      #  RestoreProbeConfig: 0x0
+      #  EnProbeWrite: 0x1
+      #  OnlySendFirstHit: 0x0
+      #  #####################

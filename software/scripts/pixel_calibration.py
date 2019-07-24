@@ -17,11 +17,12 @@ asicVersion = 1 # <= Select either V1 or V2 of the ASIC
 DebugPrint = False
 
 Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
+#Configuration_LOAD_file = 'config/config_v2B6_noPAprobe.yml' # <= Path to the Configuration File to be Loaded
 
-Number_of_pixels = 25
-Pixel_range_low = 0
-Pixel_range_high = 25 #NOT inclusive
-Pixel_iteration = 1
+Pixel_range_low = 4
+Pixel_range_high = 5 #NOT inclusive
+pixel_array = range(Pixel_range_low,Pixel_range_high)
+Number_of_pixels = len(pixel_array)
 No_hits_error_value = -1
 
 
@@ -34,7 +35,7 @@ DelayRange_final_step_size = 2 # <= step size that final optimal range will be s
 DelayRange_constriction_factor = 8 # <= how much tighter each new sweep is
 DelayRange_final_size = 150 # <= length the optimal delay range should have
 
-NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
+NofIterationsTOA = 20  # <= Number of Iterations for each Delay value
 
 
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
@@ -81,13 +82,13 @@ def set_fpga_for_custom_config(top, pixel_number):
     for i in range(16):
         top.Fpga[0].Asic.SlowControl.EN_trig_ext[i].set(0x0)
 
+    top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)
+    top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x1)
     top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x0)
+    top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(0x40)
     top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x1)
     top.Fpga[0].Asic.SlowControl.EN_hyst[pixel_number].set(0x1)
     top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x0)
-    top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)
-    top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x1)
-    top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(0x30)
 
     top.Fpga[0].Asic.SlowControl.Write_opt.set(0x0)
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
@@ -116,11 +117,11 @@ def set_fpga_for_custom_config(top, pixel_number):
     top.Fpga[0].Asic.SlowControl.cBit_f_TOT[pixel_number].set(0xf)  #f
     top.Fpga[0].Asic.SlowControl.cBit_s_TOT[pixel_number].set(0x0)  #0
     top.Fpga[0].Asic.SlowControl.cBit_c_TOT[pixel_number].set(0xf)  #f
-    top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(0x1) #0
-    top.Fpga[0].Asic.SlowControl.cd[0].set(0x0) #6
-    top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x10) #10
-    top.Fpga[0].Asic.SlowControl.dac_pulser.set(0x7) #7
-    top.Fpga[0].Asic.SlowControl.DAC10bit.set(0x19f) #173 / 183
+    top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(0x0) #0
+    top.Fpga[0].Asic.SlowControl.cd[0].set(0x7) #6
+    top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x1e) #1e
+    top.Fpga[0].Asic.SlowControl.dac_pulser.set(0xc) #7
+    top.Fpga[0].Asic.SlowControl.DAC10bit.set(310) #173 / 183
 
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(0x0)   # Rising edge of EXT_TRIG or CMD_PULSE delay
     top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0xfff) # Falling edge of EXT_TRIG (independent of CMD_PULSE)
@@ -291,10 +292,10 @@ pr.streamConnect(dataReader, dataStream)
 
 LSB_estimate_array = np.zeros(Number_of_pixels)
 range_list = [0]*Number_of_pixels
-for pixel_number in range(Pixel_range_low, Pixel_range_high, Pixel_iteration):
-    LSB_est, optimal_range = run_pixel_calibration(top, dataStream, pixel_number)
-    LSB_estimate_array[pixel_number] = LSB_est
-    range_list[pixel_number] = optimal_range
+for i_pix in range(Number_of_pixels):
+    LSB_est, optimal_range = run_pixel_calibration(top, dataStream, pixel_array[i_pix])
+    LSB_estimate_array[i_pix] = LSB_est
+    range_list[i_pix] = optimal_range
 
 #print results
 print('\n\n\n')
@@ -303,7 +304,8 @@ print('# Final Results #')
 print('#################')
 print('Pixel | LSB_est | Range')
 print('------+---------+------------')
-for pixel_number in range(Pixel_range_low, Pixel_range_high, Pixel_iteration):
-    print( '   {:<2} | {:<7.3f} | {}'.format(pixel_number, LSB_estimate_array[pixel_number], range_list[pixel_number]) )
+for i_pix in range(Number_of_pixels):
+    pixel_number=pixel_array[i_pix]
+    print( '   {:<2} | {:<7.3f} | {}'.format(pixel_number, LSB_estimate_array[i_pix], range_list[i_pix]) )
 
 top.stop()
