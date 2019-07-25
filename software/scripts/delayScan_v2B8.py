@@ -23,7 +23,7 @@ Configuration_LOAD_file = 'config/config_v2B6_noPAprobe.yml' # <= Path to the Co
 pixel_number = 4 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
-DelayRange_low = 1900     # <= low end of Programmable Delay Sweep
+DelayRange_low = 2100     # <= low end of Programmable Delay Sweep
 DelayRange_high = 2700     # <= high end of Programmable Delay Sweep
 DelayRange_step = 10     # <= step size Programmable Delay Sweep
 NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
@@ -159,7 +159,7 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
 
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
-    top.Fpga[0].Asic.SlowControl.CP_b.set(0x4) #5
+    top.Fpga[0].Asic.SlowControl.CP_b.set(0x6) #5
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #0
@@ -188,7 +188,7 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.cd[2].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x1e) #10
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(12) #7
-    top.Fpga[0].Asic.SlowControl.DAC10bit.set(320) #173 / 183
+    top.Fpga[0].Asic.SlowControl.DAC10bit.set(350) #173 / 183
     
     #top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x0)
     #time.sleep(0.001)
