@@ -23,17 +23,17 @@ Configuration_LOAD_file = 'config/config_v2B6_noPAprobe.yml' # <= Path to the Co
 pixel_number = 4 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
-DelayRange_low = 2200     # <= low end of Programmable Delay Sweep
+DelayRange_low = 2100     # <= low end of Programmable Delay Sweep
 DelayRange_high = 2700     # <= high end of Programmable Delay Sweep
 DelayRange_step = 10     # <= step size Programmable Delay Sweep
-NofIterationsTOA = 30  # <= Number of Iterations for each Delay value
+NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
 
 DataAcqusitionTOT = 0   # <= Enable TOT Data Acquisition (Pulser Sweep)
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
 PulserRangeH = 64       # <= High Value of Pulser Sweep Range
 PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
 NofIterationsTOT = 100   # <= Number of Iterations for each Pulser Value
-DelayValueTOT = 100       # <= Value of Programmable Delay for TOT Pulser Sweep
+DelayValueTOT = 2400       # <= Value of Programmable Delay for TOT Pulser Sweep
 
 nTOA_TOT_Processing = 0 # <= Selects the Data to be Processed and Plotted (0 = TOA, 1 = TOT) 
 
@@ -160,8 +160,8 @@ def set_fpga_for_custom_config(top):
 
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
     top.Fpga[0].Asic.SlowControl.CP_b.set(0x4) #5
-    top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x0) #0
-    top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #1
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #need to fix value externally
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #0
 
     top.Fpga[0].Asic.SlowControl.totf_satovfw.set(0x1)
@@ -288,7 +288,7 @@ if DataAcqusitionTOA == 1:
 top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValueTOT)
 
 if DataAcqusitionTOT == 1:
-    acquire_data(PulserRangeL, PulserRangeH, PulserStep, top, 
+    acquire_data(PulserRangeL, PulserRangeH, PulserRangeStep, top, 
             top.Fpga[0].Asic.SlowControl.dac_pulser, 'TOT', NofIterationsTOT, dataStream)
 
 #######################
@@ -418,7 +418,7 @@ if nTOA_TOT_Processing == 1:
         dataReader = rogue.utilities.fileio.StreamReader()
 
         # Create the Event reader streaming interface
-        dataStream = MyFileReader()
+        dataStream = feb.MyFileReader()
 
         # Connect the file reader ---> event reader
         pr.streamConnect(dataReader, dataStream) 
