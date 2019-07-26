@@ -22,24 +22,25 @@ Configuration_LOAD_file = 'config/config_v2B6_noPAprobe.yml' # <= Path to the Co
 
 pixel_number = 4 # <= Pixel to be Tested
 
-DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
-DelayRange_low = 1900     # <= low end of Programmable Delay Sweep
+DataAcqusitionTOA = 0   # <= Enable TOA Data Acquisition (Delay Sweep)
+DelayRange_low = 2250     # <= low end of Programmable Delay Sweep
 DelayRange_high = 2700     # <= high end of Programmable Delay Sweep
 DelayRange_step = 10     # <= step size Programmable Delay Sweep
 NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
 
-DataAcqusitionTOT = 0   # <= Enable TOT Data Acquisition (Pulser Sweep)
+DataAcqusitionTOT = 1   # <= Enable TOT Data Acquisition (Pulser Sweep)
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
-PulserRangeH = 64       # <= High Value of Pulser Sweep Range
+PulserRangeH = 40       # <= High Value of Pulser Sweep Range
 PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
 NofIterationsTOT = 100   # <= Number of Iterations for each Pulser Value
 DelayValueTOT = 2400       # <= Value of Programmable Delay for TOT Pulser Sweep
 
-nTOA_TOT_Processing = 0 # <= Selects the Data to be Processed and Plotted (0 = TOA, 1 = TOT) 
+nTOA_TOT_Processing = 1 # <= Selects the Data to be Processed and Plotted (0 = TOA, 1 = TOT) 
 
 TOT_f_Calibration_En = 0                                       	   # <= Enables Calculation of TOT Fine-Interpolation Calibration Data and Saves them
 #TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_nocalibration.txt'
-TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_calibration2.txt'  # <= Path to the TOT Fine-Interpolation Calibration File used in TOT Data Processing
+TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_calibration.txt'  # <= Path to the TOT Fine-Interpolation Calibration File used in TOT Data Processing
+#TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_calibration2.txt'  # <= Path to the TOT Fine-Interpolation Calibration File used in TOT Data Processing
 TOT_f_Calibration_SAVE_file = 'TestData/TOT_fine_calibration2.txt'  # <= Path to the File where TOT Fine-Interpolation Calibration Data are Saved
 
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
@@ -51,8 +52,8 @@ nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warn
 
 HistDelayTOA1 = 2400  # <= Delay Value for Histogram to be plotted in Plot (1,0)
 HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
-HistPulserTOT1 = 32  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
-HistPulserTOT2 = 25  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
+HistPulserTOT1 = 5  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
+HistPulserTOT2 = 10  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
 
 Disable_CustomConfig = 0 # <= Disables the ASIC Configuration Customization inside the Script (Section Below) => all Configuration Parameters are taken from Configuration File   
 
@@ -162,13 +163,13 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.CP_b.set(0x5) #5 32ps LSB for B7
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #need to fix value externally
-    top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #0
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x1) #0
 
     top.Fpga[0].Asic.SlowControl.totf_satovfw.set(0x1)
     top.Fpga[0].Asic.SlowControl.totc_satovfw.set(0x1)
     top.Fpga[0].Asic.SlowControl.toa_satovfw.set(0x1)
 
-    top.Fpga[0].Asic.SlowControl.SatFVa.set(0x4) #3
+    top.Fpga[0].Asic.SlowControl.SatFVa.set(0x0) #3
     top.Fpga[0].Asic.SlowControl.IntFVa.set(0x0) #1
     #top.Fpga[0].Asic.SlowControl.SatFTz.set(0x0) #4
     #top.Fpga[0].Asic.SlowControl.IntFTz.set(0x0) #1
@@ -179,20 +180,17 @@ def set_fpga_for_custom_config(top):
 
     top.Fpga[0].Asic.SlowControl.cBit_f_TOA[pixel_number].set(0x0)  #0
     top.Fpga[0].Asic.SlowControl.cBit_s_TOA[pixel_number].set(0x0)  #0
-    top.Fpga[0].Asic.SlowControl.cBit_f_TOT[pixel_number].set(0xf)  #f
+    top.Fpga[0].Asic.SlowControl.cBit_f_TOT[pixel_number].set(0x0)  #f
     top.Fpga[0].Asic.SlowControl.cBit_s_TOT[pixel_number].set(0x0)  #0
-    top.Fpga[0].Asic.SlowControl.cBit_c_TOT[pixel_number].set(0xf)  #f
+    top.Fpga[0].Asic.SlowControl.cBit_c_TOT[pixel_number].set(0x0)  #f
     top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(0x0) #0
-    top.Fpga[0].Asic.SlowControl.cd[0].set(0x7) #6
+    top.Fpga[0].Asic.SlowControl.cd[0].set(0x0) #6
     top.Fpga[0].Asic.SlowControl.cd[1].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.cd[2].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x1e) #10
-    top.Fpga[0].Asic.SlowControl.dac_pulser.set(12) #7
+    top.Fpga[0].Asic.SlowControl.dac_pulser.set(13) #7
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(320) #173 / 183
     
-    #top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x0)
-    #time.sleep(0.001)
-    #top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x1)
 
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(0x0)   # Rising edge of EXT_TRIG or CMD_PULSE delay
     top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0xfff) # Falling edge of EXT_TRIG (independent of CMD_PULSE)
@@ -276,6 +274,15 @@ if DebugPrint:
     dataStream = feb.MyEventReader()    
     pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
 
+#testing resets
+top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x0)
+time.sleep(0.001)
+top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x1)
+time.sleep(0.001)
+top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)
+time.sleep(0.001)
+top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
+
 # Custom Configuration
 if Disable_CustomConfig == 0:
     set_fpga_for_custom_config(top)
@@ -347,9 +354,14 @@ if nTOA_TOT_Processing == 0:
     MeanDataStdev = np.mean(np.sort(DataStdev)[index[0][0]:len(np.sort(DataStdev))])
 
     # LSB estimation based on "DelayStep" value
-    index=np.where(DataMean)
     print(DataMean)
-    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
+    index=np.where(DataMean)
+    #avoid crashes due to fit
+    if len(index)>6:
+        fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
+    else: fit=[1,1]
+
+    #fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
     LSBest = DelayStep/abs(fit[0])
 
 #################################################################
