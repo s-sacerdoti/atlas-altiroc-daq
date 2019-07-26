@@ -347,9 +347,19 @@ if nTOA_TOT_Processing == 0:
     MeanDataStdev = np.mean(np.sort(DataStdev)[index[0][0]:len(np.sort(DataStdev))])
 
     # LSB estimation based on "DelayStep" value
-    index=np.where(DataMean)
     print(DataMean)
-    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
+    index=np.where(DataMean)
+    #avoid crashes due to fit
+    if len(index)>6:
+        fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
+    else: fit=[1,1]
+
+    ##find indexes for fit and avoid crashes
+    #i_min = next(x[0] for x in enumerate(DataMean) if x[1] > 1)
+    #i_max = DataMean[i_min:].find(0)-1
+    #if i_max < len(Delay) and i_min!=i_max:
+    #    fit = np.polyfit(Delay[i_min:i_max], DataMean[i_min:i_max],1)
+    #else: fit=[1,1]
     LSBest = DelayStep/abs(fit[0])
 
 #################################################################
@@ -468,7 +478,7 @@ if nTOA_TOT_Processing == 1:
             else:
                 HitDataTOT = []    
         else:
-            if len(HitDataTOTf) > 0:
+            if le32HitDataTOTf) > 0:
                 HitDataTOT = list((np.asarray(HitDataTOTc) + 1 - np.asarray(HitDataTOTf)/4)*LSB_TOTc)
             else:
                 HitDataTOT = []  
