@@ -22,20 +22,20 @@ Configuration_LOAD_file = 'config/config_v2B6_noPAprobe.yml' # <= Path to the Co
 
 pixel_number = 4 # <= Pixel to be Tested
 
-DataAcqusitionTOA = 0   # <= Enable TOA Data Acquisition (Delay Sweep)
+DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 DelayRange_low = 2250     # <= low end of Programmable Delay Sweep
 DelayRange_high = 2700     # <= high end of Programmable Delay Sweep
 DelayRange_step = 10     # <= step size Programmable Delay Sweep
 NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
 
-DataAcqusitionTOT = 1   # <= Enable TOT Data Acquisition (Pulser Sweep)
+DataAcqusitionTOT = 0   # <= Enable TOT Data Acquisition (Pulser Sweep)
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
 PulserRangeH = 40       # <= High Value of Pulser Sweep Range
 PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
 NofIterationsTOT = 100   # <= Number of Iterations for each Pulser Value
 DelayValueTOT = 2400       # <= Value of Programmable Delay for TOT Pulser Sweep
 
-nTOA_TOT_Processing = 1 # <= Selects the Data to be Processed and Plotted (0 = TOA, 1 = TOT) 
+nTOA_TOT_Processing = 0 # <= Selects the Data to be Processed and Plotted (0 = TOA, 1 = TOT) 
 
 TOT_f_Calibration_En = 0                                       	   # <= Enables Calculation of TOT Fine-Interpolation Calibration Data and Saves them
 #TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_nocalibration.txt'
@@ -184,11 +184,11 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.cBit_s_TOT[pixel_number].set(0x0)  #0
     top.Fpga[0].Asic.SlowControl.cBit_c_TOT[pixel_number].set(0x0)  #f
     top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(0x0) #0
-    top.Fpga[0].Asic.SlowControl.cd[0].set(0x0) #6
+    top.Fpga[0].Asic.SlowControl.cd[0].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.cd[1].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.cd[2].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x1e) #10
-    top.Fpga[0].Asic.SlowControl.dac_pulser.set(13) #7
+    top.Fpga[0].Asic.SlowControl.dac_pulser.set(40) #7
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(320) #173 / 183
     
 
@@ -357,11 +357,11 @@ if nTOA_TOT_Processing == 0:
     print(DataMean)
     index=np.where(DataMean)
     #avoid crashes due to fit
-    if len(index)>6:
-        fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
-    else: fit=[1,1]
+    #if len(index)>6:
+    #    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
+    #else: fit=[1,1]
 
-    #fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
+    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
     LSBest = DelayStep/abs(fit[0])
 
 #################################################################
