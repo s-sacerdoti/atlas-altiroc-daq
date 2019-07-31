@@ -215,13 +215,15 @@ def acquire_data(range_low, range_high, range_step, top,
     return fileList
 #################################################################
 def get_sweep_index(sweep_value, sweep_low, sweep_high, sweep_step):
-    if sweep_value < sweep_low or sweep_high < sweep_value:
-        raise ValueError( 'Sweep value {} outside of sweep range [{}:{}]'.format(sweep_value, sweep_low, sweep_high) )
+    if sweep_value < sweep_low:
+        sweep_value = sweep_low+sweep_step
+        print( 'Sweep value {} outside of sweep range [{}:{}]'.format(sweep_value, sweep_low, sweep_high) )
+    elif sweep_high < sweep_value:
+        sweep_value = sweep_high-sweep_step
+        print( 'Sweep value {} outside of sweep range [{}:{}]'.format(sweep_value, sweep_low, sweep_high) )
     if sweep_value % sweep_step != 0:
-        raise ValueError( 'Sweep value {} is not a multiple of sweep step {}'.format(sweep_value, sweep_step) )
-    return int ( (sweep_value - sweep_low) / sweep_step )
-#################################################################
-
+        print( 'Sweep value {} is not a multiple of sweep step {}'.format(sweep_value, sweep_step) )
+    return sweep_value,int((sweep_value - sweep_low) / sweep_step)
 
 #################################################################
 def toaMeasurement(argip,
@@ -239,14 +241,15 @@ def toaMeasurement(argip,
     delay_list = range(DelayRange_low,DelayRange_high,DelayRange_step)
     HistDelayTOA1 = 2400  # <= Delay Value for Histogram to be plotted in Plot (1,0)
     HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
+    
     PlotValidCnt = 1
     
     LSBest = [0]*15
     #add here correct LSBest
     LSBest[4] = 28.64 #ch4
 
-    HistDelayTOA1_index  = get_sweep_index(HistDelayTOA1 , DelayRange_low, DelayRange_high, DelayRange_step)
-    HistDelayTOA2_index  = get_sweep_index(HistDelayTOA2 , DelayRange_low, DelayRange_high, DelayRange_step)
+    HistDelayTOA1 , HistDelayTOA1_index  = get_sweep_index(HistDelayTOA1 , DelayRange_low, DelayRange_high, DelayRange_step)
+    HistDelayTOA2 , HistDelayTOA2_index  = get_sweep_index(HistDelayTOA2 , DelayRange_low, DelayRange_high, DelayRange_step)
 
 
     # Convert str to bool
