@@ -100,6 +100,7 @@ class MyEventReader(rogue.interfaces.stream.Slave):
                 pixel = eventFrame.pixValue[i]
                 pixIndex = pixel.PixelIndex
                 #if pixel.ToaOverflow != 1: #make sure this pixel is worth printing
+                #if (pixel.Hit != 0) and (pixel.ToaData != 0x7F) : #make sure this pixel is worth printing
                 if (pixel.Hit != 0) and ((pixel.ToaData != 0x7F) or (pixel.TotData !=0)): #make sure this pixel is worth printing
                     if header_still_needs_to_be_printed: #print the header only once per pixel
                         print('payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
@@ -109,17 +110,19 @@ class MyEventReader(rogue.interfaces.stream.Slave):
                               ', StopPix {:#}'.format(eventFrame.StopPix) + 
                               ', footer 0x{:X}'.format(eventFrame.footer) + 
                               ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
-                        print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
+                        print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof | TotData_c | TotData_f') 
                         header_still_needs_to_be_printed = False
 
-                    print('    {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}'.format(
+                    print(' {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}| {:>#9}| {:>#9}'.format(
                         pixIndex,
                         pixel.TotOverflow,
                         pixel.TotData,
                         pixel.ToaOverflow,
                         pixel.ToaData,
                         pixel.Hit,
-                        pixel.Sof)
+                        pixel.Sof,
+                        (pixel.TotData >>  2) & 0x7F,
+                        (pixel.TotData & 0x3)) 
                     )
                 
             self.count += 1
@@ -155,7 +158,8 @@ class MyFileReader(rogue.interfaces.stream.Slave):
                     self.HitData.append(dat.ToaData)
                 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
-                    self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
+                    #self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
+                    self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3)
                     self.HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
                     self.HitDataTOTc_int1_vpa_temp = (((dat.TotData >>  2) + 1) >> 1) & 0x3F
                     self.HitDataTOTf_vpa.append(self.HitDataTOTf_vpa_temp)
