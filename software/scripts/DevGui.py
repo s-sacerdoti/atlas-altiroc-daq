@@ -24,7 +24,7 @@ Keep_display_alive = True
 Live_display_interval = 1
 
 #################################################################
-def runLiveDisplay(event_display):
+def runLiveDisplay(event_display,fpga_index):
     while(Keep_display_alive):
         if event_display.has_new_data:
             event_display.refreshDisplay()
@@ -67,6 +67,22 @@ parser.add_argument(
     required = False,
     default  = True,
     help     = "Enable loading of the defaults at start",
+) 
+
+parser.add_argument(
+    "--defaultFile", 
+    nargs    ='+',
+    required = False,
+    default  = ['config/defaults.yml'],
+    help     = "List of YAML files to load at the root.start()",
+)  
+
+parser.add_argument(
+    "--printEvents", 
+    type     = argBool,
+    required = False,
+    default  = False,
+    help     = "prints the stream data event frames",
 )  
 
 parser.add_argument(
@@ -84,29 +100,42 @@ args = parser.parse_args()
 
 # Setup root class
 print(args.ip)
-print(args.pollEn)
-print(args.initRead)
 top = feb.Top(
-    ip       = args.ip,
-    pollEn   = args.pollEn,
-    initRead = args.initRead,       
-    loadYaml = args.loadYaml,       
+    ip          = args.ip,
+    pollEn      = args.pollEn,
+    initRead    = args.initRead,       
+    loadYaml    = args.loadYaml,       
+    defaultFile = args.defaultFile,       
 )    
 
+# Create the Event reader streaming interface
+if (args.printEvents):
+    eventReader = feb.PrintEventReader()
+
+    # Connect the file reader to the event reader
+    pr.streamConnect(top.dataStream[0], eventReader) 
+
 # Create Live Display
+live_display_reset = []
 if args.liveDisplay:
-    # Create the fifo to ensure there is no back-pressure
-    fifo = rogue.interfaces.stream.Fifo(100, 0, True)
-    # Connect the device reader ---> fifo
-    pr.streamConnect(top.dataStream[0], fifo) 
-    # Create the pixelreader streaming interface
-    event_display = feb.onlineEventDisplay(
-            submitDir='display_snapshots',font_size=4, fig_size=(10,6), overwrite=True  )
-    # Connect the fifo ---> stream reader
-    pr.streamConnect(fifo, event_display) 
-    # Retrieve pixel data streaming object
-    display_thread = threading.Thread( target=runLiveDisplay, args=(event_display,) )
-    display_thread.start()
+    for fpga_index in range( len(args.ip) ):
+        # Create the fifo to ensure there is no back-pressure
+        fifo = rogue.interfaces.stream.Fifo(100, 0, True)
+        # Connect the device reader ---> fifo
+        pr.streamConnect(top.dataStream[fpga_index], fifo) 
+        # Create the pixelreader streaming interface
+        event_display = feb.onlineEventDisplay(
+                plot_title='FPGA ' + str(fpga_index),
+                submitDir='display_snapshots',
+                font_size=4,
+                fig_size=(10,6),
+                overwrite=True  )
+        live_display_reset.append( event_display.reset )
+        # Connect the fifo ---> stream reader
+        pr.streamConnect(fifo, event_display) 
+        # Retrieve pixel data streaming object
+        display_thread = threading.Thread( target=runLiveDisplay, args=(event_display,fpga_index,) )
+        display_thread.start()
 
 # Create GUI
 appTop = pr.gui.application(sys.argv)

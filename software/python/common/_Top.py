@@ -23,6 +23,8 @@ import common
 import time
 import click
 
+rogue.Version.minVersion('3.6.0') 
+
 class Top(pr.Root):
     def __init__(   self,       
             name        = 'Top',
@@ -34,12 +36,12 @@ class Top(pr.Root):
             advanceUser = False,
             pllConfig   = 'config/pll-config/Si5345-RevD-Registers.csv',
             loadYaml    = True,
-            defaultFile = 'config/defaults.yml',
+            defaultFile = ['config/defaults.yml'],
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000037
+        self.minFpgaVersion = 0x20000038
         
         # Cache the parameters
         self.pllConfig   = pllConfig
@@ -187,19 +189,25 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.Trig.enable.hidden     = False
                 self.Fpga[i].Asic.Probe.enable.hidden    = False
                 self.Fpga[i].Asic.Readout.enable.hidden  = False
+                
+                # Check if we should load the default YAML file
+                for idx in range(len(self.defaultFile)):
+                    print(f'Loading {self.defaultFile[idx]} Configuration File...')
+                    self.LoadConfig(self.defaultFile[idx])
             
-                # Reset the RAM and TDC
+                # Reset the RAM, TDC and DLL resets
                 self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x0)
                 self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x0)
+                self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x0)
                 time.sleep(0.001)
                 self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x1)                
                 self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x1)
+                self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x1)
                 
-                # Check if we should load the default YAML file
-                if self.loadYaml: 
-                    print(f'Loading {self.defaultFile} Configuration File...')
-                    self.LoadConfig(arg=self.defaultFile)
-                    
+                # Reset the sequence and trigger counters
+                self.Fpga[i].Asic.Trig.CountReset()
+                self.Fpga[i].Asic.Readout.SeqCntRst()
+                
         else:
             # Hide all the "enable" variables
             for enableList in self.find(typ=pr.EnableVariable):

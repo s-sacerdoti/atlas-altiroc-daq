@@ -2,7 +2,7 @@
 -- File       : AtlasAltirocAsicTrigger.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: ASIC Deserializer 
+-- Description: ASIC Trigger 
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS ALTIROC DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -28,15 +28,16 @@ entity AtlasAltirocAsicTrigger is
       -- Trigger Ports
       totBusy         : in  sl;         -- TOT_BUSY
       toaBusyb        : in  sl;         -- TOA_BUSYB
-      trigL           : in  sl;
-      busy            : out sl;
-      spareInL        : in  sl;
-      spareOut        : out sl;
+      bncInL          : in  sl;
+      bncOut          : out sl;
+      lemoInL         : in  sl;
+      lemoOut         : out sl;
       -- Calibration and 40 Strobe phase alignment Interface
       calPulse        : in  sl;
       strobeAlign     : out slv(1 downto 0);
       -- Readout Interface
       readoutStart    : out sl;
+      readoutCnt      : out slv(31 downto 0);
       readoutBusy     : in  sl;
       -- Reference Clock/Reset Interface
       clk160MHz       : in  sl;
@@ -61,81 +62,115 @@ architecture rtl of AtlasAltirocAsicTrigger is
 
    type RegType is record
       cntRst              : sl;
-      trigMaster          : sl;
-      trigMode            : sl;
-      readoutStartDly     : slv(15 downto 0);
-      readoutStartDlyCnt  : slv(15 downto 0);
-      readoutStart        : sl;
-      dropTrigCnt         : Slv32Array(3 downto 0);
-      trigCnt             : Slv32Array(3 downto 0);
-      strobeAlign         : slv(1 downto 0);
-      enTrigMask          : slv(3 downto 0);
-      trigCounter         : slv(15 downto 0);
+      -- Oscilloscope Deadtime
+      trigPauseCnt        : slv(15 downto 0);
       trigSizeBeforePause : slv(15 downto 0);
       deadtimeCnt         : slv(7 downto 0);
       deadtimeDuration    : slv(7 downto 0);
       timeout             : sl;
       timer               : natural range 0 to (TIMER_1_SEC_C-1);
+      -- Trigger Control
+      trigMaster          : sl;
+      trigMode            : sl;
+      strobeAlign         : slv(1 downto 0);
+      enSoftTrig          : sl;
+      enBncTrig           : sl;
+      enLocalTrig         : sl;
+      enRemoteTrig        : sl;
+      remoteTrigDly       : sl;
+      orTrigDly           : sl;
+      andTrigDly          : sl;
+      -- Trigger Monitoring
+      readoutCnt          : slv(31 downto 0);
+      triggerCnt          : slv(31 downto 0);
+      dropTrigCnt         : Slv32Array(3 downto 0);
+      trigCnt             : Slv32Array(3 downto 0);
+      -- AXI Lite
       axilReadSlave       : AxiLiteReadSlaveType;
       axilWriteSlave      : AxiLiteWriteSlaveType;
+      -- FSM
+      busy                : sl;
+      readoutStart        : sl;
+      readoutStartDly     : slv(15 downto 0);
+      readoutStartDlyCnt  : slv(15 downto 0);
       stateEncode         : slv(7 downto 0);
       state               : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
       cntRst              => '0',
-      trigMaster          => '0',
-      trigMode            => '0',
-      readoutStartDly     => (others => '0'),
-      readoutStartDlyCnt  => (others => '0'),
-      readoutStart        => '0',
-      dropTrigCnt         => (others => (others => '0')),
-      trigCnt             => (others => (others => '0')),
-      strobeAlign         => "11",
-      enTrigMask          => (others => '0'),
-      trigCounter         => (others => '0'),
+      -- Oscilloscope Deadtime
+      trigPauseCnt        => (others => '0'),
       trigSizeBeforePause => (others => '0'),
       deadtimeCnt         => (others => '0'),
       deadtimeDuration    => (others => '0'),
       timeout             => '0',
       timer               => 0,
+      -- Trigger Control
+      trigMaster          => '0',
+      trigMode            => '0',
+      strobeAlign         => "11",
+      enSoftTrig          => '0',
+      enBncTrig           => '0',
+      enLocalTrig         => '0',
+      enRemoteTrig        => '0',
+      remoteTrigDly       => '0',
+      orTrigDly           => '0',
+      andTrigDly          => '0',
+      -- Trigger Monitoring
+      readoutCnt          => (others => '0'),
+      triggerCnt          => (others => '0'),
+      dropTrigCnt         => (others => (others => '0')),
+      trigCnt             => (others => (others => '0')),
+      -- AXI Lite
       axilReadSlave       => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave      => AXI_LITE_WRITE_SLAVE_INIT_C,
+      -- FSM
+      busy                => '0',
+      readoutStart        => '0',
+      readoutStartDly     => (others => '0'),
+      readoutStartDlyCnt  => (others => '0'),
       stateEncode         => (others => '0'),
       state               => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal softTrig : sl;
-
-   signal bncTrig           : sl;
-   signal extTrig           : sl;
-   signal extTrigRisingEdge : sl;
-
-   signal localTrigIn         : sl;
-   signal localTrig           : sl;
-   signal localTrigRisingEdge : sl;
-
-   signal remoteTrigIn         : sl;
-   signal remoteTrig           : sl;
-   signal remoteTrigRisingEdge : sl;
-
-   signal orTrigIn         : sl;
-   signal orTrig           : sl;
-   signal orTrigRisingEdge : sl;
-
-   signal andTrigIn         : sl;
-   signal andTrig           : sl;
-   signal andTrigRisingEdge : sl;
+   signal softTrig   : sl;
+   signal bncIn      : sl;
+   signal bncTrig    : sl;
+   signal localTrig  : sl;
+   signal remoteTrig : sl;
+   signal orTrig     : sl;
+   signal andTrig    : sl;
 
 begin
+
+   -----------------------
+   -- PCIe input connector
+   -----------------------
+   localTrig <= not(toaBusyb) and r.enLocalTrig;
+
+   ---------------------------
+   -- LEMO TTL input connector
+   ---------------------------
+   remoteTrig <= not(lemoInL) and r.enRemoteTrig;
+
+   ----------------------------------------
+   -- OR Logic for Remote and Local Trigger
+   ----------------------------------------
+   orTrig <= (localTrig or remoteTrig) and not(r.busy) and strobe40MHz and r.trigMode;  -- r.trigMode='1' = OR mode
+
+   -----------------------------------------
+   -- AND Logic for Remote and Local Trigger
+   -----------------------------------------   
+   andTrig <= (localTrig and remoteTrig) and not(r.busy) and strobe40MHz and not(r.trigMode);  -- r.trigMode='0' = AND mode   
 
    ------------------------------------------------------------------
    -- LEMO TTL output connector:
    --    if trigger master then send copy of master trigger
    --    if trigger slave  then send copy of ASIC's TOA_BUSY_L signal
    ------------------------------------------------------------------
-   spareOut <= (orTrigIn or AndTrigIn) and not(readoutBusy) when(r.trigMaster = '1') else not(toaBusyb);
+   lemoOut <= r.busy when(r.trigMaster = '1') else not(toaBusyb);
 
    ---------------------------
    -- BNC TTL output connector
@@ -145,13 +180,13 @@ begin
          TPD_G => TPD_G)
       port map (
          C => clk160MHz,
-         I => readoutBusy,
-         O => busy);
+         I => r.busy,
+         O => bncOut);
 
    --------------------------
    -- CMD_PULSE Trigger input
    --------------------------
-   softTrig <= r.enTrigMask(0) and calPulse;
+   softTrig <= r.enSoftTrig and calPulse;
 
    --------------------------
    -- BNC TTL input connector
@@ -165,106 +200,24 @@ begin
          OUT_REG_RST_G   => false)
       port map (
          clk      => clk160MHz,
-         asyncRst => trigL,
-         syncRst  => bncTrig);
+         asyncRst => bncInL,            -- Active LOW
+         syncRst  => bncIn);            -- Active HIGH
    U_extTrigSync : entity work.SynchronizerEdge
       generic map (
          TPD_G          => TPD_G,
-         RST_POLARITY_G => '0')
+         RST_POLARITY_G => '0')         -- Active LOW
       port map (
          clk        => clk160MHz,
-         rst        => r.enTrigMask(1),
-         dataIn     => bncTrig,
-         dataOut    => extTrig,
-         risingEdge => extTrigRisingEdge);
-
-   -----------------------
-   -- PCIe input connector
-   -----------------------
-   U_localTrig : entity work.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => '0',        -- Active LOW logic
-         OUT_POLARITY_G  => '1',        -- Active HIGH logic
-         RELEASE_DELAY_G => 3,
-         OUT_REG_RST_G   => false)
-      port map (
-         clk      => clk160MHz,
-         asyncRst => toaBusyb,
-         syncRst  => localTrigIn);
-   U_localTrigSync : entity work.SynchronizerEdge
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '0')
-      port map (
-         clk        => clk160MHz,
-         rst        => r.enTrigMask(2),
-         dataIn     => localTrigIn,
-         dataOut    => localTrig,
-         risingEdge => localTrigRisingEdge);
-
-   ---------------------------
-   -- LEMO TTL input connector
-   ---------------------------
-   U_remoteTrig : entity work.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         IN_POLARITY_G   => '0',        -- Active LOW logic
-         OUT_POLARITY_G  => '1',        -- Active HIGH logic
-         RELEASE_DELAY_G => 3,
-         OUT_REG_RST_G   => false)
-      port map (
-         clk      => clk160MHz,
-         asyncRst => spareInL,
-         syncRst  => remoteTrigIn);     -- >= 3 cycle pulse output width    
-   U_remoteTrigSync : entity work.SynchronizerEdge
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '0')
-      port map (
-         clk        => clk160MHz,
-         rst        => r.enTrigMask(3),
-         dataIn     => remoteTrigIn,
-         dataOut    => remoteTrig,
-         risingEdge => remoteTrigRisingEdge);
-
-   ----------------------------------------
-   -- OR Logic for Remote and Local Trigger
-   ----------------------------------------
-   orTrigIn <= (r.enTrigMask(3) and remoteTrigIn) or (r.enTrigMask(2) and localTrigIn);
-   U_orTrigSync : entity work.SynchronizerEdge
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '0')         -- r.trigMode='1' = OR mode
-      port map (
-         clk        => clk160MHz,
-         rst        => r.trigMode,
-         dataIn     => orTrigIn,
-         dataOut    => orTrig,
-         risingEdge => orTrigRisingEdge);
-
-   -----------------------------------------
-   -- AND Logic for Remote and Local Trigger
-   -----------------------------------------
-   andTrigIn <= (r.enTrigMask(3) and remoteTrigIn) and (r.enTrigMask(2) and localTrigIn);
-   U_andTrigSync : entity work.SynchronizerEdge
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1')         -- r.trigMode='0' = AND mode
-      port map (
-         clk        => clk160MHz,
-         rst        => r.trigMode,
-         dataIn     => andTrigIn,
-         dataOut    => andTrig,
-         risingEdge => andTrigRisingEdge);
+         rst        => r.enBncTrig,     -- Active LOW
+         dataIn     => bncIn,
+         risingEdge => bncTrig);
 
    ------------------------
    -- Combinatorial Process
    ------------------------
-   comb : process (andTrig, andTrigRisingEdge, axilReadMaster, axilWriteMaster,
-                   extTrig, extTrigRisingEdge, localTrig, orTrig,
-                   orTrigRisingEdge, r, readoutBusy, remoteTrig,
-                   remoteTrigRisingEdge, rst160MHz, softTrig) is
+   comb : process (andTrig, axilReadMaster, axilWriteMaster, bncIn, bncTrig,
+                   localTrig, orTrig, r, readoutBusy, remoteTrig, rst160MHz,
+                   softTrig) is
       variable v       : RegType;
       variable axilEp  : AxiLiteEndPointType;
       variable trigger : sl;
@@ -288,9 +241,17 @@ begin
 
       -- Check for counter reset
       if r.cntRst = '1' then
-         v.dropTrigCnt := (others => (others => '0'));
-         v.trigCnt     := (others => (others => '0'));
-         v.trigCounter := (others => '0');
+         v.dropTrigCnt  := (others => (others => '0'));
+         v.trigCnt      := (others => (others => '0'));
+         v.trigPauseCnt := (others => '0');
+         v.triggerCnt   := (others => '0');
+      end if;
+
+      -- Update the trigger/readout busy
+      if (r.state /= IDLE_S) then
+         v.busy := '1';
+      else
+         v.busy := '0';
       end if;
 
       ----------------------------------------------------------------------   
@@ -309,19 +270,25 @@ begin
       axiSlaveRegisterR(axilEp, x"14", 0, r.trigCnt(1));
       axiSlaveRegisterR(axilEp, x"18", 0, r.trigCnt(2));
       axiSlaveRegisterR(axilEp, x"1C", 0, r.trigCnt(3));
+      axiSlaveRegisterR(axilEp, x"20", 0, r.triggerCnt);
 
       axiSlaveRegister (axilEp, x"40", 0, v.trigMaster);
       axiSlaveRegister (axilEp, x"44", 0, v.strobeAlign);
-      axiSlaveRegister (axilEp, x"48", 0, v.enTrigMask);
+
+      axiSlaveRegister (axilEp, x"48", 0, v.enSoftTrig);
+      axiSlaveRegister (axilEp, x"48", 1, v.enBncTrig);
+      axiSlaveRegister (axilEp, x"48", 2, v.enLocalTrig);
+      axiSlaveRegister (axilEp, x"48", 3, v.enRemoteTrig);
+
       axiSlaveRegister (axilEp, x"4C", 0, v.trigMode);
 
       axiSlaveRegister (axilEp, x"50", 0, v.readoutStartDly);
       axiSlaveRegister (axilEp, x"50", 16, v.trigSizeBeforePause);
       axiSlaveRegister (axilEp, x"54", 0, v.deadtimeDuration);
       axiSlaveRegisterR(axilEp, x"58", 0, r.stateEncode);
-      axiSlaveRegisterR(axilEp, x"5C", 0, r.trigCounter);
+      axiSlaveRegisterR(axilEp, x"5C", 0, r.trigPauseCnt);
 
-      axiSlaveRegisterR(axilEp, x"60", 0, extTrig);
+      axiSlaveRegisterR(axilEp, x"60", 0, bncIn);
       axiSlaveRegisterR(axilEp, x"60", 1, localTrig);
       axiSlaveRegisterR(axilEp, x"60", 2, remoteTrig);
       axiSlaveRegisterR(axilEp, x"60", 3, orTrig);
@@ -350,8 +317,8 @@ begin
          end if;
       end if;
 
-      -- Check for BNC trigger
-      if (extTrigRisingEdge = '1') then
+      -- Check for BNC rising edge trigger
+      if (bncTrig = '1') then
          -- Check if dropping trigger
          if (r.state /= IDLE_S) then
             -- Increment the counter
@@ -364,32 +331,45 @@ begin
          end if;
       end if;
 
-      -- Check for trigger master trigger (Note: trigMode gated on the SynchronizerEdge modules)
-      if (r.trigMaster = '1') and (orTrigRisingEdge = '1' or andTrigRisingEdge = '1') then
-         -- Check if dropping trigger
-         if (r.state /= IDLE_S) then
-            -- Increment the counter
-            v.dropTrigCnt(2) := r.dropTrigCnt(2) + 1;
-         else
-            -- Set the flag
-            trigger      := '1';
-            -- Increment the counter
-            v.trigCnt(2) := r.trigCnt(2) + 1;
+      -- Check for trigger master trigger
+      v.orTrigDly  := orTrig;
+      v.andTrigDly := andTrig;
+      if (r.trigMaster = '1') then
+         if (orTrig = '1' and r.orTrigDly = '0') or (andTrig = '1' and r.andTrigDly = '0') then
+            -- Check if dropping trigger
+            if (r.state /= IDLE_S) then
+               -- Increment the counter
+               v.dropTrigCnt(2) := r.dropTrigCnt(2) + 1;
+            else
+               -- Set the flag
+               trigger      := '1';
+               -- Increment the counter
+               v.trigCnt(2) := r.trigCnt(2) + 1;
+            end if;
          end if;
       end if;
 
       -- Check for trigger slave trigger
-      if (r.trigMaster = '0') and (remoteTrigRisingEdge = '1') then
-         -- Check if dropping trigger
-         if (r.state /= IDLE_S) then
-            -- Increment the counter
-            v.dropTrigCnt(3) := r.dropTrigCnt(3) + 1;
-         else
-            -- Set the flag
-            trigger      := '1';
-            -- Increment the counter
-            v.trigCnt(3) := r.trigCnt(3) + 1;
+      v.remoteTrigDly := remoteTrig;
+      if (r.trigMaster = '0') then
+         if (remoteTrig = '1') and (r.remoteTrigDly = '0') then
+            -- Check if dropping trigger
+            if (r.state /= IDLE_S) then
+               -- Increment the counter
+               v.dropTrigCnt(3) := r.dropTrigCnt(3) + 1;
+            else
+               -- Set the flag
+               trigger      := '1';
+               -- Increment the counter
+               v.trigCnt(3) := r.trigCnt(3) + 1;
+            end if;
          end if;
+      end if;
+
+      -- Check for trigger
+      if (trigger = '1') then
+         -- Increment the counter
+         v.triggerCnt := r.triggerCnt + 1;
       end if;
 
       ----------------------------------------------------------------------      
@@ -402,12 +382,15 @@ begin
             -- Check for trigger
             if (trigger = '1') then
                -- Increment the counter
-               v.trigCounter := r.trigCounter + 1;
+               v.trigPauseCnt := r.trigPauseCnt + 1;
+               -- Latch the triggerCnt
+               v.readoutCnt   := r.triggerCnt;
                -- Next state
-               v.state       := READ_DLY_S;
+               v.state        := READ_DLY_S;
             end if;
          ----------------------------------------------------------------------      
          when READ_DLY_S =>
+            v.stateEncode        := x"01";
             -- Increment the counter
             v.readoutStartDlyCnt := r.readoutStartDlyCnt + 1;
             -- Check the counter
@@ -421,7 +404,7 @@ begin
             end if;
          ----------------------------------------------------------------------      
          when READOUT_S =>
-            v.stateEncode := x"01";
+            v.stateEncode := x"02";
             -- Wait for the readout to finish
             if (r.readoutStart = '0') and (readoutBusy = '0') then
 
@@ -432,12 +415,12 @@ begin
                else
 
                   -- Check for number of trigger before pause
-                  if (r.trigCounter = r.trigSizeBeforePause) then
+                  if (r.trigPauseCnt = r.trigSizeBeforePause) then
 
                      -- Reset the counters
-                     v.trigCounter := (others => '0');
-                     v.deadtimeCnt := (others => '0');
-                     v.timer       := 0;
+                     v.trigPauseCnt := (others => '0');
+                     v.deadtimeCnt  := (others => '0');
+                     v.timer        := 0;
 
                      -- Check if deadtimeDuration is non-zero
                      if (r.deadtimeDuration /= 0) then
@@ -458,7 +441,7 @@ begin
             end if;
          ----------------------------------------------------------------------      
          when OSCOPE_DEADTIME_S =>
-            v.stateEncode := x"02";
+            v.stateEncode := x"03";
             if (r.timeout = '1') then
 
                -- Increment the counter
@@ -476,7 +459,7 @@ begin
 
       -- Check for trigger count reset conditions
       if (r.trigSizeBeforePause = 0) or (r.trigSizeBeforePause /= v.trigSizeBeforePause) then
-         v.trigCounter := (others => '0');
+         v.trigPauseCnt := (others => '0');
       end if;
 
       -- Check for change in deadtimeDuration
@@ -489,6 +472,7 @@ begin
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;
       readoutStart   <= r.readoutStart;
+      readoutCnt     <= r.readoutCnt;
       strobeAlign    <= r.strobeAlign;
 
       -- Reset
@@ -497,7 +481,10 @@ begin
          -- Don't touch register configurations
          v.trigMaster          := r.trigMaster;
          v.strobeAlign         := r.strobeAlign;
-         v.enTrigMask          := r.enTrigMask;
+         v.enSoftTrig          := r.enSoftTrig;
+         v.enBncTrig           := r.enBncTrig;
+         v.enLocalTrig         := r.enLocalTrig;
+         v.enRemoteTrig        := r.enRemoteTrig;
          v.trigMode            := r.trigMode;
          v.readoutStartDly     := r.readoutStartDly;
          v.trigSizeBeforePause := r.trigSizeBeforePause;

@@ -279,7 +279,7 @@ top.LoadConfig(arg = Configuration_LOAD_file)
 
 if DebugPrint:
     # Tap the streaming data interface (same interface that writes to file)
-    debugStream = feb.MyEventReader()    
+    debugStream = feb.PrintEventReader()    
     pyrogue.streamTap(top.dataStream[0], debugStream) # Assuming only 1 FPGA
 
 # Create the data reader streaming interface

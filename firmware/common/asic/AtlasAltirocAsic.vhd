@@ -131,6 +131,7 @@ architecture mapping of AtlasAltirocAsic is
    signal readoutWriteSlave  : AxiLiteWriteSlaveType;
 
    signal readoutStart : sl;
+   signal readoutCnt   : slv(31 downto 0);
    signal readoutBusy  : sl;
    signal startReadout : sl;
    signal probeValid   : sl;
@@ -291,15 +292,16 @@ begin
       port map (
          totBusy         => totBusy,
          toaBusyb        => toaBusyb,
-         trigL           => trigL,
-         busy            => busy,
-         spareInL        => spareInL,
-         spareOut        => spareOut,
+         bncInL           => trigL,
+         bncOut            => busy,
+         lemoInL        => spareInL,
+         lemoOut        => spareOut,
          -- Calibration and 40 Strobe phase alignment Interface
          calPulse        => calPulse,
          strobeAlign     => strobeAlign,
          -- Readout Interface
          readoutStart    => readoutStart,
+         readoutCnt      => readoutCnt,
          readoutBusy     => readoutBusy,
          -- Reference Clock/Reset Interface
          clk160MHz       => clk160MHz,
@@ -420,6 +422,7 @@ begin
          rdClkN          => rdClkN,
          -- Trigger Interface (clk160MHz domain)
          readoutStart    => readoutStart,
+         readoutCnt      => readoutCnt,
          readoutBusy     => readoutBusy,
          -- Probe Interface (clk160MHz domain)
          probeValid      => probeValid,

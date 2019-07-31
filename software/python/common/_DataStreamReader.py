@@ -14,6 +14,7 @@ import statistics
 import math
 import matplotlib.pyplot as plt
 
+#################################################################
 
 class PixValue(object):
   def __init__(self, PixelIndex, TotOverflow, TotData, ToaOverflow, ToaData, Hit, Sof):
@@ -32,9 +33,9 @@ class EventValue(object):
      self.StartPix          = None
      self.StopPix           = None
      self.SeqCnt            = None
+     self.TrigCnt           = None
      self.pixValue          = None
      self.footer            = None
-
 
 def ParseDataWord(dataWord):
     #Parse the 32-bit word
@@ -49,7 +50,6 @@ def ParseDataWord(dataWord):
     #print( "{:028b}".format(dataWord) )
     return PixValue(PixelIndex, TotOverflow, TotData, ToaOverflow, ToaData, Hit, Sof)
 
-
 def ParseFrame(frame):
     # Next we can get the size of the frame payload
     size = frame.getPayload()
@@ -61,7 +61,7 @@ def ParseFrame(frame):
     frame.read(fullData,0)
 
     # Fill an array of 32-bit formatted word
-    wrdData = [None for i in range(2+512*32+1)]
+    wrdData = [None for i in range(3+512*32+1)]
     wrdData = np.frombuffer(fullData, dtype='uint32', count=(size>>2))
     
     # Parse the data and data to data frame
@@ -71,17 +71,19 @@ def ParseFrame(frame):
     eventFrame.StartPix          = (wrdData[0] >> 22) & 0x1F
     eventFrame.StopPix           = (wrdData[0] >> 27) & 0x1F
     eventFrame.SeqCnt            = wrdData[1]
+    eventFrame.TrigCnt           = wrdData[2]
     numPixValues = (eventFrame.StopPix-eventFrame.StartPix+1)*(eventFrame.PixReadIteration+1)
     eventFrame.pixValue  = [None for i in range(numPixValues)]
     for i in range(numPixValues):
-        eventFrame.pixValue[i] = ParseDataWord(wrdData[2+i])
-    eventFrame.footer = wrdData[numPixValues+2]
+        eventFrame.pixValue[i] = ParseDataWord(wrdData[3+i])
+    eventFrame.footer = wrdData[numPixValues+3]
 
     return eventFrame
 
 #################################################################
 
-class MyEventReader(rogue.interfaces.stream.Slave):
+# Class for printing out events
+class PrintEventReader(rogue.interfaces.stream.Slave):
     # Init method must call the parent class init
     def __init__(self):
         super().__init__()
@@ -169,8 +171,8 @@ class MyFileReader(rogue.interfaces.stream.Slave):
                     self.HitDataTOTf_tz.append(self.HitDataTOTf_tz_temp)                    
                     self.HitDataTOTc_tz.append(self.HitDataTOTc_tz_temp)
                     self.HitDataTOTc_int1_tz.append(self.HitDataTOTc_int1_tz_temp)
-#################################################################
 
+#################################################################
 
 # Class for Reading Data output by pixels
 class MyPixelReader(rogue.interfaces.stream.Slave):
@@ -217,138 +219,5 @@ class MyPixelReader(rogue.interfaces.stream.Slave):
                     self.HitDataTOTf_tz.append(self.HitDataTOTf_tz_temp)                    
                     self.HitDataTOTc_tz.append(self.HitDataTOTc_tz_temp)
                     self.HitDataTOTc_int1_tz.append(self.HitDataTOTc_int1_tz_temp)
-                   
-#################################################################
-#################################################################
-#################################################################
-##                  Legacy Classes from v1.0.0                 ##
-#################################################################
-#################################################################
-#################################################################
 
-class LegacyEventValue(object):
-  def __init__(self, SeqCnt, TotOverflow, TotData, ToaOverflow, ToaData, Hit):
-     self.SeqCnt      = SeqCnt
-     self.TotOverflow = TotOverflow
-     self.TotData     = TotData
-     self.ToaOverflow = ToaOverflow
-     self.ToaData     = ToaData
-     self.Hit         = Hit
-
-def LegacyParseDataWord(dataWord):
-    # Parse the 32-bit word
-    SeqCnt      = (dataWord >> 19) & 0x1FFF
-    TotOverflow = (dataWord >> 18) & 0x1
-    TotData     = (dataWord >>  9) & 0x1FF
-    ToaOverflow = (dataWord >>  8) & 0x1
-    ToaData     = (dataWord >>  1) & 0x7F
-    Hit         = (dataWord >>  0) & 0x1
-    return LegacyEventValue(SeqCnt, TotOverflow, TotData, ToaOverflow, ToaData, Hit)
-
-#################################################################
-
-class LegacyMyEventReader(rogue.interfaces.stream.Slave):
-
-    def __init__(self):
-        rogue.interfaces.stream.Slave.__init__(self)
-        self.lastTOT = 0
-        self.printNext = 0
-        self.printNextEn = 0
-        self.PrintData = 1
-
-    def _acceptFrame(self,frame):
-        # Get the payload data
-        p = bytearray(frame.getPayload())
-        # Return the buffer index
-        frame.read(p,0)
-        # Check for a modulo of 32-bit word 
-        if ((len(p) % 4) == 0):
-            count = int(len(p)/4)
-            # Combine the byte array into 32-bit word array
-            hitWrd = np.frombuffer(p, dtype='uint32', count=count)
-            # Loop through each 32-bit word
-            for i in range(count):
-                # Parse the 32-bit word
-                dat = LegacyParseDataWord(hitWrd[i])
-                # Print the event if hit
-                #if (dat.Hit > 0):
-                #if (dat.Hit > 0) or (self.printNext == 1 and self.printNextEn == 1) or (dat.TotData != 0x1fc and dat.TotData != self.lastTOT):
-                if (dat.Hit > 0) or (self.printNext == 1 and self.printNextEn == 1):
-
-                    self.lastTOT = dat.TotData
-
-                    if (self.printNext == 1) and (dat.Hit == 0):
-                        self.printNext = 0
-                    else:
-                        self.printNext = 1
-
-                    if not (dat.ToaOverflow == 1 and dat.ToaData != 0x7f) and (self.PrintData == 1) and (i == 1):
-
-                        print( 'Event[SeqCnt=0x%x]: (TotOverflow = %r, TotData = 0x%x), (ToaOverflow = %r, ToaData = 0x%x), hit=%r' % (
-                                dat.SeqCnt,
-                                dat.TotOverflow,
-                                dat.TotData,
-                                dat.ToaOverflow,
-                                dat.ToaData,
-                                dat.Hit,
-                        ))
-#################################################################
-# Class for Reading the Data from File
-class LegacyMyFileReader(rogue.interfaces.stream.Slave):
-
-    def __init__(self):
-        rogue.interfaces.stream.Slave.__init__(self)
-        self.HitData = []
-        self.HitDataTOTf_vpa = []
-        self.HitDataTOTf_tz = []
-        self.HitDataTOTc_vpa = []
-        self.HitDataTOTc_tz = []
-        self.HitDataTOTc_int1_vpa = []
-        self.HitDataTOTc_int1_tz = []
-        self.HitDataTOTf_vpa_temp = 0
-        self.HitDataTOTc_vpa_temp = 0
-        self.HitDataTOTf_tz_temp = 0
-        self.HitDataTOTc_tz_temp = 0
-        self.HitDataTOTc_int1_vpa_temp = 0
-        self.HitDataTOTc_int1_tz_temp = 0
-
-    def _acceptFrame(self,frame):
-        # Get the payload data
-        p = bytearray(frame.getPayload())
-        # Return the buffer index
-        frame.read(p,0)
-        # Check for a modulo of 32-bit word 
-        if ((len(p) % 4) == 0):
-            count = int(len(p)/4)
-            # Combine the byte array into 32-bit word array
-            hitWrd = np.frombuffer(p, dtype='uint32', count=count)
-            # Loop through each 32-bit word
-            for i in range(count):
-                # Parse the 32-bit word
-                dat = LegacyParseDataWord(hitWrd[i])
-                # Print the event if hit
-
-                if (dat.Hit > 0) and (dat.ToaOverflow == 0):
-                   
-                    self.HitData.append(dat.ToaData)
-                
-                if (dat.Hit > 0) and (dat.TotData != 0x1fc):
-    
-                    self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
-                    self.HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
-                    self.HitDataTOTc_int1_vpa_temp = (((dat.TotData >>  2) + 1) >> 1) & 0x3F
-                    #if ((dat.TotData >>  2) & 0x1) == 1:
-                    self.HitDataTOTf_vpa.append(self.HitDataTOTf_vpa_temp)
-                    self.HitDataTOTc_vpa.append(self.HitDataTOTc_vpa_temp)
-                    self.HitDataTOTc_int1_vpa.append(self.HitDataTOTc_int1_vpa_temp)
-
-                if (dat.Hit > 0) and (dat.TotData != 0x1f8):
-
-                    self.HitDataTOTf_tz_temp = ((dat.TotData >>  0) & 0x7) + dat.TotOverflow*math.pow(2,3)
-                    self.HitDataTOTc_tz_temp = (dat.TotData >>  3) & 0x3F
-                    self.HitDataTOTc_int1_tz_temp = (((dat.TotData >>  3) + 1) >> 1) & 0x1F
-                    self.HitDataTOTf_tz.append(self.HitDataTOTf_tz_temp)                    
-                    self.HitDataTOTc_tz.append(self.HitDataTOTc_tz_temp)
-                    self.HitDataTOTc_int1_tz.append(self.HitDataTOTc_int1_tz_temp)
-                   
 #################################################################

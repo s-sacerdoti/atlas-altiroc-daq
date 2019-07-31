@@ -37,6 +37,7 @@ entity AtlasAltirocAsicReadout is
       rdClkN          : out sl;         -- FPGA_CK_40_M      
       -- Trigger Interface (clk160MHz domain)
       readoutStart    : in  sl;
+      readoutCnt      : in  slv(31 downto 0);
       readoutBusy     : out sl;
       -- Probe Interface (clk160MHz domain)
       probeValid      : out sl;
@@ -59,7 +60,7 @@ end AtlasAltirocAsicReadout;
 
 architecture rtl of AtlasAltirocAsicReadout is
 
-   constant HDR_SIZE_C : positive := 2;
+   constant HDR_SIZE_C : positive := 3;
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- 32-bit AXI stream interface
 
@@ -177,7 +178,8 @@ begin
          Q1 => dout);
 
    comb : process (axilReadMaster, axilWriteMaster, dout, probeBusy,
-                   probeObData, r, readoutStart, rst160MHz, txSlave) is
+                   probeObData, r, readoutCnt, readoutStart, rst160MHz,
+                   txSlave) is
       variable v       : RegType;
       variable axilEp  : AxiLiteEndPointType;
       variable stopPix : slv(4 downto 0);
@@ -249,7 +251,7 @@ begin
                --                   Generate the header                    --
                --------------------------------------------------------------               
                -- HDR[0]: Format Version, start and stop
-               v.header(0)(11 downto 0) := x"001";  -- Version = 0x1   
+               v.header(0)(11 downto 0) := x"002";  -- Version = 0x2
 
                -- Check if only sending 1st hit per pixel
                if (r.onlySendFirstHit = '1') then
@@ -260,8 +262,10 @@ begin
 
                v.header(0)(26 downto 22) := r.startPix;
                v.header(0)(31 downto 27) := r.stopPix;
-               -- HDR[1]: Sequence counter
+               -- HDR[1]: Readout Sequence counter
                v.header(1)               := r.seqCnt;
+               -- HDR[2]: Trigger Sequence counter
+               v.header(2)               := readoutCnt;
                --------------------------------------------------------------               
 
                -- Set the flag

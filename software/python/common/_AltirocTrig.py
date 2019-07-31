@@ -95,6 +95,15 @@ class AltirocTrig(pr.Device):
             bitSize      = 32, 
             mode         = 'RO',
             pollInterval = 1,
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'TriggerCnt', 
+            description  = 'Increments every time a trigger is received for readout from any source',
+            offset       = 0x20,
+            bitSize      = 32, 
+            mode         = 'RO',
+            pollInterval = 1,
         ))          
         
         self.add(pr.RemoteVariable(
@@ -210,9 +219,9 @@ class AltirocTrig(pr.Device):
             pollInterval = 1,
             enum         = {
                 0x0: 'IDLE_S', 
-                0x1: 'READOUT_S', 
-                0x2: 'OSCOPE_DEADTIME_S', 
-                0x3: 'RESERVED', 
+                0x1: 'READ_DLY_S', 
+                0x2: 'READOUT_S', 
+                0x3: 'OSCOPE_DEADTIME_S', 
             },
         ))
 
