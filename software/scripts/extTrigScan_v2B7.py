@@ -34,12 +34,12 @@ useExt = True
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
 PulserRangeH = 40       # <= High Value of Pulser Sweep Range
 PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
-NofIterationsTOT = 200   # <= Number of Iterations for each Pulser Value
+NofIterationsTOT = 50   # <= Number of Iterations for each Pulser Value
 
 DelayValueTOT = 100       # <= Value of Programmable Delay for TOT Pulser Sweep
-minExtWidth = 500
-maxExtWidth = 600
-extTrigStep = 10
+minExtWidth = 200
+maxExtWidth = 3000
+extTrigStep = 50
 
 if useExt:
     pulser_list = range(minExtWidth,maxExtWidth,extTrigStep)
@@ -174,7 +174,7 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
 
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
-    top.Fpga[0].Asic.SlowControl.CP_b.set(0x5) #5 32ps LSB for B7
+    top.Fpga[0].Asic.SlowControl.CP_b.set(0x3) #5 32ps LSB 2.8 ns for B7, 23 ps 2.4 ns range with Cp_b=3
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x0) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #0

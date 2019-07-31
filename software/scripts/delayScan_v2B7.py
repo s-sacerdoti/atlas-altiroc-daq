@@ -160,7 +160,7 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
 
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
-    top.Fpga[0].Asic.SlowControl.CP_b.set(0x5) #5 32ps LSB for B7
+    top.Fpga[0].Asic.SlowControl.CP_b.set(0x3) #5 32ps LSB for B7, 27 ps with 4, 23 ps 2.4 ns range with 3, 18 ps range <2ns for Cpb=2
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x1) #0
@@ -189,7 +189,7 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.cd[2].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x1e) #10
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(40) #7
-    top.Fpga[0].Asic.SlowControl.DAC10bit.set(320) #173 / 183
+    top.Fpga[0].Asic.SlowControl.DAC10bit.set(350) #173 / 183
     
 
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(0x0)   # Rising edge of EXT_TRIG or CMD_PULSE delay

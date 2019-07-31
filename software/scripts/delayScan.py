@@ -25,7 +25,7 @@ pixel_number = 4 # <= Pixel to be Tested
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 DelayRange_low = 2100     # <= low end of Programmable Delay Sweep
 DelayRange_high = 2700     # <= high end of Programmable Delay Sweep
-DelayRange_step = 10     # <= step size Programmable Delay Sweep
+DelayRange_step = 20     # <= step size Programmable Delay Sweep
 NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
 
 DataAcqusitionTOT = 0   # <= Enable TOT Data Acquisition (Pulser Sweep)
@@ -50,7 +50,7 @@ LSB_TOTc = 160
 
 nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
 
-HistDelayTOA1 = 2400  # <= Delay Value for Histogram to be plotted in Plot (1,0)
+HistDelayTOA1 = 2500  # <= Delay Value for Histogram to be plotted in Plot (1,0)
 HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistPulserTOT1 = 5  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
 HistPulserTOT2 = 10  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
@@ -112,15 +112,19 @@ def acquire_data(range_low, range_high, range_step, top,
         while dataStream.count < n_iterations: pass
         top.dataWriter._writer.close()
         dataStream.count = 0
+
 #################################################################
-
-
 def get_sweep_index(sweep_value, sweep_low, sweep_high, sweep_step):
-    if sweep_value < sweep_low or sweep_high < sweep_value:
-        raise ValueError( 'Sweep value {} outside of sweep range [{}:{}]'.format(sweep_value, sweep_low, sweep_high) )
+    if sweep_value < sweep_low:
+        sweep_value = sweep_low+sweep_step
+        print( 'Sweep value {} outside of sweep range [{}:{}]'.format(sweep_value, sweep_low, sweep_high) )
+    elif sweep_high < sweep_value:
+        sweep_value = sweep_high-sweep_step
+        print( 'Sweep value {} outside of sweep range [{}:{}]'.format(sweep_value, sweep_low, sweep_high) )
     if sweep_value % sweep_step != 0:
-        raise ValueError( 'Sweep value {} is not a multiple of sweep step {}'.format(sweep_value, sweep_step) )
-    return int ( (sweep_value - sweep_low) / sweep_step )
+        print( 'Sweep value {} is not a multiple of sweep step {}'.format(sweep_value, sweep_step) )
+    return sweep_value,int((sweep_value - sweep_low) / sweep_step)
+
 #################################################################
 
 
@@ -128,10 +132,10 @@ def get_sweep_index(sweep_value, sweep_low, sweep_high, sweep_step):
 # Set the argument parser
 parser = argparse.ArgumentParser()
 
-HistDelayTOA1_index  = get_sweep_index(HistDelayTOA1 , DelayRange_low, DelayRange_high, DelayRange_step)
-HistDelayTOA2_index  = get_sweep_index(HistDelayTOA2 , DelayRange_low, DelayRange_high, DelayRange_step)
-HistPulserTOT1_index = get_sweep_index(HistPulserTOT1, PulserRangeL, PulserRangeH, PulserRangeStep)
-HistPulserTOT2_index = get_sweep_index(HistPulserTOT2, PulserRangeL, PulserRangeH, PulserRangeStep)
+HistDelayTOA1, HistDelayTOA1_index  = get_sweep_index(HistDelayTOA1 , DelayRange_low, DelayRange_high, DelayRange_step)
+HistDelayTOA2, HistDelayTOA2_index  = get_sweep_index(HistDelayTOA2 , DelayRange_low, DelayRange_high, DelayRange_step)
+HistPulserTOT1, HistPulserTOT1_index = get_sweep_index(HistPulserTOT1, PulserRangeL, PulserRangeH, PulserRangeStep)
+HistPulserTOT2, HistPulserTOT2_index = get_sweep_index(HistPulserTOT2, PulserRangeL, PulserRangeH, PulserRangeStep)
 
 
 # Convert str to bool
@@ -479,6 +483,7 @@ else:
 if nTOA_TOT_Processing == 0:
     # Plot (1,0) ; bottom left
     exec("DataL = len(HitData%d)" % HistDelayTOA1)
+    print(DataL)
     if DataL:
         #exec("ax3.hist(np.multiply(HitData%d,LSBest), bins = LSBest, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
         hist_range = 10
