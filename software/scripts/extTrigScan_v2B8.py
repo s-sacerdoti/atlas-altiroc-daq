@@ -34,11 +34,11 @@ useExt = True
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
 PulserRangeH = 40       # <= High Value of Pulser Sweep Range
 PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
-NofIterationsTOT = 50   # <= Number of Iterations for each Pulser Value
+NofIterationsTOT = 20   # <= Number of Iterations for each Pulser Value
 
 DelayValueTOT = 100       # <= Value of Programmable Delay for TOT Pulser Sweep
 minExtWidth = 200
-maxExtWidth = 3000
+maxExtWidth = 2000
 extTrigStep = 50
 
 if useExt:
@@ -61,7 +61,7 @@ LSB_TOTc = 160    # <= Estimate of TOT coarse LSB in ps
 
 nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
 
-HistDelayTOA1 = 2400  # <= Delay Value for Histogram to be plotted in Plot (1,0)
+HistDelayTOA1 = 1000  # <= Delay Value for Histogram to be plotted in Plot (1,0)
 HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistPulserTOT1 = 5  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
 HistPulserTOT2 = 10  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
@@ -174,7 +174,7 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
 
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
-    top.Fpga[0].Asic.SlowControl.CP_b.set(0x3) #5 32ps LSB 2.8 ns for B7, 23 ps 2.4 ns range with Cp_b=3
+    top.Fpga[0].Asic.SlowControl.CP_b.set(0x4) #5 32ps 2.8 ns LSB and 23 ps 2.4 ns with Cp_b=3  for B7
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x0) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #0
@@ -538,7 +538,7 @@ if nTOA_TOT_Processing == 1:
                 HitDataTOT = []  
 
         #HitDataTOT = list((np.asarray(HitDataTOTc) + 1 - np.asarray(HitDataTOTf)/4))
-        #HitDataTOT = HitDataTOTc
+        HitDataTOT = HitDataTOTc
 
         exec("%s = %r" % ('HitDataTOT%d' %puls, HitDataTOT))
         exec("%s = %r" % ('HitDataTOTf%d' %puls, HitDataTOTf))
@@ -606,8 +606,8 @@ else:
     # Plot (0,0) ; top left
     ax1.plot(Pulser, DataMeanTOT)
     ax1.grid(True)
-    ax1.set_title('TOT Measurment VS Injected Charge', fontsize = 11)
-    ax1.set_xlabel('Pulser DAC Value', fontsize = 10)
+    ax1.set_title('TOT Measurment VS Ext Trig width', fontsize = 11)
+    ax1.set_xlabel('Ext Trig width code', fontsize = 10)
     ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
     ax1.set_xlim(left = np.min(Pulser), right = np.max(Pulser))
     ax1.set_ylim(bottom = 0, top = np.max(DataMeanTOT)*1.1)
@@ -636,8 +636,8 @@ else:
     else:
         ax2.plot(Pulser, ValidTOTCnt)
         ax2.grid(True)
-        ax2.set_title('TOT Valid Counts VS Injected Charge', fontsize = 11)
-        ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
+        ax2.set_title('TOT Valid Counts VS Trig Ext code', fontsize = 11)
+        ax2.set_xlabel('Trig ext code', fontsize = 10)
         ax2.set_ylabel('Valid Measurements', fontsize = 10)
         ax2.set_xlim(left = np.min(Pulser), right = np.max(Pulser))
         ax2.set_ylim(bottom = 0, top = np.max(ValidTOTCnt)*1.1)
@@ -669,7 +669,7 @@ else:
         if DataL:
             exec("ax3.hist(HitDataTOT%d, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')" % Pulser[HistPulserTOT1_index])
             exec("ax3.set_xlim(left = np.min(HitDataTOT%d)-10*LSB_TOTf_mean, right = np.max(HitDataTOT%d)+10*LSB_TOTf_mean)" % (Pulser[HistPulserTOT1_index], Pulser[HistPulserTOT1_index]))
-            ax3.set_title('TOT Measurment for Pulser = %d' % Pulser[HistPulserTOT1_index], fontsize = 11)
+            ax3.set_title('TOT Measurment for Trig Ext code = %d' % Pulser[HistPulserTOT1_index], fontsize = 11)
             ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
             ax3.set_ylabel('N of Measrements', fontsize = 10)
             ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT1_index], DataStdevTOT[HistPulserTOT1_index], ValidTOTCnt[HistPulserTOT1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)

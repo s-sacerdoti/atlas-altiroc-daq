@@ -30,7 +30,7 @@ NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
 
 DataAcqusitionTOT = 1   # <= Enable TOT Data Acquisition (Pulser Sweep)
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
-PulserRangeH = 40       # <= High Value of Pulser Sweep Range
+PulserRangeH = 20       # <= High Value of Pulser Sweep Range
 PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
 NofIterationsTOT = 200   # <= Number of Iterations for each Pulser Value
 DelayValueTOT = 2400       # <= Value of Programmable Delay for TOT Pulser Sweep
@@ -165,9 +165,9 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x1) #0
 
-    top.Fpga[0].Asic.SlowControl.totf_satovfw.set(0x1)
-    top.Fpga[0].Asic.SlowControl.totc_satovfw.set(0x1)
-    top.Fpga[0].Asic.SlowControl.toa_satovfw.set(0x1)
+    top.Fpga[0].Asic.SlowControl.totf_satovfw.set(0x0)
+    top.Fpga[0].Asic.SlowControl.totc_satovfw.set(0x0)
+    top.Fpga[0].Asic.SlowControl.toa_satovfw.set(0x0)
 
     top.Fpga[0].Asic.SlowControl.SatFVa.set(0x0) #3
     top.Fpga[0].Asic.SlowControl.IntFVa.set(0x0) #1
@@ -184,12 +184,12 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.cBit_s_TOT[pixel_number].set(0x0)  #0
     top.Fpga[0].Asic.SlowControl.cBit_c_TOT[pixel_number].set(0x0)  #f
     top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(0x0) #0
-    top.Fpga[0].Asic.SlowControl.cd[0].set(0x7) #6
+    top.Fpga[0].Asic.SlowControl.cd[0].set(0x0) #6
     top.Fpga[0].Asic.SlowControl.cd[1].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.cd[2].set(0x7) #6
-    top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x1e) #10
-    top.Fpga[0].Asic.SlowControl.dac_pulser.set(13) #7
-    top.Fpga[0].Asic.SlowControl.DAC10bit.set(320) #173 / 183
+    top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x1e) #30
+    top.Fpga[0].Asic.SlowControl.dac_pulser.set(13) #
+    top.Fpga[0].Asic.SlowControl.DAC10bit.set(320) #
     
 
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(0x0)   # Rising edge of EXT_TRIG or CMD_PULSE delay

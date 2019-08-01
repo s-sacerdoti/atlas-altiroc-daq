@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #################################################################
-import sys
+import sys 
 import rogue
 import time
 import random
@@ -9,17 +9,16 @@ import argparse
 import pyrogue as pr
 import pyrogue.gui
 import numpy as np
-import common as feb
+import common as feb 
 
 import os
 import rogue.utilities.fileio
 
 ##############################################################################
 def set_fpga_for_custom_config(top,pixel_number):
-    print('Loading costum config for BOARD 7')
-    top.Fpga[0].Asic.Probe.en_probe_pa.set(0x0)
+    print('Loading costum config for BOARD 8')
+    top.Fpga[0].Asic.Probe.en_probe_pa.set(0x1)
 
-    #first set all to 0
     for i in range(25):
         top.Fpga[0].Asic.Probe.pix[i].probe_pa.set(0x0)
         top.Fpga[0].Asic.Probe.pix[i].probe_vthc.set(0x0)
@@ -50,7 +49,7 @@ def set_fpga_for_custom_config(top,pixel_number):
         top.Fpga[0].Asic.Probe.en_probe_dig.set(0x10)
         top.Fpga[0].Asic.Probe.EN_dout.set(0x10)
 
-    top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x0)         ## 
+    top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x1)         ## 
     top.Fpga[0].Asic.Probe.pix[pixel_number].probe_vthc.set(0x0)       ## 
     top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)#
     top.Fpga[0].Asic.Probe.pix[pixel_number].probe_toa.set(0x0)        ##
@@ -62,7 +61,6 @@ def set_fpga_for_custom_config(top,pixel_number):
     top.Fpga[0].Asic.Probe.pix[pixel_number].tot_busy.set(0x0)         ##
     top.Fpga[0].Asic.Probe.pix[pixel_number].tot_ready.set(0x0)        ##
     top.Fpga[0].Asic.Probe.pix[pixel_number].en_read.set(0x1)          ##
-
     for i in range(25):
         top.Fpga[0].Asic.SlowControl.disable_pa[i].set(0x1)
         top.Fpga[0].Asic.SlowControl.ON_discri[i].set(0x0)
@@ -91,20 +89,20 @@ def set_fpga_for_custom_config(top,pixel_number):
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
 
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
-    top.Fpga[0].Asic.SlowControl.CP_b.set(0x3) #5 32ps LSB for B7
-    top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #1=need to fix value externally
-    top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #1=need to fix value externally
-    top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x1) #
+    top.Fpga[0].Asic.SlowControl.CP_b.set(0x5) #5
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #need to fix value externally
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #need to fix value externally
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x1) #0
 
     top.Fpga[0].Asic.SlowControl.totf_satovfw.set(0x0)
     top.Fpga[0].Asic.SlowControl.totc_satovfw.set(0x0)
-    top.Fpga[0].Asic.SlowControl.toa_satovfw.set(0x0)
+    top.Fpga[0].Asic.SlowControl.toa_satovfw.set(0x1)
 
     top.Fpga[0].Asic.SlowControl.SatFVa.set(0x0) #3
     top.Fpga[0].Asic.SlowControl.IntFVa.set(0x0) #1
     #top.Fpga[0].Asic.SlowControl.SatFTz.set(0x0) #4
     #top.Fpga[0].Asic.SlowControl.IntFTz.set(0x0) #1
-
+    
     top.Fpga[0].Asic.SlowControl.cBitf.set(0x0) #0
     top.Fpga[0].Asic.SlowControl.cBits.set(0x0) #f
     top.Fpga[0].Asic.SlowControl.cBitc.set(0x0) #f
@@ -115,17 +113,17 @@ def set_fpga_for_custom_config(top,pixel_number):
     top.Fpga[0].Asic.SlowControl.cBit_s_TOT[pixel_number].set(0x0)  #0
     top.Fpga[0].Asic.SlowControl.cBit_c_TOT[pixel_number].set(0x0)  #f
     top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(0x0) #0
-    top.Fpga[0].Asic.SlowControl.cd[0].set(0x7) #6
-    top.Fpga[0].Asic.SlowControl.cd[1].set(0x7) #6
-    top.Fpga[0].Asic.SlowControl.cd[2].set(0x7) #6
+    top.Fpga[0].Asic.SlowControl.cd[0].set(0x7) 
+    top.Fpga[0].Asic.SlowControl.cd[1].set(0x7) 
+    top.Fpga[0].Asic.SlowControl.cd[2].set(0x7) 
     top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x1e) #10
-    top.Fpga[0].Asic.SlowControl.dac_pulser.set(13) #7
-    top.Fpga[0].Asic.SlowControl.DAC10bit.set(320) #173 / 183
-
-
+    top.Fpga[0].Asic.SlowControl.dac_pulser.set(13) # 6 = 5fC, 13 = 10fC, 26 = 20fC
+    top.Fpga[0].Asic.SlowControl.DAC10bit.set(350) 
+    
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(0x0)   # Rising edge of EXT_TRIG or CMD_PULSE delay
     top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0xfff) # Falling edge of EXT_TRIG (independent of CMD_PULSE)
 
     top.Fpga[0].Asic.Readout.StartPix.set(pixel_number)
     top.Fpga[0].Asic.Readout.LastPix.set(pixel_number)
+
 

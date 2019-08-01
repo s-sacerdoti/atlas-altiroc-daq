@@ -20,44 +20,33 @@ DebugPrint = True
 Configuration_LOAD_file = 'config/config_v2B6_noPAprobe.yml' # <= Path to the Configuration File to be Loaded
 #Configuration_LOAD_file = 'config/config_v2B6_def.yml' # <= Path to the Configuration File to be Loaded
 
-pixel_number = 9 # <= Pixel to be Tested
+pixel_number = 4 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 0   # <= Enable TOA Data Acquisition (Delay Sweep)
 DelayRange_low = 2250     # <= low end of Programmable Delay Sweep
 DelayRange_high = 2700     # <= high end of Programmable Delay Sweep
 DelayRange_step = 10     # <= step size Programmable Delay Sweep
 NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
-delay_list = range(DelayRange_low, DelayRange_high, DelayRange_step)
 
 DataAcqusitionTOT = 1   # <= Enable TOT Data Acquisition (Pulser Sweep)
-useExt = True
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
-PulserRangeH = 40       # <= High Value of Pulser Sweep Range
-PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
-NofIterationsTOT = 50   # <= Number of Iterations for each Pulser Value
-
-DelayValueTOT = 100       # <= Value of Programmable Delay for TOT Pulser Sweep
-minExtWidth = 200
-maxExtWidth = 3000
-extTrigStep = 50
-
-if useExt:
-    pulser_list = range(minExtWidth,maxExtWidth,extTrigStep)
-else:
-    pulser_list = range(PulserRangeL,PulserRangeH,PulserRangeStep) 
-    
-
+PulserRangeH = 20       # <= High Value of Pulser Sweep Range
+PulserRangeStep = 5     # <= Step Size of Pulser Sweep Range
+NofIterationsTOT = 20   # <= Number of Iterations for each Pulser Value
+DelayValueTOT = 2300       # <= Value of Programmable Delay for TOT Pulser Sweep
 
 nTOA_TOT_Processing = 1 # <= Selects the Data to be Processed and Plotted (0 = TOA, 1 = TOT) 
 
-TOT_f_Calibration_En = 1                                       	   # <= Enables Calculation of TOT Fine-Interpolation Calibration Data and Saves them
+TOT_f_Calibration_En = 0                                       	   # <= Enables Calculation of TOT Fine-Interpolation Calibration Data and Saves them
 #TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_nocalibration.txt'
-#TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_calibration.txt'  # <= Path to the TOT Fine-Interpolation Calibration File used in TOT Data Processing
-TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_calibration3.txt'  # <= Path to the TOT Fine-Interpolation Calibration File used in TOT Data Processing
-TOT_f_Calibration_SAVE_file = 'TestData/TOT_fine_calibration3.txt'  # <= Path to the File where TOT Fine-Interpolation Calibration Data are Saved
+TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_calibration.txt'  # <= Path to the TOT Fine-Interpolation Calibration File used in TOT Data Processing
+#TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_calibration2.txt'  # <= Path to the TOT Fine-Interpolation Calibration File used in TOT Data Processing
+TOT_f_Calibration_SAVE_file = 'TestData/TOT_fine_calibration2.txt'  # <= Path to the File where TOT Fine-Interpolation Calibration Data are Saved
 
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
-LSB_TOTc = 160    # <= Estimate of TOT coarse LSB in ps
+LSB_TOTc = 190    # <= Estimate of TOT coarse LSB in ps
+LSB_TOTc = 160
+#LSB_TOTc = 1
 
 nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
 
@@ -65,13 +54,11 @@ HistDelayTOA1 = 2400  # <= Delay Value for Histogram to be plotted in Plot (1,0)
 HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistPulserTOT1 = 5  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
 HistPulserTOT2 = 10  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
-HistPulserTOTtrig1 = 1200  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
-HistPulserTOTtrig2 = 1600  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
 
 Disable_CustomConfig = 0 # <= Disables the ASIC Configuration Customization inside the Script (Section Below) => all Configuration Parameters are taken from Configuration File   
 
-TOTf_hist = 0
-TOTc_hist = 0
+TOTf_hist = 1
+TOTc_hist = 1
 Plot_TOTf_lin = 1
 PlotValidCnt = 1
 
@@ -133,7 +120,7 @@ def set_fpga_for_custom_config(top):
         top.Fpga[0].Asic.Probe.en_probe_dig.set(0x10)
         top.Fpga[0].Asic.Probe.EN_dout.set(0x10)
 
-    top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x0)         ## 
+    top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x1)         ## 
     top.Fpga[0].Asic.Probe.pix[pixel_number].probe_vthc.set(0x0)       ## 
     top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)#
     top.Fpga[0].Asic.Probe.pix[pixel_number].probe_toa.set(0x0)        ##
@@ -145,7 +132,6 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.Probe.pix[pixel_number].tot_busy.set(0x0)         ##
     top.Fpga[0].Asic.Probe.pix[pixel_number].tot_ready.set(0x0)        ##
     top.Fpga[0].Asic.Probe.pix[pixel_number].en_read.set(0x1)          ##
-
     for i in range(25):
         top.Fpga[0].Asic.SlowControl.disable_pa[i].set(0x1)
         top.Fpga[0].Asic.SlowControl.ON_discri[i].set(0x0)
@@ -162,25 +148,25 @@ def set_fpga_for_custom_config(top):
     for i in range(16):
         top.Fpga[0].Asic.SlowControl.EN_trig_ext[i].set(0x0)
 
-    top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x1)
-    top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x0)
-    top.Fpga[0].Asic.SlowControl.EN_hyst[pixel_number].set(0x0)
-    top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x1)
+    top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x0)
+    top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x1)
+    top.Fpga[0].Asic.SlowControl.EN_hyst[pixel_number].set(0x1)
+    top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x0)
     top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)
-    top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x0)
+    top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x1)
     top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(0x40)
 
     top.Fpga[0].Asic.SlowControl.Write_opt.set(0x0)
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
 
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
-    top.Fpga[0].Asic.SlowControl.CP_b.set(0x3) #5 32ps LSB 2.8 ns for B7, 23 ps 2.4 ns range with Cp_b=3
+    top.Fpga[0].Asic.SlowControl.CP_b.set(0x5) #5 32ps LSB for B7
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #need to fix value externally
-    top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x0) #need to fix value externally
-    top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #0
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #need to fix value externally
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x1) #0
 
-    top.Fpga[0].Asic.SlowControl.totf_satovfw.set(0x0)
-    top.Fpga[0].Asic.SlowControl.totc_satovfw.set(0x0)
+    top.Fpga[0].Asic.SlowControl.totf_satovfw.set(0x1)
+    top.Fpga[0].Asic.SlowControl.totc_satovfw.set(0x1)
     top.Fpga[0].Asic.SlowControl.toa_satovfw.set(0x1)
 
     top.Fpga[0].Asic.SlowControl.SatFVa.set(0x0) #3
@@ -203,12 +189,11 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.cd[2].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x1e) #10
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(13) #7
-    top.Fpga[0].Asic.SlowControl.DAC10bit.set(320) #173 / 183
+    top.Fpga[0].Asic.SlowControl.DAC10bit.set(350) #173 / 183
     
 
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(0x0)   # Rising edge of EXT_TRIG or CMD_PULSE delay
-    #top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0xfff) # Falling edge of EXT_TRIG (independent of CMD_PULSE)
-    top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(2800) # Falling edge of EXT_TRIG (independent of CMD_PULSE)
+    top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0xfff) # Falling edge of EXT_TRIG (independent of CMD_PULSE)
 
     top.Fpga[0].Asic.Readout.StartPix.set(pixel_number)
     top.Fpga[0].Asic.Readout.LastPix.set(pixel_number)
@@ -218,21 +203,16 @@ def set_fpga_for_custom_config(top):
 
 def acquire_data(range_low, range_high, range_step, top, 
         asic_pulser, file_prefix, n_iterations, dataStream): 
-    
-    fileList = []
 
     for i in range(range_low, range_high, range_step):
         print(file_prefix+'step = %d' %i)
         asic_pulser.set(i)
-        
-        ts = str(int(time.time()))
-        val = '%d_' %i
-        filename = 'TestData/'+file_prefix+val+ts+'.dat'
+
+        filename = 'TestData/'+file_prefix+'%d.dat' %i
         try: os.remove(filename)
         except OSError: pass
 
         top.dataWriter._writer.open(filename)
-        fileList.append(filename)
 
         for j in range(n_iterations):
             if (asicVersion == 1):
@@ -245,19 +225,14 @@ def acquire_data(range_low, range_high, range_step, top,
         while dataStream.count < n_iterations: pass
         top.dataWriter._writer.close()
         dataStream.count = 0
-    
-    return fileList
 #################################################################
 
 
 def get_sweep_index(sweep_value, sweep_low, sweep_high, sweep_step):
     if sweep_value < sweep_low or sweep_high < sweep_value:
-        #raise ValueError( 'Sweep value {} outside of sweep range [{}:{}]'.format(sweep_value, sweep_low, sweep_high) )
-        sweep_value = sweep_low+sweep_step
-        print('WARNING: Will do histo for delay = ',sweep_value)
-    #if sweep_value % sweep_step != 0:
-    #    #raise ValueError( 'Sweep value {} is not a multiple of sweep step {}'.format(sweep_value, sweep_step) )
-    #    sweep_value = sweep_low+sweep_step
+        raise ValueError( 'Sweep value {} outside of sweep range [{}:{}]'.format(sweep_value, sweep_low, sweep_high) )
+    if sweep_value % sweep_step != 0:
+        raise ValueError( 'Sweep value {} is not a multiple of sweep step {}'.format(sweep_value, sweep_step) )
     return int ( (sweep_value - sweep_low) / sweep_step )
 #################################################################
 
@@ -270,15 +245,7 @@ HistDelayTOA1_index  = get_sweep_index(HistDelayTOA1 , DelayRange_low, DelayRang
 HistDelayTOA2_index  = get_sweep_index(HistDelayTOA2 , DelayRange_low, DelayRange_high, DelayRange_step)
 HistPulserTOT1_index = get_sweep_index(HistPulserTOT1, PulserRangeL, PulserRangeH, PulserRangeStep)
 HistPulserTOT2_index = get_sweep_index(HistPulserTOT2, PulserRangeL, PulserRangeH, PulserRangeStep)
-HistPulserTOTtrig1_index = get_sweep_index(HistPulserTOTtrig1, minExtWidth,maxExtWidth,extTrigStep)
-HistPulserTOTtrig2_index = get_sweep_index(HistPulserTOTtrig2, minExtWidth,maxExtWidth,extTrigStep)
 
-if useExt:
-    HistPulserTOT1 = HistPulserTOTtrig1
-    HistPulserTOT2 = HistPulserTOTtrig2
-
-    HistPulserTOT1_index=HistPulserTOTtrig1_index
-    HistPulserTOT2_index=HistPulserTOTtrig2_index
 
 # Convert str to bool
 argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
@@ -309,8 +276,8 @@ if DebugPrint:
 
 #testing resets
 top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x0)
-#time.sleep(0.001)
-#top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x1)
+time.sleep(0.001)
+top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x1)
 time.sleep(0.001)
 top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)
 time.sleep(0.001)
@@ -321,23 +288,16 @@ if Disable_CustomConfig == 0:
     set_fpga_for_custom_config(top)
 
 # Data Acquisition for TOA and TOT
-fileList = []
 if DataAcqusitionTOA == 1:
-    fileList = acquire_data(DelayRange_low, DelayRange_high, DelayRange_step, top,
+    acquire_data(DelayRange_low, DelayRange_high, DelayRange_step, top,
             top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOA', NofIterationsTOA, dataStream)
 
 top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValueTOT)
 
-if DataAcqusitionTOT == 1 and not useExt:
-    print("Will do charge scan =========")
-    fileList = acquire_data(PulserRangeL, PulserRangeH, PulserRangeStep, top, 
+if DataAcqusitionTOT == 1:
+    acquire_data(PulserRangeL, PulserRangeH, PulserRangeStep, top, 
             top.Fpga[0].Asic.SlowControl.dac_pulser, 'TOT', NofIterationsTOT, dataStream)
 
-if DataAcqusitionTOT == 1 and useExt:   
-    print("Will use only Ext trigger =====")
-    top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValueTOT)
-    fileList = acquire_data(minExtWidth, maxExtWidth, extTrigStep, top, 
-            top.Fpga[0].Asic.Gpio.DlyCalPulseReset, 'TOT', NofIterationsTOT, dataStream)
 #######################
 # Data Processing TOA #
 #######################
@@ -349,11 +309,7 @@ if nTOA_TOT_Processing == 0:
     DataMean = []
     DataStdev = []
 
-    #for delay_value in range(DelayRange_low, DelayRange_high, DelayRange_step):
-    for idel in len(delay_list):
-        delay_value = delay_list[idel]
-        fileName = fileList[idel]
-
+    for delay_value in range(DelayRange_low, DelayRange_high, DelayRange_step):
         # Create the File reader streaming interface
         dataReader = rogue.utilities.fileio.StreamReader()
 
@@ -364,8 +320,7 @@ if nTOA_TOT_Processing == 0:
         pr.streamConnect(dataReader, dataStream) 
 
         # Open the file
-        #dataReader.open('TestData/TOA%d.dat' %delay_value)
-        dataReader.open(fileName)
+        dataReader.open('TestData/TOA%d.dat' %delay_value)
 
         # Close file once everything processed
         dataReader.closeWait()
@@ -402,11 +357,11 @@ if nTOA_TOT_Processing == 0:
     print(DataMean)
     index=np.where(DataMean)
     #avoid crashes due to fit
-    if len(index)>6:
-        fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
-    else: fit=[1,1]
+    #if len(index)>6:
+    #    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
+    #else: fit=[1,1]
 
-    #fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
+    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
     LSBest = DelayStep/abs(fit[0])
 
 #################################################################
@@ -422,12 +377,9 @@ if nTOA_TOT_Processing == 1 and TOT_f_Calibration_En == 1:
     # Connect the file reader ---> event reader
     pr.streamConnect(dataReader, dataStream) 
 
-    for ip in range(len(pulser_list)):
-        puls = pulser_list[ip]
-        fileName = fileList[ip]
+    for i in range(PulserRangeL, PulserRangeH):
         # Open the file
-        #dataReader.open('TestData/TOT%d.dat' %i)
-        dataReader.open(fileName)
+        dataReader.open('TestData/TOT%d.dat' %i)
         time.sleep(0.01)
         # Close file once everything processed
         dataReader.closeWait()
@@ -472,11 +424,10 @@ if nTOA_TOT_Processing == 1:
     DataMeanTOT = []
     DataStdevTOT = []
     HitDataTOTf_cumulative = []
+    HitDataTOA = []
+    DataMeanTOA = []
 
-    #for i in range(PulserRangeL, PulserRangeH, PulserRangeStep):
-    for ip in range(len(pulser_list)):
-        puls = pulser_list[ip]
-        fileName = fileList[ip]
+    for i in range(PulserRangeL, PulserRangeH):
         # Create the File reader streaming interface
         dataReader = rogue.utilities.fileio.StreamReader()
 
@@ -487,17 +438,16 @@ if nTOA_TOT_Processing == 1:
         pr.streamConnect(dataReader, dataStream) 
 
         # Open the file
-        #dataReader.open('TestData/TOT%d.dat' %i)
-        dataReader.open(fileName)
+        dataReader.open('TestData/TOT%d.dat' %i)
 
         # Close file once everything processed
         dataReader.closeWait()
 
     
         try:
-            print('Processing Data for Pulser = %d...' % puls)
+            print('Processing Data for Pulser = %d...' % i)
         except OSError:
-            pass  
+            pass 
 
         if not nVPA_TZ:    
             HitDataTOTf = dataStream.HitDataTOTf_vpa
@@ -510,7 +460,7 @@ if nTOA_TOT_Processing == 1:
             HitDataTOTc_int1 = dataStream.HitDataTOTc_int1_tz
             HitDataTOTf_cumulative = HitDataTOTf_cumulative + dataStream.HitDataTOTf_tz
     
-        Pulser.append(puls)
+        Pulser.append(i)
     
         TOTf_bin = np.loadtxt(TOT_f_Calibration_LOAD_file) 
         LSB_TOTf_mean = TOTf_bin[16]*2*LSB_TOTc
@@ -537,12 +487,11 @@ if nTOA_TOT_Processing == 1:
             else:
                 HitDataTOT = []  
 
-        #HitDataTOT = list((np.asarray(HitDataTOTc) + 1 - np.asarray(HitDataTOTf)/4))
         #HitDataTOT = HitDataTOTc
 
-        exec("%s = %r" % ('HitDataTOT%d' %puls, HitDataTOT))
-        exec("%s = %r" % ('HitDataTOTf%d' %puls, HitDataTOTf))
-        exec("%s = %r" % ('HitDataTOTc%d' %puls, HitDataTOTc))
+        exec("%s = %r" % ('HitDataTOT%d' %i, HitDataTOT))
+        exec("%s = %r" % ('HitDataTOTf%d' %i, HitDataTOTf))
+        exec("%s = %r" % ('HitDataTOTc%d' %i, HitDataTOTc))
 
         ValidTOTCnt.append(len(HitDataTOT))
         if len(HitDataTOT) > 0:        
@@ -553,9 +502,22 @@ if nTOA_TOT_Processing == 1:
             DataMeanTOT.append(0)
             DataStdevTOT.append(0)
 
+        #saving also TOA
+        HitDataTOA = dataStream.HitData 
+        exec("%s = %r" % ('HitDataTOA%d' %i, HitDataTOA))
+
+        if len(HitDataTOA) > 0:
+            DataMeanTOA.append(np.mean(HitDataTOA, dtype=np.float64))
+        else:
+            DataMeanTOA.append(0)
+
     # Average Std. Dev. Calculation; Points with no data (i.e. Std.Dev.= 0) are ignored
     index = np.where(np.sort(DataStdevTOT))
     MeanDataStdevTOT = np.mean(np.sort(DataStdevTOT)[index[0][0]:len(np.sort(DataStdevTOT))])
+
+    print(DataMeanTOT)
+    print(DataMeanTOA)
+    print(Pulser)
 
 #################################################################
 # Print Data
@@ -587,13 +549,13 @@ if nTOA_TOT_Processing == 0:
 # Plot Data
 
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
-HistPulserTOT2 = Pulser[HistPulserTOT2_index]
+
 #LSBest = 1
 
 if nTOA_TOT_Processing == 0:
     # Plot (0,0) ; top left
-    ax1.plot(Delay, np.multiply(DataMean,LSBest))
-    #ax1.plot(Delay, DataMean)
+    #ax1.plot(Delay, np.multiply(DataMean,LSBest))
+    ax1.plot(Delay, DataMean)
     ax1.grid(True)
     ax1.set_title('TOA Measurment VS Programmable Delay Value', fontsize = 11)
     ax1.set_xlabel('Programmable Delay Value [step estimate = %f ps]' % DelayStep, fontsize = 10)
@@ -665,27 +627,27 @@ else:
     #exec("print(np.asarray(list(map(lambda x: TOTf_bin[x], np.asarray(HitDataTOTf%d, dtype=np.int))))*2)" % HistPulserTOT1)
     #exec("print(list(map(lambda x: x&1, np.asarray(HitDataTOTc%d))))" % HistPulserTOT1)
     if TOTf_hist == 0 and TOTc_hist == 0:
-        exec("DataL = len(HitDataTOT%d)" % Pulser[HistPulserTOT1_index])
+        exec("DataL = len(HitDataTOT%d)" % HistPulserTOT1)
         if DataL:
-            exec("ax3.hist(HitDataTOT%d, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')" % Pulser[HistPulserTOT1_index])
-            exec("ax3.set_xlim(left = np.min(HitDataTOT%d)-10*LSB_TOTf_mean, right = np.max(HitDataTOT%d)+10*LSB_TOTf_mean)" % (Pulser[HistPulserTOT1_index], Pulser[HistPulserTOT1_index]))
-            ax3.set_title('TOT Measurment for Pulser = %d' % Pulser[HistPulserTOT1_index], fontsize = 11)
+            exec("ax3.hist(HitDataTOT%d, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistPulserTOT1)
+            exec("ax3.set_xlim(left = np.min(HitDataTOT%d)-10*LSB_TOTf_mean, right = np.max(HitDataTOT%d)+10*LSB_TOTf_mean)" % (HistPulserTOT1, HistPulserTOT1))
+            ax3.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT1, fontsize = 11)
             ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
             ax3.set_ylabel('N of Measrements', fontsize = 10)
             ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT1_index], DataStdevTOT[HistPulserTOT1_index], ValidTOTCnt[HistPulserTOT1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     else:
         if TOTf_hist == 1:
-            exec("ax3.hist(HitDataTOTf%d, bins = np.arange(9), align = 'left', edgecolor = 'k', color = 'royalblue')" % Pulser[HistPulserTOT1_index])
+            exec("ax3.hist(HitDataTOTf%d, bins = np.arange(9), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistPulserTOT1)
             ax3.set_xlim(left = -1, right = 8)
-            ax3.set_title('TOT Measurment for Pulser = %d' % Pulser[HistPulserTOT1_index], fontsize = 11)
+            ax3.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT1, fontsize = 11)
             ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
             ax3.set_ylabel('N of Measrements', fontsize = 10)
             ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT1_index], DataStdevTOT[HistPulserTOT1_index], ValidTOTCnt[HistPulserTOT1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
         else: 
             if TOTc_hist == 1:
-                exec("ax3.hist(HitDataTOTc%d, bins = np.arange(129), align = 'left', edgecolor = 'k', color = 'royalblue')" % Pulser[HistPulserTOT1_index])
+                exec("ax3.hist(HitDataTOTc%d, bins = np.arange(129), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistPulserTOT1)
                 ax3.set_xlim(left = -1, right = 128)
-                ax3.set_title('TOT Measurment for Pulser = %d' % Pulser[HistPulserTOT1_index], fontsize = 11)
+                ax3.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT1, fontsize = 11)
                 ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
                 ax3.set_ylabel('N of Measrements', fontsize = 10)
                 ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistPulserTOT1_index], DataStdevTOT[HistPulserTOT1_index], ValidTOTCnt[HistPulserTOT1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)

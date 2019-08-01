@@ -50,7 +50,7 @@ LSB_TOTc = 160
 nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
 
 HistDelayTOA1 = 2400  # <= Delay Value for Histogram to be plotted in Plot (1,0)
-HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
+HistDelayTOA2 = 2540 # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistPulserTOT1 = 32  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
 HistPulserTOT2 = 25  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
 
@@ -159,7 +159,7 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
 
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
-    top.Fpga[0].Asic.SlowControl.CP_b.set(0x4) #5
+    top.Fpga[0].Asic.SlowControl.CP_b.set(0x5) #5
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x1) #0
@@ -173,8 +173,8 @@ def set_fpga_for_custom_config(top):
     #top.Fpga[0].Asic.SlowControl.SatFTz.set(0x0) #4
     #top.Fpga[0].Asic.SlowControl.IntFTz.set(0x0) #1
     
-    top.Fpga[0].Asic.SlowControl.cBitf.set(0) #0
-    top.Fpga[0].Asic.SlowControl.cBits.set(0) #f
+    top.Fpga[0].Asic.SlowControl.cBitf.set(0x0) #0
+    top.Fpga[0].Asic.SlowControl.cBits.set(0x0) #f
     top.Fpga[0].Asic.SlowControl.cBitc.set(0x0) #f
 
     top.Fpga[0].Asic.SlowControl.cBit_f_TOA[pixel_number].set(0x0)  #0
@@ -190,10 +190,6 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(12) #7
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(350) #173 / 183
     
-    #top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x0)
-    #time.sleep(0.001)
-    #top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x1)
-
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(0x0)   # Rising edge of EXT_TRIG or CMD_PULSE delay
     top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0xfff) # Falling edge of EXT_TRIG (independent of CMD_PULSE)
 
