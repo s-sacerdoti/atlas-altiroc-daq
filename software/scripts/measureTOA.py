@@ -13,15 +13,7 @@
 # Script Settings
 
 asicVersion = 1 # <= Select either V1 or V2 of the ASIC
-
 DebugPrint = True
-
-Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
-
-
-DelayRange = None
-range(DelayRange_low, DelayRange_high, DelayRange_step)
-
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
 
@@ -44,12 +36,13 @@ import rogue.utilities.fileio                                  ##
 import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
-import setASICconfigs
+import setASICconfigs                                          ##
+from setASICconfig_v2B6 import *                               ##
                                                                ##
 #################################################################
 
 
-def acquire_data(top, pixel_data): 
+def acquire_data(top, DelayRange, pixel_data): 
     pixel_stream = feb.PixelReader()    
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
 
@@ -95,8 +88,6 @@ def parse_arguments():
     parser.add_argument("--delayMax", type = int, required = False, default = dlyMax, help = "scan stop")
     parser.add_argument("--delayStep", type = int, required = False, default = dlyStep, help = "scan step")
 
-    Delay
-    
     # Get the arguments
     args = parser.parse_args()
     return args
@@ -104,7 +95,7 @@ def parse_arguments():
 
 
 args = parse_arguments()
-DelayRange = Range( args.delayMin, args.delayMax, args.delayStep )
+DelayRange = range( args.delayMin, args.delayMax, args.delayStep )
 
 # Setup root class
 top = feb.Top(ip= args.ip)    
@@ -119,11 +110,11 @@ if DebugPrint:
     pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
 
 # Custom Configuration
-setASICconfigs.measureTOA_base(top,args.ch)
+set_fpga_for_custom_config(top,args.ch)
 
 # Data Acquisition for TOA
 pixel_data = []
-acquire_data(top, pixel_data)
+acquire_data(top, DelayRange, pixel_data)
 
 #######################
 # Data Processing TOA #
