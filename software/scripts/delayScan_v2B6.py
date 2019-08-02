@@ -478,7 +478,7 @@ if nTOA_TOT_Processing == 1:
             else:
                 HitDataTOT = []    
         else:
-            if le32HitDataTOTf) > 0:
+            if len(le32HitDataTOTf) > 0:
                 HitDataTOT = list((np.asarray(HitDataTOTc) + 1 - np.asarray(HitDataTOTf)/4)*LSB_TOTc)
             else:
                 HitDataTOT = []  

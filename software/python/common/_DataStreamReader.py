@@ -177,10 +177,11 @@ class MyFileReader(rogue.interfaces.stream.Slave):
 
 
 # Class for Reading Data output by pixels
-class MyPixelReader(rogue.interfaces.stream.Slave):
+class PixelReader(rogue.interfaces.stream.Slave):
 
     def __init__(self):
         rogue.interfaces.stream.Slave.__init__(self)
+        self.count = 0
         self.HitData = []
         self.HitDataTOTf_vpa = []
         self.HitDataTOTf_tz = []
@@ -221,6 +222,7 @@ class MyPixelReader(rogue.interfaces.stream.Slave):
                     self.HitDataTOTf_tz.append(self.HitDataTOTf_tz_temp)                    
                     self.HitDataTOTc_tz.append(self.HitDataTOTc_tz_temp)
                     self.HitDataTOTc_int1_tz.append(self.HitDataTOTc_int1_tz_temp)
+            self.count += 1
                    
 #################################################################
 #################################################################
