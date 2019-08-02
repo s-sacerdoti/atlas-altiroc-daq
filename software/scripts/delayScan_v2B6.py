@@ -23,8 +23,8 @@ Configuration_LOAD_file = 'config/config_v2B6_noPAprobe.yml' # <= Path to the Co
 pixel_number = 4 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
-DelayRange_low = 1900     # <= low end of Programmable Delay Sweep
-DelayRange_high = 2700     # <= high end of Programmable Delay Sweep
+DelayRange_low = 2300     # <= low end of Programmable Delay Sweep
+DelayRange_high = 2450    # <= high end of Programmable Delay Sweep
 DelayRange_step = 10     # <= step size Programmable Delay Sweep
 NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
 
@@ -50,7 +50,7 @@ LSB_TOTc = 160
 nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
 
 HistDelayTOA1 = 2400  # <= Delay Value for Histogram to be plotted in Plot (1,0)
-HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
+HistDelayTOA2 = 2430 # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistPulserTOT1 = 32  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
 HistPulserTOT2 = 25  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
 
@@ -478,7 +478,7 @@ if nTOA_TOT_Processing == 1:
             else:
                 HitDataTOT = []    
         else:
-            if le32HitDataTOTf) > 0:
+            if len(le32HitDataTOTf) > 0:
                 HitDataTOT = list((np.asarray(HitDataTOTc) + 1 - np.asarray(HitDataTOTf)/4)*LSB_TOTc)
             else:
                 HitDataTOT = []  
