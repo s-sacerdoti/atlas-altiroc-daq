@@ -356,6 +356,7 @@ if nTOA_TOT_Processing == 1 and TOT_f_Calibration_En == 1:
 
 #################################################################
 # Data Processing TOT
+#################################################################
 
 if nTOA_TOT_Processing == 1:
 
@@ -473,6 +474,34 @@ if nTOA_TOT_Processing == 0:
         print('Average LSB estimate: %f ps' % LSBest)
     except OSError:
         pass
+
+#################################################################
+# Save Data
+#################################################################
+outFile = 'TestData/TOTmeasurement'
+
+ff = open(outFile+'.txt','a')
+if useExt:
+    ff.write('TOT measurement with ext trigger ---- '+time.ctime()+'\n')
+else:
+    ff.write('TOT measurement with charge scan ---- '+time.ctime()+'\n')
+ff.write('Pixel = '+str(pixel_number)+'\n')
+ff.write('config file = '+Configuration_LOAD_file+'\n')
+ff.write('NofIterations = '+str(NofIterationsTOT)+'\n')
+#ff.write('cmd_pulser = '+str(Qinj)+'\n')
+#ff.write('Delay DAC = '+str(DelayValue)+'\n')
+ff.write('LSBest = '+str(LSBest)+'\n')
+#ff.write('Threshold = '+str(DACvalue)+'\n')
+ff.write('N hits = '+str(ValidTOTCnt)+'\n')
+ff.write('Number of events = '+str(len(HitDataTOT))+'\n')
+ff.write('mean value = '+str(DataMeanTOT)+'\n')
+ff.write('sigma = '+str(DataStdevTOT)+'\n')
+ff.write('TOAvalues = '+str(HitDataTOT)+'\n')
+ff.write('\n')
+ff.close()
+
+print('Saved file '+outFile)
+
 #################################################################
 
 #################################################################

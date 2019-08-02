@@ -16,9 +16,9 @@ asicVersion = 1 # <= Select either V1 or V2 of the ASIC
 
 DebugPrint = True
 
-#Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
-Configuration_LOAD_file = 'config/config_v2B6_noPAprobe.yml' # <= Path to the Configuration File to be Loaded
-#Configuration_LOAD_file = 'config/config_v2B6_def.yml' # <= Path to the Configuration File to be Loaded
+#configFile = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
+configFile = 'config/config_v2B6_noPAprobe.yml' # <= Path to the Configuration File to be Loaded
+#configFile = 'config/config_v2B6_def.yml' # <= Path to the Configuration File to be Loaded
 
 pixel_number = 4 # <= Pixel to be Tested
 
@@ -157,8 +157,8 @@ args = parser.parse_args()
 top = feb.Top(ip= args.ip)    
 
 # Load the default YAML file
-print(f'Loading {Configuration_LOAD_file} Configuration File...')
-top.LoadConfig(arg = Configuration_LOAD_file)
+print(f'Loading {configFile} Configuration File...')
+top.LoadConfig(arg = configFile)
 
 if DebugPrint:
     # Tap the streaming data interface (same interface that writes to file)
@@ -197,8 +197,8 @@ if nTOA_TOT_Processing == 0:
 
     Delay = []
     HitCnt = []
-    DataMean = []
-    DataStdev = []
+    TOAmean = []
+    TOAsigma = []
 
     for delay_value in range(DelayRange_low, DelayRange_high, DelayRange_step):
         # Create the File reader streaming interface
@@ -222,37 +222,37 @@ if nTOA_TOT_Processing == 0:
         except OSError:
             pass  
 
-        HitData = dataStream.HitData
+        HitDataTOA = dataStream.HitDataTOA
 
-        exec("%s = %r" % ('HitData%d' %delay_value, HitData))
+        exec("%s = %r" % ('HitDataTOA%d' %delay_value, HitDataTOA))
 
         Delay.append(delay_value)
 
-        HitCnt.append(len(HitData))
-        if len(HitData) > 0:
-            DataMean.append(np.mean(HitData, dtype=np.float64))
-            DataStdev.append(math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12))
+        HitCnt.append(len(HitDataTOA))
+        if len(HitDataTOA) > 0:
+            TOAmean.append(np.mean(HitDataTOA, dtype=np.float64))
+            TOAsigma.append(math.sqrt(math.pow(np.std(HitDataTOA, dtype=np.float64),2)+1/12))
 
         else:
-            DataMean.append(0)
-            DataStdev.append(0)
+            TOAmean.append(0)
+            TOAsigma.append(0)
   
-    if len(DataMean) == 0:
+    if len(TOAmean) == 0:
         raise ValueError('No hits were detected during delay sweep. Aborting!')
 
     # Average Std. Dev. Calculation; Points with no data (i.e. Std.Dev.= 0) are ignored
-    index = np.where(np.sort(DataStdev))
-    MeanDataStdev = np.mean(np.sort(DataStdev)[index[0][0]:len(np.sort(DataStdev))])
+    index = np.where(np.sort(TOAsigma))
+    MeanTOAsigma = np.mean(np.sort(TOAsigma)[index[0][0]:len(np.sort(TOAsigma))])
 
     # LSB estimation based on "DelayStep" value
-    print(DataMean)
-    index=np.where(DataMean)
+    print(TOAmean)
+    index=np.where(TOAmean)
     #avoid crashes due to fit
     #if len(index)>6:
-    #    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
+    #    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], TOAmean[index[0][5]:index[0][-5]], 1)
     #else: fit=[1,1]
 
-    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
+    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], TOAmean[index[0][5]:index[0][-5]], 1)
     LSBest = DelayStep/abs(fit[0])
 
 #################################################################
@@ -400,26 +400,53 @@ if nTOA_TOT_Processing == 1:
 if nTOA_TOT_Processing == 0:
     for delay_index, delay_value in enumerate(Delay):
         try:
-            print('Delay = %d, HitCnt = %d, DataMean = %f LSB, DataStDev = %f LSB' % (delay_value, HitCnt[delay_index], DataMean[delay_index], DataStdev[delay_index]))
+            print('Delay = %d, HitCnt = %d, TOAmean = %f LSB, DataStDev = %f LSB' % (delay_value, HitCnt[delay_index], TOAmean[delay_index], TOAsigma[delay_index]))
         except OSError:
             pass   
     try:
-        print('Maximum Measured TOA = %f LSB' % np.max(DataMean))
-        print('Mean Std Dev = %f LSB' % MeanDataStdev)
+        print('Maximum Measured TOA = %f LSB' % np.max(TOAmean))
+        print('Mean Std Dev = %f LSB' % MeanTOAsigma)
     except OSError:
         pass
     for delay_index, delay_value in enumerate(Delay):
         try:
-            print('Delay = %d, HitCnt = %d, DataMean = %f ps, DataStDev = %f ps' % (delay_value, HitCnt[delay_index], DataMean[delay_index]*LSBest, DataStdev[delay_index]*LSBest))
+            print('Delay = %d, HitCnt = %d, TOAmean = %f ps, DataStDev = %f ps' % (delay_value, HitCnt[delay_index], TOAmean[delay_index]*LSBest, TOAsigma[delay_index]*LSBest))
         except OSError:
             pass
     try:
-        print('Maximum Measured TOA = %f ps' % (np.max(DataMean)*LSBest))
-        print('Mean Std Dev = %f ps' % (MeanDataStdev*LSBest))
+        print('Maximum Measured TOA = %f ps' % (np.max(TOAmean)*LSBest))
+        print('Mean Std Dev = %f ps' % (MeanTOAsigma*LSBest))
         print('Average LSB estimate: %f ps' % LSBest)
     except OSError:
         pass
 #################################################################
+    #################################################################
+    # Save Data
+    #################################################################
+    outfile = 'TestData/delayScanTOA'
+    ff = open(outFile+'.txt','a')
+    ff.write('Delay Scan TOA measurement ---- '+time.ctime()+'\n')
+    ff.write('Pixel = '+str(pixel_number)+'\n')
+    ff.write('config file = '+configFile+'\n')
+    ff.write('NofIterations = '+str(NofIterationsTOA)+'\n')
+    #ff.write('cmd_pulser = '+str(Qinj)+'\n')
+    #ff.write('Delay DAC = '+str(DelayValue)+'\n')
+    ff.write('LSBest = '+str(LSBest)+'\n')
+    #ff.write('Threshold = '+str(DACvalue)+'\n')
+    ff.write('N hits = '+str(HitCnt)+'\n')
+    ff.write('Number of events = '+str(len(HitDataTOA))+'\n')
+    ff.write('mean value = '+str(TOAmean)+'\n')
+    ff.write('sigma = '+str(TOAsigma)+'\n')
+    ff.write('TOAvalues = '+str(HitDataTOA)+'\n')
+    ff.write('\n')
+    ff.close()
+
+    print('Saved file '+outFile)
+
+    #For quick plot of TOA and Jitter
+    flog = open('/home/hgtd-lal/Documents/ALTIROC1/IrradMeasurements/TDC/'+logFile,'a')
+    flog.write(str(int(time.time()))+'  '+ str(TOAmean)+' '+str(TOAsigma)+'\n')
+    flog.close()
 
 #################################################################
 # Plot Data
@@ -430,16 +457,16 @@ fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7
 
 if nTOA_TOT_Processing == 0:
     # Plot (0,0) ; top left
-    #ax1.plot(Delay, np.multiply(DataMean,LSBest))
-    ax1.plot(Delay, DataMean)
+    #ax1.plot(Delay, np.multiply(TOAmean,LSBest))
+    ax1.plot(Delay, TOAmean)
     ax1.grid(True)
     ax1.set_title('TOA Measurment VS Programmable Delay Value', fontsize = 11)
     ax1.set_xlabel('Programmable Delay Value [step estimate = %f ps]' % DelayStep, fontsize = 10)
     ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
     ax1.legend(['LSB estimate: %f ps' % LSBest],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     ax1.set_xlim(left = np.min(Delay), right = np.max(Delay))
-    #ax1.set_ylim(bottom = 0, top = np.max(np.multiply(DataMean,LSBest))+100)
-    ax1.set_ylim(bottom = 0, top = np.max(DataMean)+100)
+    #ax1.set_ylim(bottom = 0, top = np.max(np.multiply(TOAmean,LSBest))+100)
+    ax1.set_ylim(bottom = 0, top = np.max(TOAmean)+100)
 else:
     # Plot (0,0) ; top left
     ax1.plot(Pulser, DataMeanTOT)
@@ -452,14 +479,14 @@ else:
 
 if nTOA_TOT_Processing == 0:
     # Plot (0,1) ; top right
-    ax2.scatter(Delay, np.multiply(DataStdev,LSBest))
+    ax2.scatter(Delay, np.multiply(TOAsigma,LSBest))
     ax2.grid(True)
     ax2.set_title('TOA Jitter VS Programmable Delay Value', fontsize = 11)
     ax2.set_xlabel('Programmable Delay Value', fontsize = 10)
     ax2.set_ylabel('Std. Dev. [ps]', fontsize = 10)
-    ax2.legend(['Average Std. Dev. = %f ps' % (MeanDataStdev*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+    ax2.legend(['Average Std. Dev. = %f ps' % (MeanTOAsigma*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     ax2.set_xlim(left = np.min(Delay), right = np.max(Delay))
-    ax2.set_ylim(bottom = 0, top = np.max(np.multiply(DataStdev,LSBest))+20)
+    ax2.set_ylim(bottom = 0, top = np.max(np.multiply(TOAsigma,LSBest))+20)
 else:
     # Plot (0,1) ; top right
     if PlotValidCnt == 0:
@@ -482,20 +509,20 @@ else:
 
 if nTOA_TOT_Processing == 0:
     # Plot (1,0) ; bottom left
-    exec("DataL = len(HitData%d)" % HistDelayTOA1)
+    exec("DataL = len(HitDataTOA%d)" % HistDelayTOA1)
     print(DataL)
     if DataL:
-        #exec("ax3.hist(np.multiply(HitData%d,LSBest), bins = LSBest, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
+        #exec("ax3.hist(np.multiply(HitDataTOA%d,LSBest), bins = LSBest, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
         hist_range = 10
-        binlow = ( int(DataMean[HistDelayTOA1_index])-hist_range ) * LSBest
-        binhigh = ( int(DataMean[HistDelayTOA1_index])+hist_range ) * LSBest
+        binlow = ( int(TOAmean[HistDelayTOA1_index])-hist_range ) * LSBest
+        binhigh = ( int(TOAmean[HistDelayTOA1_index])+hist_range ) * LSBest
         hist_bin_list = np.arange(binlow, binhigh, LSBest)
-        exec("ax3.hist(np.multiply(HitData%d,LSBest), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
-        #exec("ax3.set_xlim(left = np.min(np.multiply(HitData%d,LSBest))-4*LSBest, right = np.max(np.multiply(HitData%d,LSBest))+4*LSBest)" % (HistDelayTOA1, HistDelayTOA1))
+        exec("ax3.hist(np.multiply(HitDataTOA%d,LSBest), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
+        #exec("ax3.set_xlim(left = np.min(np.multiply(HitDataTOA%d,LSBest))-4*LSBest, right = np.max(np.multiply(HitDataTOA%d,LSBest))+4*LSBest)" % (HistDelayTOA1, HistDelayTOA1))
         ax3.set_title('TOA Measurment for Programmable Delay = %d' % HistDelayTOA1, fontsize = 11)
         ax3.set_xlabel('TOA Measurement [ps]', fontsize = 10)
         ax3.set_ylabel('N of Measrements', fontsize = 10)
-        ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMean[HistDelayTOA1_index]*LSBest, DataStdev[HistDelayTOA1_index]*LSBest, HitCnt[HistDelayTOA1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+        ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (TOAmean[HistDelayTOA1_index]*LSBest, TOAsigma[HistDelayTOA1_index]*LSBest, HitCnt[HistDelayTOA1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
 else:
     # Plot (1,0)
     #exec("print(HitDataTOT%d)" % HistPulserTOT1)
@@ -532,18 +559,18 @@ else:
 if nTOA_TOT_Processing == 0:
     # Plot (1,1)
     if PlotValidCnt == 0:
-        exec("DataL = len(HitData%d)" % HistDelayTOA2)
+        exec("DataL = len(HitDataTOA%d)" % HistDelayTOA2)
         if DataL:
             hist_range = 10
-            binlow = ( int(DataMean[HistDelayTOA2_index])-hist_range ) * LSBest
-            binhigh = ( int(DataMean[HistDelayTOA2_index])+hist_range ) * LSBest
+            binlow = ( int(TOAmean[HistDelayTOA2_index])-hist_range ) * LSBest
+            binhigh = ( int(TOAmean[HistDelayTOA2_index])+hist_range ) * LSBest
             hist_bin_list = np.arange(binlow, binhigh, LSBest)
-            exec("ax4.hist(np.multiply(HitData%d,LSBest), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA2)
-            #exec("ax4.set_xlim(left = np.min(np.multiply(HitData%d,LSBest))-10*LSBest, right = np.max(np.multiply(HitData%d,LSBest))+10*LSBest)" % (HistDelayTOA2, HistDelayTOA2))
+            exec("ax4.hist(np.multiply(HitDataTOA%d,LSBest), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA2)
+            #exec("ax4.set_xlim(left = np.min(np.multiply(HitDataTOA%d,LSBest))-10*LSBest, right = np.max(np.multiply(HitDataTOA%d,LSBest))+10*LSBest)" % (HistDelayTOA2, HistDelayTOA2))
             ax4.set_title('TOA Measurment for Programmable Delay = %d' % HistDelayTOA2, fontsize = 11)
             ax4.set_xlabel('TOA Measurement [ps]', fontsize = 10)
             ax4.set_ylabel('N of Measrements', fontsize = 10)
-            ax4.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMean[HistDelayTOA2_index]*LSBest, DataStdev[HistDelayTOA2_index]*LSBest, HitCnt[HistDelayTOA2_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+            ax4.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (TOAmean[HistDelayTOA2_index]*LSBest, TOAsigma[HistDelayTOA2_index]*LSBest, HitCnt[HistDelayTOA2_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     else:
         ax4.plot(Delay, HitCnt)
         ax4.grid(True)
@@ -573,6 +600,7 @@ else:
 
 plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
 plt.show()
+
 #################################################################
 
 time.sleep(0.5)
