@@ -41,7 +41,7 @@ if useExt:
     DelayValueTOT = 100
 minExtWidth = 200
 maxExtWidth = 3000
-extTrigStep = 50
+extTrigStep = 10
 
 if useExt:
     pulser_list = range(minExtWidth,maxExtWidth,extTrigStep)
@@ -502,8 +502,9 @@ ff.write('N hits = '+str(ValidTOTCnt)+'\n')
 ff.write('Number of events = '+str(len(HitDataTOT))+'\n')
 ff.write('mean value = '+str(DataMeanTOT)+'\n')
 ff.write('sigma = '+str(DataStdevTOT)+'\n')
+ff.write('Pulse width   TOT   TOTc   TOTf'+'\n')
 for ipuls in range(len(Pulser)):
-  pulser = Pulser[ipuls]
+  pulser = Pulser[ipuls]-DelayValueTOT
   for itot in range(len(allTOTdata_c[ipuls])):
     ff.write(str(pulser)+' '+str(allTOTdata[ipuls][itot])+' '+str(allTOTdata_c[ipuls][itot])+' '+str(allTOTdata_f[ipuls][itot])+'\n')
 #ff.write('TOAvalues = '+str(HitDataTOT)+'\n')
