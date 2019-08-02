@@ -356,6 +356,7 @@ if nTOA_TOT_Processing == 1 and TOT_f_Calibration_En == 1:
 
 #################################################################
 # Data Processing TOT
+#################################################################
 
 if nTOA_TOT_Processing == 1:
 
@@ -364,6 +365,9 @@ if nTOA_TOT_Processing == 1:
     DataMeanTOT = []
     DataStdevTOT = []
     HitDataTOTf_cumulative = []
+    allTOTdata = []
+    allTOTdata_c = []
+    allTOTdata_f = []
 
     #for i in range(PulserRangeL, PulserRangeH, PulserRangeStep):
     for ip in range(len(pulser_list)):
@@ -392,6 +396,7 @@ if nTOA_TOT_Processing == 1:
             pass  
 
         if not nVPA_TZ:    
+            allTOTdata.append(dataStream.HitDataTOT)
             HitDataTOTf = dataStream.HitDataTOTf_vpa
             HitDataTOTc = dataStream.HitDataTOTc_vpa
             HitDataTOTc_int1 = dataStream.HitDataTOTc_int1_vpa
@@ -403,6 +408,8 @@ if nTOA_TOT_Processing == 1:
             HitDataTOTf_cumulative = HitDataTOTf_cumulative + dataStream.HitDataTOTf_tz
     
         Pulser.append(puls)
+        allTOTdata_c.append(HitDataTOTc)
+        allTOTdata_f.append(HitDataTOTf)
     
         TOTf_bin = np.loadtxt(TOT_f_Calibration_LOAD_file) 
         LSB_TOTf_mean = TOTf_bin[16]*2*LSB_TOTc
@@ -473,6 +480,38 @@ if nTOA_TOT_Processing == 0:
         print('Average LSB estimate: %f ps' % LSBest)
     except OSError:
         pass
+
+#################################################################
+# Save Data
+#################################################################
+outFile = 'TestData/TOTmeasurement'
+
+ff = open(outFile+'.txt','a')
+if useExt:
+    ff.write('TOT measurement with ext trigger ---- '+time.ctime()+'\n')
+else:
+    ff.write('TOT measurement with charge scan ---- '+time.ctime()+'\n')
+ff.write('Pixel = '+str(pixel_number)+'\n')
+ff.write('config file = '+Configuration_LOAD_file+'\n')
+ff.write('NofIterations = '+str(NofIterationsTOT)+'\n')
+#ff.write('cmd_pulser = '+str(Qinj)+'\n')
+#ff.write('Delay DAC = '+str(DelayValue)+'\n')
+ff.write('LSBest = '+str(LSB_TOTc)+'\n')
+#ff.write('Threshold = '+str(DACvalue)+'\n')
+ff.write('N hits = '+str(ValidTOTCnt)+'\n')
+ff.write('Number of events = '+str(len(HitDataTOT))+'\n')
+ff.write('mean value = '+str(DataMeanTOT)+'\n')
+ff.write('sigma = '+str(DataStdevTOT)+'\n')
+for ipuls in range(len(Pulser)):
+  pulser = Pulser[ipuls]
+  for itot in range(len(allTOTdata_c[ipuls])):
+    ff.write(str(pulser)+' '+str(allTOTdata[ipuls][itot])+' '+str(allTOTdata_c[ipuls][itot])+' '+str(allTOTdata_f[ipuls][itot])+'\n')
+#ff.write('TOAvalues = '+str(HitDataTOT)+'\n')
+ff.write('\n')
+ff.close()
+
+print('Saved file '+outFile)
+
 #################################################################
 
 #################################################################
