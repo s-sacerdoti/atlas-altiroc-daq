@@ -145,12 +145,6 @@ def get_sweep_index(sweep_value, sweep_low, sweep_high, sweep_step):
         sweep_value = range(sweep_low, sweep_high, sweep_step)[ind]
     return sweep_value,int((sweep_value - sweep_low) / sweep_step)
 #################################################################
-
-
-#################################################################
-# Set the argument parser
-parser = argparse.ArgumentParser()
-
 HistDelayTOA1, HistDelayTOA1_index  = get_sweep_index(HistDelayTOA1 , DelayRange_low, DelayRange_high, DelayRange_step)
 HistDelayTOA2, HistDelayTOA2_index  = get_sweep_index(HistDelayTOA2 , DelayRange_low, DelayRange_high, DelayRange_step)
 HistPulserTOT1, HistPulserTOT1_index = get_sweep_index(HistPulserTOT1, PulserRangeL, PulserRangeH, PulserRangeStep)
@@ -167,6 +161,12 @@ if useExt:
 
 # Convert str to bool
 argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
+
+
+
+#################################################################
+# Set the argument parser
+parser = argparse.ArgumentParser()
 
 # Add arguments
 parser.add_argument(
