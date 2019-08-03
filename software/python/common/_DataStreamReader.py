@@ -196,6 +196,22 @@ class PixelReader(rogue.interfaces.stream.Slave):
         self.HitDataTOTc_int1_vpa_temp = 0
         self.HitDataTOTc_int1_tz_temp = 0
 
+    def clear(self):
+        self.count = 0
+        self.HitData.clear()
+        self.HitDataTOTf_vpa.clear()
+        self.HitDataTOTf_tz.clear()
+        self.HitDataTOTc_vpa.clear()
+        self.HitDataTOTc_tz.clear()
+        self.HitDataTOTc_int1_vpa.clear()
+        self.HitDataTOTc_int1_tz.clear()
+        self.HitDataTOTf_vpa_temp = 0
+        self.HitDataTOTc_vpa_temp = 0
+        self.HitDataTOTf_tz_temp = 0
+        self.HitDataTOTc_tz_temp = 0
+        self.HitDataTOTc_int1_vpa_temp = 0
+        self.HitDataTOTc_int1_tz_temp = 0
+
     def _acceptFrame(self,frame):
         # First it is good practice to hold a lock on the frame data.
         with frame.lock():

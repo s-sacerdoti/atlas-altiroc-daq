@@ -57,8 +57,9 @@ def acquire_data(top, DelayRange, pixel_data):
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
 
+        pixel_data.append(pixel_stream.HitData)
         while pixel_stream.count < n_iterations: pass
-        dataStream.count = 0
+        dataStream.clear()
 #################################################################
 
 
@@ -150,26 +151,10 @@ LSBest = DelayStep/abs(fit[0])
 #################################################################
 # Print Data
 for delay_index, delay_value in enumerate(DelayRange):
-    try:
-        print('Delay = %d, HitCnt = %d, DataMean = %f LSB, DataStDev = %f LSB' % (delay_value, HitCnt[delay_index], DataMean[delay_index], DataStdev[delay_index]))
-    except OSError:
-        pass   
-try:
-    print('Maximum Measured TOA = %f LSB' % np.max(DataMean))
-    print('Mean Std Dev = %f LSB' % MeanDataStdev)
-except OSError:
-    pass
-for delay_index, delay_value in enumerate(Delay):
-    try:
-        print('Delay = %d, HitCnt = %d, DataMean = %f ps, DataStDev = %f ps' % (delay_value, HitCnt[delay_index], DataMean[delay_index]*LSBest, DataStdev[delay_index]*LSBest))
-    except OSError:
-        pass
-try:
-    print('Maximum Measured TOA = %f ps' % (np.max(DataMean)*LSBest))
-    print('Mean Std Dev = %f ps' % (MeanDataStdev*LSBest))
-    print('Average LSB estimate: %f ps' % LSBest)
-except OSError:
-    pass
+    print('Delay = %d, HitCnt = %d, DataMean = %f LSB, DataStDev = %f LSB / %f ps' % (delay_value, HitCnt[delay_index], DataMean[delay_index], DataStdev[delay_index], DataStdev[delay_index]*LSBest))
+print('Maximum Measured TOA = %f LSB / %f ps' % ( np.max(DataMean), (np.max(DataMean)*LSBest) ) )
+print('Mean Std Dev = %f LSB / %f ps' % ( MeanDataStdev, (MeanDataStdev*LSBest) ) )
+print('Average LSB estimate: %f ps' % LSBest)
 #################################################################
 
 #################################################################
