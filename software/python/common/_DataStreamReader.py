@@ -134,6 +134,7 @@ class MyFileReader(rogue.interfaces.stream.Slave):
     def __init__(self):
         rogue.interfaces.stream.Slave.__init__(self)
         self.HitData = []
+        self.HitDataTOT = []
         self.HitDataTOTf_vpa = []
         self.HitDataTOTf_tz = []
         self.HitDataTOTc_vpa = []
@@ -159,6 +160,7 @@ class MyFileReader(rogue.interfaces.stream.Slave):
                 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
                     #self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
+                    self.HitDataTOT.append(dat.TotData)
                     self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3)
                     self.HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
                     self.HitDataTOTc_int1_vpa_temp = (((dat.TotData >>  2) + 1) >> 1) & 0x3F
