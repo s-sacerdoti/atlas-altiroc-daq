@@ -23,7 +23,7 @@ import common
 import time
 import click
 
-rogue.Version.minVersion('3.6.0') 
+rogue.Version.minVersion('3.7.0') 
 
 class Top(pr.Root):
     def __init__(   self,       
