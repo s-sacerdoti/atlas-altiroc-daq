@@ -26,7 +26,7 @@ DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 DelayRange_low = 1900     # <= low end of Programmable Delay Sweep
 DelayRange_high = 2700     # <= high end of Programmable Delay Sweep
 DelayRange_step = 10     # <= step size Programmable Delay Sweep
-NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
+NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 
 DataAcqusitionTOT = 0   # <= Enable TOT Data Acquisition (Pulser Sweep)
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
@@ -159,7 +159,7 @@ def set_fpga_for_custom_config(top):
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
 
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
-    top.Fpga[0].Asic.SlowControl.CP_b.set(0x4) #5
+    top.Fpga[0].Asic.SlowControl.CP_b.set(0x0) #5
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #0
@@ -350,9 +350,11 @@ if nTOA_TOT_Processing == 0:
     print(DataMean)
     index=np.where(DataMean)
     #avoid crashes due to fit
-    if len(index)>6:
+    if len(index[0])>6:
         fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
-    else: fit=[1,1]
+    else: 
+        raise ValueError('Too few data points to perform polyfit!')
+
 
     ##find indexes for fit and avoid crashes
     #i_min = next(x[0] for x in enumerate(DataMean) if x[1] > 1)
