@@ -40,9 +40,9 @@ def parse_arguments():
     DAC_Vth = 320
     Qinj = 13 #10fc
     config_file = 'config/config_v2B6_noPAprobe.yml'
-    minDAC = 280
-    maxDAC = 420
-    DACstep = 5
+    minPulser = 0
+    maxPulser = 20
+    PulserStep = 2
     DelayValue = 2400
 
 
@@ -50,11 +50,11 @@ def parse_arguments():
     parser.add_argument("--ip", nargs ='+', required = True, help = "List of IP address")
     parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
     parser.add_argument("--ch", type = int, required = False, default = pixel, help = "channel")
-    parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
+    parser.add_argument("--Vth", type = int, required = False, default = DAC_Vth, help = "threshold DAC")
     parser.add_argument("--delay", type = int, required = False, default = DelayValue, help = "delay")
-    parser.add_argument("--minVth", type = int, required = False, default = minDAC, help = "scan start")
-    parser.add_argument("--maxVth", type = int, required = False, default = maxDAC, help = "scan stop")
-    parser.add_argument("--VthStep", type = int, required = False, default = DACstep, help = "scan step")
+    parser.add_argument("--minQ", type = int, required = False, default = minPulser, help = "scan start")
+    parser.add_argument("--maxQ", type = int, required = False, default = maxPulser, help = "scan stop")
+    parser.add_argument("--Qstep", type = int, required = False, default = PulserStep, help = "scan step")
     parser.add_argument("--out", type = str, required = False, default = 'testThreshold.txt', help = "output file name")  
 
     # Get the arguments
@@ -71,7 +71,7 @@ def acquire_data(range_low, range_high, range_step, top,
 
     for i in range(range_low, range_high, range_step):
         print(file_prefix+'step = %d' %i) 
-        top.Fpga[0].Asic.SlowControl.DAC10bit.set(i)
+        asic_pulser.set(i)
     
         ts = str(int(time.time()))
         val = '%d_' %i
@@ -98,20 +98,22 @@ def acquire_data(range_low, range_high, range_step, top,
 
 #################################################################
 #################################################################
-def thresholdScan(argip,
+def timewalk(argip,
       Configuration_LOAD_file,
       pixel_number,
-      Qinj,
+      Vth,
       DelayValue,
-      minDAC,
-      maxDAC,
-      DACstep,
+      minPulser,
+      maxPulser,
+      PulserStep,
       outFile):
 
   LSBest = 20
+  LSBest_TOTc = 160
+  LSBest_TOTf = 40
   NofIterations = 20  # <= Number of Iterations for each Vth
   useProbe = False        #output discri probe
-  dacScan = range(minDAC,maxDAC,DACstep)
+  pulser_list = range(minPulser,maxPulser,PulserStep)
   DebugPrint = True
   # Setup root class
   top = feb.Top(ip=argip)    
@@ -129,26 +131,29 @@ def thresholdScan(argip,
   set_fpga_for_custom_config(top, pixel_number)
   #some more config
   top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValue)
-  top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
+  top.Fpga[0].Asic.SlowControl.DAC10bit.set(Vth)
   
   #Take data
-  fileList = acquire_data(minDAC, maxDAC, DACstep, top,
-             top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOA', NofIterations, dataStream)
+  fileList = acquire_data(minPulser, maxPulser, PulserStep, top,
+             top.Fpga[0].Asic.SlowControl.dac_pulser, 'TW', NofIterations, dataStream)
   
   #################################################################
   # Data Processing
   
-  thr_DAC = []
-  HitCnt = []
+  ValidTOACnt = []
+  ValidTOTCnt = []
   TOAmean = []
+  TOTmean = []
   TOAjit = []
+  TOTjit = []
   TOAmean_ps = []
   TOAjit_ps = []
-  allTOA = []
+  allTOAdata = []
+  allTOTdata = []
   
-  for idac in range(len(dacScan)):
-      fileName = fileList[idac]
-      dacval = dacScan[idac]
+  for ipuls in range(len(pulser_list)):
+      fileName = fileList[ipuls]
+      pulser = pulser_list[ipuls]
       # Create the File reader streaming interface
       dataReader = rogue.utilities.fileio.StreamReader()
       
@@ -165,27 +170,37 @@ def thresholdScan(argip,
       dataReader.closeWait()
   
       try:
-          print('Processing Data for THR DAC = %d...' % dacval)
+          print('Processing Data for Qinj DAC = %d...' % pulser)
       except OSError:
           pass 
   
-      HitData = dataStream.HitData
-      allTOA.append(HitData)
+      HitDataTOA = dataStream.HitData
+      allTOAdata.append(HitDataTOA)
+      allTOTdata.append(dataStream.HitDataTOT)
+      HitDataTOTf = dataStream.HitDataTOTf_vpa
+      HitDataTOTc = dataStream.HitDataTOTc_vpa
+      HitDataTOTc_int1 = dataStream.HitDataTOTc_int1_vpa
+      HitDataTOTf_cumulative = HitDataTOTf_cumulative + dataStream.HitDataTOTf_vpa
   
-      thr_DAC.append(dacval)
-      HitCnt.append(len(HitData))
-      if len(HitData) > 0:
-          TOAmean.append(np.mean(HitData, dtype=np.float64))
-          TOAjit.append(math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12))
-          TOAmean_ps.append(np.mean(HitData, dtype=np.float64)*LSBest)
-          TOAjit_ps.append(math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12)*LSBest)
-  
+      ValidTOACnt.append(len(HitDataTOA))
+      ValidTOTCnt.append(len(HitDAtaTOT))
+      if len(HitDataTOTf) > 0:
+          list((np.asarray(HitDataTOTc) + 1)*LSB_TOTc - np.asarray(HitDataTOTf)*LSB_TOTf)
+
+      if len(HitDataTOA) > 0:
+          TOAmean.append(np.mean(HitDataTOA, dtype=np.float64))
+          TOAjit.append(math.sqrt(math.pow(np.std(HitDataTOA, dtype=np.float64),2)+1/12))
+          TOAmean_ps.append(np.mean(HitDataTOA, dtype=np.float64)*LSBest)
+          TOAjit_ps.append(math.sqrt(math.pow(np.std(HitDataTOA, dtype=np.float64),2)+1/12)*LSBest)
+          if len(HitDataTOT) > 0:
+              TOTmean.append(np.mean(HitDataTOT, dtype=np.float64))
+              TOTjit.append(math.sqrt(math.pow(np.std(HitDataTOT, dtype=np.float64),2) + math.pow(LSB_TOTf_mean,2)/12))
       else:
           TOAmean.append(0)
           TOAjit.append(0)
           TOAmean_ps.append(0)
           TOAjit_ps.append(0)
-   
+      
   #################################################################
   
   #################################################################
@@ -196,18 +211,18 @@ def thresholdScan(argip,
   th50percent = 1024.
   
   midPt = []
-  for i in range(len(dacScan)):
+  for i in range(len(pulser_list)):
       try:
-          print('Threshold = %d, HitCnt = %d/%d' % (dacScan[i], HitCnt[i], NofIterations))
+          print('Threshold = %d, ValidTOACnt = %d/%d' % (pulser_list[i], ValidTOACnt[i], NofIterations))
       except OSError:
           pass
-      if HitCnt[i] > NofIterations-2:
-          if i>0 and HitCnt[i-1] < (NofIterations-1) :
-              minTH = (dacScan[i-1]+dacScan[i])/2
-          elif i<len(dacScan)-1 and HitCnt[i+1] < NofIterations :
-              maxTH = (dacScan[i+1]+dacScan[i])/2
-      if HitCnt[i]/NofIterations < 0.6:
-          th50percent = dacScan[i]
+      if ValidTOACnt[i] > NofIterations-2:
+          if i>0 and ValidTOACnt[i-1] < (NofIterations-1) :
+              minTH = (pulser_list[i-1]+pulser_list[i])/2
+          elif i<len(pulser_list)-1 and ValidTOACnt[i+1] < NofIterations :
+              maxTH = (pulser_list[i+1]+pulser_list[i])/2
+      if ValidTOACnt[i]/NofIterations < 0.6:
+          th50percent = pulser_list[i]
   
   th25= (maxTH-minTH)*0.25+minTH
   th50= (maxTH-minTH)*0.5+minTH
@@ -221,22 +236,22 @@ def thresholdScan(argip,
   ff.write('config file = '+Configuration_LOAD_file+'\n')
   ff.write('NofIterations = '+str(NofIterations)+'\n')
   #ff.write('dac_biaspa = '+hex(dac_biaspa)+'\n')
-  ff.write('cmd_pulser = '+str(Qinj)+'\n')
+  ff.write('DAC Vth = '+str(Vth)+'\n')
   ff.write('LSBest = '+str(LSBest)+'\n')
   #ff.write('Cd ='+str(cd*0.5)+' fC'+'\n')
   ff.write('Found minTH = %d, maxTH = %d - points at 0.25, 0.50 and 0.75 are %d,%d,%d \n'% (minTH,maxTH,th25,th50,th75))
   ff.write('First DAC with efficiency below 0.6 = %d  \n' % (th50percent))
-  ff.write('Threshold = '+str(dacScan)+'\n')
-  ff.write('N hits = '+str(HitCnt)+'\n')
+  ff.write('Threshold = '+str(pulser_list)+'\n')
+  ff.write('N hits = '+str(ValidTOACnt)+'\n')
   ff.write('Mean TOA = '+str(TOAmean)+'\n')
   ff.write('Std Dev TOA = '+str(TOAjit)+'\n')
   ff.write('MeanTOAps = '+str(TOAmean_ps)+'\n')
   ff.write('StdDevTOAps = '+str(TOAjit_ps)+'\n')
   ff.write('dacVth   TOA N_TOA'+'\n')
-  for iTh in range(len(dacScan)):
-      vth = dacScan[iTh]
-      for itoa in range(len(allTOA[iTh])):
-          ff.write(str(vth)+' '+str(allTOA[iTh][itoa])+' '+str(len(allTOA[iTh]))+'\n')
+  for iTh in range(len(pulser_list)):
+      vth = pulser_list[iTh]
+      for itoa in range(len(allTOAdata[iTh])):
+          ff.write(str(vth)+' '+str(allTOAdata[iTh][itoa])+' '+str(len(allTOAdata[iTh]))+'\n')
 
   ff.close()
   
@@ -246,16 +261,16 @@ def thresholdScan(argip,
   fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
   
   #plot N events vs threshold
-  ax1.plot(dacScan,HitCnt)
-  #ax1.scatter(dacScan,HitCnt)
+  ax1.plot(pulser_list,ValidTOACnt)
+  #ax1.scatter(pulser_list,ValidTOACnt)
   ax1.set_title('Number of hits vs Threshold', fontsize = 11)
   
   #plot TOA vs threshold
-  ax2.scatter(dacScan,TOAmean_ps)
+  ax2.scatter(pulser_list,TOAmean_ps)
   ax2.set_title('Mean TOA vs Threshold', fontsize = 11)
   
   #plot jitter vs Threshold
-  ax3.scatter(dacScan,TOAjit_ps)
+  ax3.scatter(pulser_list,TOAjit_ps)
   ax3.set_title('Jitter TOA vs Threshold', fontsize = 11)
   
   plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
@@ -270,5 +285,5 @@ def thresholdScan(argip,
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
-    thresholdScan(args.ip, args.cfg, args.ch, args.Q,args.delay, args.minVth, args.maxVth, args.VthStep, args.out)
+    timewalk(args.ip, args.cfg, args.ch, args.Vth,args.delay, args.minQ, args.maxQ, args.Qstep, args.out)
 
