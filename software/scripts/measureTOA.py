@@ -42,9 +42,10 @@ from setASICconfig_v2B6 import *                               ##
 #################################################################
 
 
-def acquire_data(top, DelayRange, pixel_data): 
+def acquire_data(top, DelayRange): 
     pixel_stream = feb.PixelReader()    
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
+    pixel_data = []
 
     for delay_value in DelayRange:
         top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay_value)
@@ -60,6 +61,7 @@ def acquire_data(top, DelayRange, pixel_data):
         pixel_data.append(pixel_stream.HitData)
         while pixel_stream.count < n_iterations: pass
         dataStream.clear()
+    return pixel_data
 #################################################################
 
 
@@ -114,8 +116,7 @@ if DebugPrint:
 set_fpga_for_custom_config(top,args.ch)
 
 # Data Acquisition for TOA
-pixel_data = []
-acquire_data(top, DelayRange, pixel_data)
+pixel_data = acquire_data(top, DelayRange)
 
 #######################
 # Data Processing TOA #
@@ -125,8 +126,8 @@ HitCnt = []
 DataMean = []
 DataStdev = []
 
-for delay_value in DelayRange:
-    HitData = pixel_data[delay_value]
+for delay_index, delay_value in enumerate(DelayRange):
+    HitData = pixel_data[delay_index]
     HitCnt.append(len(HitData))
     if len(HitData) > 0:
         DataMean.append(np.mean(HitData, dtype=np.float64))

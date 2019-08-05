@@ -26,7 +26,8 @@ import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
 #from setASICconfig_v2B8 import *
-from setASICconfig_v2B7 import *
+#from setASICconfig_v2B7 import *
+from setASICconfig_v2B6 import *
 #################################################################
 # Set the argument parser
 def parse_arguments():
@@ -63,26 +64,17 @@ def parse_arguments():
 
 ##############################################################################
 ##############################################################################
-def acquire_data(range_low, range_high, range_step, top, 
-        asic_pulser, file_prefix, n_iterations, dataStream): 
+def acquire_data(dacScan, top, n_iterations): 
+    pixel_stream = feb.PixelReader()    
+    pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
+    pixel_data = []
     
-    fileList = []
     asicVersion = 1 # <= Select either V1 or V2 of the ASIC
 
-    for i in range(range_low, range_high, range_step):
-        print(file_prefix+'step = %d' %i) 
+    for scan_value in dacScan:
         top.Fpga[0].Asic.SlowControl.DAC10bit.set(i)
     
-        ts = str(int(time.time()))
-        val = '%d_' %i
-        filename = 'TestData/'+file_prefix+val+ts+'.dat'
-        try: os.remove(filename)
-        except OSError: pass
-
-        top.dataWriter._writer.open(filename)
-        fileList.append(filename)
-
-        for j in range(n_iterations):
+        for iteration in range(n_iterations):
             if (asicVersion == 1): 
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
                 time.sleep(0.01)
@@ -90,12 +82,11 @@ def acquire_data(range_low, range_high, range_step, top,
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
 
-        while dataStream.count < n_iterations: pass
-        top.dataWriter._writer.close()
-        dataStream.count = 0 
-    
-    return fileList
 
+        pixel_data.append( pixel_stream.HitData )
+        while pixel_stream.count < n_iterations: pass
+        pixel_stream.clear()
+    return pixel_data
 #################################################################
 #################################################################
 def thresholdScan(argip,
@@ -132,13 +123,10 @@ def thresholdScan(argip,
   top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
   
   #Take data
-  fileList = acquire_data(minDAC, maxDAC, DACstep, top,
-             top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOA', NofIterations, dataStream)
+  pixel_data = acquire_data(dacScan, top, NofIterations)
   
   #################################################################
   # Data Processing
-  
-  thr_DAC = []
   HitCnt = []
   TOAmean = []
   TOAjit = []
@@ -146,33 +134,12 @@ def thresholdScan(argip,
   TOAjit_ps = []
   allTOA = []
   
-  for idac in range(len(dacScan)):
-      fileName = fileList[idac]
-      dacval = dacScan[idac]
-      # Create the File reader streaming interface
-      dataReader = rogue.utilities.fileio.StreamReader()
-      
-      # Create the Event reader streaming interface
-      dataStream = feb.MyFileReader()
-      
-      # Connect the file reader to the event reader
-      pr.streamConnect(dataReader, dataStream) 
-      
-      # Open the file
-      dataReader.open(fileName)
-      
-      # Close file once everything processed
-      dataReader.closeWait()
-  
-      try:
-          print('Processing Data for THR DAC = %d...' % dacval)
-      except OSError:
-          pass 
+  for dac_index, dac_value in enumerate(dacScan):
+      print('Processing Data for THR DAC = %d...' % dac_value)
   
       HitData = dataStream.HitData
       allTOA.append(HitData)
   
-      thr_DAC.append(dacval)
       HitCnt.append(len(HitData))
       if len(HitData) > 0:
           TOAmean.append(np.mean(HitData, dtype=np.float64))
@@ -197,17 +164,18 @@ def thresholdScan(argip,
   
   midPt = []
   for i in range(len(dacScan)):
+  for dac_index, dac_value in enumerate(dacScan):
       try:
-          print('Threshold = %d, HitCnt = %d/%d' % (dacScan[i], HitCnt[i], NofIterations))
+          print('Threshold = %d, HitCnt = %d/%d' % (dac_value, HitCnt[dac_index], NofIterations))
       except OSError:
           pass
-      if HitCnt[i] > NofIterations-2:
-          if i>0 and HitCnt[i-1] < (NofIterations-1) :
-              minTH = (dacScan[i-1]+dacScan[i])/2
-          elif i<len(dacScan)-1 and HitCnt[i+1] < NofIterations :
-              maxTH = (dacScan[i+1]+dacScan[i])/2
-      if HitCnt[i]/NofIterations < 0.6:
-          th50percent = dacScan[i]
+      if HitCnt[dac_index] > NofIterations-2:
+          if dac_index>0 and HitCnt[dac_index-1] < (NofIterations-1) :
+              minTH = (dacScan[dac_index-1]+dacScan[dac_index])/2
+          elif i<len(dacScan)-1 and HitCnt[dac_index+1] < NofIterations :
+              maxTH = (dacScan[dac_index+1]+dacScan[dac_index])/2
+      if HitCnt[dac_index]/NofIterations < 0.6:
+          th50percent = dac_value
   
   th25= (maxTH-minTH)*0.25+minTH
   th50= (maxTH-minTH)*0.5+minTH
@@ -233,10 +201,9 @@ def thresholdScan(argip,
   ff.write('MeanTOAps = '+str(TOAmean_ps)+'\n')
   ff.write('StdDevTOAps = '+str(TOAjit_ps)+'\n')
   ff.write('dacVth   TOA N_TOA'+'\n')
-  for iTh in range(len(dacScan)):
-      vth = dacScan[iTh]
-      for itoa in range(len(allTOA[iTh])):
-          ff.write(str(vth)+' '+str(allTOA[iTh][itoa])+' '+str(len(allTOA[iTh]))+'\n')
+  for dac_index, dac_value in enumerate(dacScan):
+      for itoa in range(len(allTOA[dac_index])):
+          ff.write(str(dac_value)+' '+str(allTOA[dac_index][itoa])+' '+str(len(allTOA[dac_index]))+'\n')
 
   ff.close()
   

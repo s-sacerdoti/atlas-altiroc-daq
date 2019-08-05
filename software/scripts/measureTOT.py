@@ -51,9 +51,15 @@ from setASICconfig_v2B6 import *                               ##
 #################################################################
 
 
-def acquire_data(top, DelayRange, pixel_data, using_vpa): 
+def acquire_data(top, DelayRange, using_vpa): 
     pixel_stream = feb.PixelReader()    
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
+    pixel_data = {
+        'HitDataTOTf': [],
+        'HitDataTOTc': [],
+        'HitDataTOTc_int1': []
+    }
+    
 
     for delay_value in DelayRange:
         top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay_value)
@@ -77,6 +83,8 @@ def acquire_data(top, DelayRange, pixel_data, using_vpa):
 
         while pixel_stream.count < n_iterations: pass
         pixel_stream.clear()
+
+    return pixel_data
 #################################################################
 
 
@@ -133,13 +141,7 @@ if DebugPrint:
 set_fpga_for_custom_config(top,args.ch)
 
 # Data Acquisition for TOA
-pixel_data = {
-    'HitDataTOTf': [],
-    'HitDataTOTc': [],
-    'HitDataTOTc_int1': []
-}
-    
-acquire_data(top, DelayRange, pixel_data)
+pixel_data = acquire_data(top, DelayRange, args.VPA)
 
 #################################################################
 # TOT Fine Interpolator Calibration
