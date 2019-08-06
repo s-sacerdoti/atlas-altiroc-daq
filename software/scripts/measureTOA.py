@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 ##############################################################################
-## This file is based on 'ATLAS ALTIROC DEV'.
-
-##############################################################################
+## This file is part of 'ATLAS ALTIROC DEV'.
 ## It is subject to the license terms in the LICENSE.txt file found in the 
 ## top-level directory of this distribution and at: 
 ##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
@@ -10,27 +8,63 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-import sys                      
-import rogue                    
-import time                     
-import random                   
-import argparse                 
-                                
-import pyrogue as pr            
-import pyrogue.gui              
-import numpy as np              
-import common as feb            
-                                
-import os                       
-import rogue.utilities.fileio   
-                                
-import statistics               
-import math                     
-import matplotlib.pyplot as plt
-#from setASICconfig_v2B8 import * 
-from setASICconfig_v2B7 import * 
+
+##############################################################################
+# Script Settings
+
+asicVersion = 1 # <= Select either V1 or V2 of the ASIC
+DebugPrint = True
+NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
+DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
+
 #################################################################
-# Set the argument parser
+                                                               ##
+import sys                                                     ##
+import rogue                                                   ##
+import time                                                    ##
+import random                                                  ##
+import argparse                                                ##
+                                                               ##
+import pyrogue as pr                                           ##
+import pyrogue.gui                                             ##
+import numpy as np                                             ##
+import common as feb                                           ##
+                                                               ##
+import os                                                      ##
+import rogue.utilities.fileio                                  ##
+                                                               ##
+import statistics                                              ##
+import math                                                    ##
+import matplotlib.pyplot as plt                                ##
+#from setASICconfig_v2B6 import *                               ##
+from setASICconfig_v2B7 import *                               ##
+                                                               ##
+#################################################################
+
+
+def acquire_data(top, DelayRange): 
+    pixel_stream = feb.PixelReader()    
+    pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
+    pixelData = []
+
+    for delay_value in DelayRange:
+        print('Testing delay value ' + str(delay_value) )
+        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay_value)
+
+        for pulse_iteration in range(NofIterationsTOA):
+            if (asicVersion == 1):
+                top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
+                time.sleep(0.001)
+            else:
+                top.Fpga[0].Asic.CalPulse.Start()
+                time.sleep(0.001)
+        pixelData.append( pixel_stream.HitData.copy() )
+        while pixel_stream.count < NofIterationsTOA: pass
+        pixel_stream.clear()
+    return pixelData
+#################################################################
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     
@@ -38,7 +72,7 @@ def parse_arguments():
     argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
     
     #default parameters
-    pixel = 4
+    pixel_number = 4
     DAC_Vth = 320
     Qinj = 13 #10fc
     config_file = 'config/config_v2B6_noPAprobe.yml'
@@ -48,106 +82,37 @@ def parse_arguments():
     
     
     # Add arguments
-    parser.add_argument("--ip", type = str, required = True, help = "IP address")  
+    parser.add_argument( "--ip", nargs ='+', required = True, help = "List of IP addresses",)  
     parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
-    parser.add_argument("--ch", type = int, required = False, default = pixel, help = "channel")
+    parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
     parser.add_argument("--DAC", type = int, required = False, default = DAC_Vth, help = "DAC vth")
     parser.add_argument("--delayMin", type = int, required = False, default = dlyMin, help = "scan start")
     parser.add_argument("--delayMax", type = int, required = False, default = dlyMax, help = "scan stop")
     parser.add_argument("--delayStep", type = int, required = False, default = dlyStep, help = "scan step")
-    
+
     # Get the arguments
     args = parser.parse_args()
     return args
-
 #################################################################
-def acquire_data(range_low, range_high, range_step, top, 
-        asic_pulser, file_prefix, n_iterations, dataStream): 
+
+
+def measureTOA(argsip,
+      Configuration_LOAD_file,
+      pixel_number,
+      Qinj,
+      DAC,
+      delayMin,
+      delayMax,
+      delayStep):
+
+    DelayRange = range( delayMin, delayMax, delayStep )
     
-    fileList = []
-    useTS = True
-
-    for i in range(range_low, range_high, range_step):
-        print(file_prefix+'step = %d' %i)
-        asic_pulser.set(i)
-
-        if useTS:
-            ts = str(int(time.time()))
-            val = '%d_' %i
-            filename = 'TestData/'+file_prefix+val+ts+'.dat'
-        else:
-            filename = 'TestData/'+file_prefix+'%d.dat' %i
-            
-        try: os.remove(filename)
-        except OSError: pass
-        
-        top.dataWriter._writer.open(filename)
-        fileList.append(filename)
-
-        for j in range(n_iterations):
-            if (asicVersion == 1):
-                top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
-                time.sleep(0.001)
-            else:
-                top.Fpga[0].Asic.CalPulse.Start()
-                time.sleep(0.001)
-
-        while dataStream.count < n_iterations: pass
-        top.dataWriter._writer.close()
-        dataStream.count = 0
-
-    return fileList
-#################################################################
-def get_sweep_index(sweep_value, sweep_low, sweep_high, sweep_step):
-    if sweep_value < sweep_low:
-        sweep_value = sweep_low+sweep_step
-        print( 'Sweep value {} outside of sweep range [{}:{}]'.format(sweep_value, sweep_low, sweep_high) )
-    elif sweep_high < sweep_value:
-        sweep_value = sweep_high-sweep_step
-        print( 'Sweep value {} outside of sweep range [{}:{}]'.format(sweep_value, sweep_low, sweep_high) )
-    if sweep_value % sweep_step != 0:
-        print( 'Sweep value {} is not a multiple of sweep step {}'.format(sweep_value, sweep_step) )
-    return sweep_value,int((sweep_value - sweep_low) / sweep_step)
-
-#################################################################
-def toaMeasurement(argip,
-    configFile,
-    pixel_number,
-    Qinj,
-    DACvalue,
-    DelayRange_low,
-    DelayRange_high,
-    DelayRange_step):
-
-    asicVersion = 1 # <= Select either V1 or V2 of the ASIC
-    DebugPrint = True
-    NofIterations = 50  # <= Number of Iterations for each Delay value
-    delay_list = range(DelayRange_low,DelayRange_high,DelayRange_step)
-    HistDelayTOA1 = 2400  # <= Delay Value for Histogram to be plotted in Plot (1,0)
-    HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
-    
-    PlotValidCnt = 1
-    
-    LSBest = [0]*15
-    #add here correct LSBest
-    LSBest[4] = 28.64 #ch4
-
-    HistDelayTOA1 , HistDelayTOA1_index  = get_sweep_index(HistDelayTOA1 , DelayRange_low, DelayRange_high, DelayRange_step)
-    HistDelayTOA2 , HistDelayTOA2_index  = get_sweep_index(HistDelayTOA2 , DelayRange_low, DelayRange_high, DelayRange_step)
-
-
-    # Convert str to bool
-    argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
-
-#################################################################
-    loadDefault = True
     # Setup root class
-    if loadDefault:
-        top = feb.Top(ip= argip)    
-    else:
-        top = feb.Top(ip= args.ip, loadYaml= False)    
-    print(f'Loading {Configuration_LOAD_file} Configuration File...')
+    top = feb.Top(ip = argsip)    
+    
+    # Load the default YAML file
+    print('Loading {Configuration_LOAD_file} Configuration File...')
     top.LoadConfig(arg = Configuration_LOAD_file)
     
     if DebugPrint:
@@ -163,122 +128,70 @@ def toaMeasurement(argip,
     top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)
     time.sleep(0.001)
     top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
-
+    
     # Custom Configuration
-    set_fpga_for_custom_config(top)
-
-    fileList = acquire_data(DelayRange_low, DelayRange_high, DelayRange_step, top,
-            top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOA', NofIterations, dataStream)
-
+    set_fpga_for_custom_config(top,pixel_number)
+    
+    # Data Acquisition for TOA
+    pixel_data = acquire_data(top, DelayRange)
+    
     #######################
     # Data Processing TOA #
     #######################
-
-    Delay = []
-    HitCnt = []
-    DataMean = []
-    DataStdev = []
-
-    for i_del in delay_list:
-        delay_value = delay_list[i_del]
-        # Create the File reader streaming interface
-        dataReader = rogue.utilities.fileio.StreamReader()
-
-        # Create the Event reader streaming interface
-        dataStream = feb.MyFileReader()
-
-        # Connect the file reader ---> event reader
-        pr.streamConnect(dataReader, dataStream) 
-
-        # Open the file
-        dataReader.open(fileList[i_del])
-
-        # Close file once everything processed
-        dataReader.closeWait()
-
     
-        try:
-            print('Processing Data for Delay = %d...' % delay_value)
-        except OSError:
-            pass  
-
-        HitData = dataStream.HitData
-
-        exec("%s = %r" % ('HitData%d' %delay_value, HitData))
-
-        Delay.append(delay_value)
-
-        HitCnt.append(len(HitData))
-        if len(HitData) > 0:
-            DataMean.append(np.mean(HitData, dtype=np.float64))
-            DataStdev.append(math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12))
-
-        else:
-            DataMean.append(0)
-            DataStdev.append(0)
-  
-    if len(DataMean) == 0:
+    num_valid_TOA_reads = len(pixel_data) 
+    if num_valid_TOA_reads == 0:
         raise ValueError('No hits were detected during delay sweep. Aborting!')
 
+    HitCnt = []
+    DataMean = np.zeros(num_valid_TOA_reads)
+    DataStdev = np.zeros(num_valid_TOA_reads)
+    
+    for delay_index, delay_value in enumerate(DelayRange):
+        HitData = pixel_data[delay_index]
+        HitCnt.append(len(HitData))
+        if len(HitData) > 0:
+            DataMean[delay_index] = np.mean(HitData, dtype=np.float64)
+            DataStdev[delay_index] = math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12)
+    
+    # The following calculations ignore points with no data (i.e. Std.Dev = 0)
+    nonzero = DataMean != 0
+    
     # Average Std. Dev. Calculation; Points with no data (i.e. Std.Dev.= 0) are ignored
-    index = np.where(np.sort(DataStdev))
-    MeanDataStdev = np.mean(np.sort(DataStdev)[index[0][0]:len(np.sort(DataStdev))])
-
-    # LSB estimation based on "DelayStep" value
-    print(DataMean)
-    index=np.where(DataMean)
-    #avoid crashes due to fit
-    #if len(index)>6:
-    #    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
-    #else: fit=[1,1]
-
-    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
-    LSBest = DelayStep/abs(fit[0])
-
+    MeanDataStdev = np.mean(DataStdev[nonzero])
+    
+    # LSB estimation based on "DelayStep" value, again ignoring zero values
+    safety_bound = 5 #so we don't measure too close to the edges of the pulse 
+    Delay = np.array(DelayRange)
+    fit_x_values = Delay[nonzero][safety_bound:-safety_bound]
+    fit_y_values = DataMean[nonzero][safety_bound:-safety_bound]
+    linear_fit_slope = np.polyfit(fit_x_values, fit_y_values, 1)[0]
+    LSBest = DelayStep/abs(linear_fit_slope)
+    
+    
     #################################################################
     # Print Data
-    for delay_index, delay_value in enumerate(Delay):
-        try:
-            print('Delay = %d, HitCnt = %d, DataMean = %f LSB, DataStDev = %f LSB' % (delay_value, HitCnt[delay_index], DataMean[delay_index], DataStdev[delay_index]))
-        except OSError:
-            pass   
-    try:
-        print('Maximum Measured TOA = %f LSB' % np.max(DataMean))
-        print('Mean Std Dev = %f LSB' % MeanDataStdev)
-    except OSError:
-        pass
-    for delay_index, delay_value in enumerate(Delay):
-        try:
-            print('Delay = %d, HitCnt = %d, DataMean = %f ps, DataStDev = %f ps' % (delay_value, HitCnt[delay_index], DataMean[delay_index]*LSBest, DataStdev[delay_index]*LSBest))
-        except OSError:
-            pass
-    try:
-        print('Maximum Measured TOA = %f ps' % (np.max(DataMean)*LSBest))
-        print('Mean Std Dev = %f ps' % (MeanDataStdev*LSBest))
-        print('Average LSB estimate: %f ps' % LSBest)
-    except OSError:
-        pass
-
+    for delay_index, delay_value in enumerate(DelayRange):
+        print('Delay = %d, HitCnt = %d, DataMean = %f LSB, DataStDev = %f LSB / %f ps' % (delay_value, HitCnt[delay_index], DataMean[delay_index], DataStdev[delay_index], DataStdev[delay_index]*LSBest))
+    print('Maximum Measured TOA = %f LSB / %f ps' % ( np.max(DataMean), (np.max(DataMean)*LSBest) ) )
+    print('Mean Std Dev = %f LSB / %f ps' % ( MeanDataStdev, (MeanDataStdev*LSBest) ) )
+    print('Average LSB estimate: %f ps' % LSBest)
+    #################################################################
+    
     #################################################################
     # Plot Data
-
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
-
-    #LSBest = 1
-
+    
     # Plot (0,0) ; top left
-    #ax1.plot(Delay, np.multiply(DataMean,LSBest))
-    ax1.plot(Delay, DataMean)
+    ax1.plot(Delay, np.multiply(DataMean,LSBest))
     ax1.grid(True)
     ax1.set_title('TOA Measurment VS Programmable Delay Value', fontsize = 11)
     ax1.set_xlabel('Programmable Delay Value [step estimate = %f ps]' % DelayStep, fontsize = 10)
     ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
     ax1.legend(['LSB estimate: %f ps' % LSBest],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     ax1.set_xlim(left = np.min(Delay), right = np.max(Delay))
-    #ax1.set_ylim(bottom = 0, top = np.max(np.multiply(DataMean,LSBest))+100)
-    ax1.set_ylim(bottom = 0, top = np.max(DataMean)+100)
-
-
+    ax1.set_ylim(bottom = 0, top = np.max(np.multiply(DataMean,LSBest))+100)
+    
     # Plot (0,1) ; top right
     ax2.scatter(Delay, np.multiply(DataStdev,LSBest))
     ax2.grid(True)
@@ -288,47 +201,36 @@ def toaMeasurement(argip,
     ax2.legend(['Average Std. Dev. = %f ps' % (MeanDataStdev*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     ax2.set_xlim(left = np.min(Delay), right = np.max(Delay))
     ax2.set_ylim(bottom = 0, top = np.max(np.multiply(DataStdev,LSBest))+20)
-
-
+    
     # Plot (1,0) ; bottom left
-    exec("DataL = len(HitData%d)" % HistDelayTOA1)
-    if DataL:
-        #exec("ax3.hist(np.multiply(HitData%d,LSBest), bins = LSBest, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
+    
+    delay_index_to_plot = -1
+    for delay_index, delay_value in enumerate(DelayRange): #find a good delay value to plot
+        #I'd say having 80% of hits come back is good enough to plot
+        if HitCnt[delay_index] > NofIterationsTOA * 0.8:
+            delay_index_to_plot = delay_index
+            break
+    
+    if delay_index_to_plot != -1:
         hist_range = 10
-        binlow = ( int(DataMean[HistDelayTOA1_index])-hist_range ) * LSBest
-        binhigh = ( int(DataMean[HistDelayTOA1_index])+hist_range ) * LSBest
+        binlow = ( int(DataMean[delay_index_to_plot])-hist_range ) * LSBest
+        binhigh = ( int(DataMean[delay_index_to_plot])+hist_range ) * LSBest
         hist_bin_list = np.arange(binlow, binhigh, LSBest)
-        exec("ax3.hist(np.multiply(HitData%d,LSBest), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA1)
-        #exec("ax3.set_xlim(left = np.min(np.multiply(HitData%d,LSBest))-4*LSBest, right = np.max(np.multiply(HitData%d,LSBest))+4*LSBest)" % (HistDelayTOA1, HistDelayTOA1))
-        ax3.set_title('TOA Measurment for Programmable Delay = %d' % HistDelayTOA1, fontsize = 11)
+        ax3.hist(np.multiply(pixel_data[delay_index_to_plot],LSBest), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')
+        ax3.set_title('TOA Measurment for Programmable Delay = %d' % DelayRange[delay_index_to_plot], fontsize = 11)
         ax3.set_xlabel('TOA Measurement [ps]', fontsize = 10)
         ax3.set_ylabel('N of Measrements', fontsize = 10)
-        ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMean[HistDelayTOA1_index]*LSBest, DataStdev[HistDelayTOA1_index]*LSBest, HitCnt[HistDelayTOA1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-
+        ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMean[delay_index_to_plot]*LSBest, DataStdev[delay_index_to_plot]*LSBest, HitCnt[delay_index_to_plot])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+    
     # Plot (1,1)
-    if PlotValidCnt == 0:
-        exec("DataL = len(HitData%d)" % HistDelayTOA2)
-        if DataL:
-            hist_range = 10
-            binlow = ( int(DataMean[HistDelayTOA2_index])-hist_range ) * LSBest
-            binhigh = ( int(DataMean[HistDelayTOA2_index])+hist_range ) * LSBest
-            hist_bin_list = np.arange(binlow, binhigh, LSBest)
-            exec("ax4.hist(np.multiply(HitData%d,LSBest), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOA2)
-            #exec("ax4.set_xlim(left = np.min(np.multiply(HitData%d,LSBest))-10*LSBest, right = np.max(np.multiply(HitData%d,LSBest))+10*LSBest)" % (HistDelayTOA2, HistDelayTOA2))
-            ax4.set_title('TOA Measurment for Programmable Delay = %d' % HistDelayTOA2, fontsize = 11)
-            ax4.set_xlabel('TOA Measurement [ps]', fontsize = 10)
-            ax4.set_ylabel('N of Measrements', fontsize = 10)
-            ax4.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMean[HistDelayTOA2_index]*LSBest, DataStdev[HistDelayTOA2_index]*LSBest, HitCnt[HistDelayTOA2_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-    else:
-        ax4.plot(Delay, HitCnt)
-        ax4.grid(True)
-        ax4.set_title('TOA Valid Counts VS Programmable Delay Value', fontsize = 11)
-        ax4.set_xlabel('Programmable Delay Value', fontsize = 10)
-        ax4.set_ylabel('Valid Measurements', fontsize = 10)
-        ax4.set_xlim(left = np.min(Delay), right = np.max(Delay))
-        ax4.set_ylim(bottom = 0, top = np.max(HitCnt)*1.1)
-
-
+    ax4.plot(Delay, HitCnt)
+    ax4.grid(True)
+    ax4.set_title('TOA Valid Counts VS Programmable Delay Value', fontsize = 11)
+    ax4.set_xlabel('Programmable Delay Value', fontsize = 10)
+    ax4.set_ylabel('Valid Measurements', fontsize = 10)
+    ax4.set_xlim(left = np.min(Delay), right = np.max(Delay))
+    ax4.set_ylim(bottom = 0, top = np.max(HitCnt)*1.1)
+    
     plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
     plt.show()
     #################################################################
@@ -336,8 +238,12 @@ def toaMeasurement(argip,
     time.sleep(0.5)
     # Close
     top.stop()
-#################################################################
+    #################################################################
+
+
+
+
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
-    toaMeasurement(args.ip,args.cfg,args.ch,args.Q,args.DAC,args.delayMin,args.delayMax,args.delayStep)
+    measureTOA(args.ip, args.cfg, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep)
