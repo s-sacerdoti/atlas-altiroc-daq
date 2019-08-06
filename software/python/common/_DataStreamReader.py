@@ -156,7 +156,6 @@ class MyFileReader(rogue.interfaces.stream.Slave):
                 dat = eventFrame.pixValue[i]
 
                 if (dat.Hit > 0) and (dat.ToaOverflow == 0):
-                #if (dat.Hit > 0):
                     self.HitData.append(dat.ToaData)
                 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
@@ -180,10 +179,11 @@ class MyFileReader(rogue.interfaces.stream.Slave):
 
 
 # Class for Reading Data output by pixels
-class MyPixelReader(rogue.interfaces.stream.Slave):
+class PixelReader(rogue.interfaces.stream.Slave):
 
     def __init__(self):
         rogue.interfaces.stream.Slave.__init__(self)
+        self.count = 0
         self.HitData = []
         self.HitDataTOTf_vpa = []
         self.HitDataTOTf_tz = []
@@ -191,6 +191,22 @@ class MyPixelReader(rogue.interfaces.stream.Slave):
         self.HitDataTOTc_tz = []
         self.HitDataTOTc_int1_vpa = []
         self.HitDataTOTc_int1_tz = []
+        self.HitDataTOTf_vpa_temp = 0
+        self.HitDataTOTc_vpa_temp = 0
+        self.HitDataTOTf_tz_temp = 0
+        self.HitDataTOTc_tz_temp = 0
+        self.HitDataTOTc_int1_vpa_temp = 0
+        self.HitDataTOTc_int1_tz_temp = 0
+
+    def clear(self):
+        self.count = 0
+        self.HitData.clear()
+        self.HitDataTOTf_vpa.clear()
+        self.HitDataTOTf_tz.clear()
+        self.HitDataTOTc_vpa.clear()
+        self.HitDataTOTc_tz.clear()
+        self.HitDataTOTc_int1_vpa.clear()
+        self.HitDataTOTc_int1_tz.clear()
         self.HitDataTOTf_vpa_temp = 0
         self.HitDataTOTc_vpa_temp = 0
         self.HitDataTOTf_tz_temp = 0
@@ -224,6 +240,7 @@ class MyPixelReader(rogue.interfaces.stream.Slave):
                     self.HitDataTOTf_tz.append(self.HitDataTOTf_tz_temp)                    
                     self.HitDataTOTc_tz.append(self.HitDataTOTc_tz_temp)
                     self.HitDataTOTc_int1_tz.append(self.HitDataTOTc_int1_tz_temp)
+            self.count += 1
                    
 #################################################################
 #################################################################
