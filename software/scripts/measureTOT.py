@@ -19,8 +19,8 @@ DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured
 LSB_TOTc = 190    # <= Estimate of TOT coarse LSB in ps
 LSB_TOTc = 160
 
-TOTf_hist = 1
-TOTc_hist = 1
+TOTf_hist = True
+TOTc_hist = True
 Plot_TOTf_lin = 1
 PlotValidCnt = 1
 
@@ -183,7 +183,8 @@ def measureTOT( argsip,
     ValidTOTCnt = []
     DataMeanTOT = np.zeros( len(PulserRange) )
     DataStdevTOT = np.zeros( len(PulserRange) )
-    
+
+    HitDataTOT_list = []
     for pulser_index, pulser_value in enumerate(PulserRange):
         print('Processing Data for Pulser = %d...' % pulser_index)
 
@@ -208,6 +209,7 @@ def measureTOT( argsip,
     
             DataMeanTOT[pulser_index] = np.mean(HitDataTOT, dtype=np.float64)
             DataStdevTOT[pulser_index] = math.sqrt(math.pow(np.std(HitDataTOT, dtype=np.float64),2) + math.pow(LSB_TOTf_mean,2)/12)
+        HitDataTOT_list.append(HitDataTOT)
     
     # Average Std. Dev. Calculation; Points with no data (i.e. Std.Dev.= 0) are ignored
     MeanDataStdevTOT = np.mean( DataStdevTOT[DataStdevTOT!=0] )
@@ -246,9 +248,6 @@ def measureTOT( argsip,
         ax2.set_ylim(bottom = 0, top = np.max(ValidTOTCnt)*1.1)
     
     # Plot (1,0)
-    HitDataTOT = HitDataTOT_list[chosen_TOT_value]
-    HitDataTOTf = HitDataTOT_list[chosen_TOT_value]
-    HitDataTOTc = HitDataTOT_list[chosen_TOT_value]
     
     TOT_index_to_plot = -1
     for pulse_index, pulse_value in enumerate(PulserRange): #find a good delay value to plot
@@ -256,32 +255,25 @@ def measureTOT( argsip,
         if ValidTOTCnt[pulse_index] > NofIterationsTOT * 0.8:
             TOT_index_to_plot = pulse_index
             break
+
+    HitDataTOTf = pixel_data['HitDataTOTf'][TOT_index_to_plot]
+    HitDataTOTc = pixel_data['HitDataTOTc'][TOT_index_to_plot]
+    HitDataTOT = HitDataTOT_list[TOT_index_to_plot]
     
-    if TOTf_hist == 0 and TOTc_hist == 0:
-        if len(HitDataTOT) > 1:
-            ax3.hist(HitDataTOT, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')
-            ax3.set_xlim(left = np.min(HitDataTOT)-10*LSB_TOTf_mean, right = np.max(HitDataTOT)+10*LSB_TOTf_mean)
-            ax3.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT1, fontsize = 11)
-            ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
-            ax3.set_ylabel('N of Measrements', fontsize = 10)
-            ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[TOT_index_to_plot], DataStdevTOT[TOT_index_to_plot], ValidTOTCnt[TOT_index_to_plot])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-    else:
-        if TOTf_hist == 1:
-            exec("ax3.hist(HitDataTOTf%d, bins = np.arange(9), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistPulserTOT1)
+    if TOT_index_to_plot != -1:
+        if TOTf_hist:
             ax3.hist(HitDataTOTf, bins = np.arange(9), align = 'left', edgecolor = 'k', color = 'royalblue')
             ax3.set_xlim(left = -1, right = 8)
-            ax3.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT1, fontsize = 11)
-            ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
-            ax3.set_ylabel('N of Measrements', fontsize = 10)
-            ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[TOT_index_to_plot], DataStdevTOT[TOT_index_to_plot], ValidTOTCnt[TOT_index_to_plot])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-        else: 
-            if TOTc_hist == 1:
-                ax3.hist(HitDataTOTc, bins = np.arange(129), align = 'left', edgecolor = 'k', color = 'royalblue')
-                ax3.set_xlim(left = -1, right = 128)
-                ax3.set_title('TOT Measurment for Pulser = %d' % HistPulserTOT1, fontsize = 11)
-                ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
-                ax3.set_ylabel('N of Measrements', fontsize = 10)
-                ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[TOT_index_to_plot], DataStdevTOT[TOT_index_to_plot], ValidTOTCnt[TOT_index_to_plot])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+        elif TOTc_hist:
+            ax3.hist(HitDataTOTc, bins = np.arange(129), align = 'left', edgecolor = 'k', color = 'royalblue')
+            ax3.set_xlim(left = -1, right = 128)
+        elif len(HitDataTOT) > 1:
+            ax3.hist(HitDataTOT, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')
+            ax3.set_xlim(left = np.min(HitDataTOT)-10*LSB_TOTf_mean, right = np.max(HitDataTOT)+10*LSB_TOTf_mean)
+        ax3.set_title('TOT Measurment for Pulser = %d' % TOT_index_to_plot, fontsize = 11)
+        ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
+        ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[TOT_index_to_plot], DataStdevTOT[TOT_index_to_plot], ValidTOTCnt[TOT_index_to_plot])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+        ax3.set_ylabel('N of Measrements', fontsize = 10)
     
     # Plot (1,1)
     ax4.hist(HitDataTOTf_cumulative, bins = np.arange(9), edgecolor = 'k', color = 'royalblue')
