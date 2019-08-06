@@ -13,8 +13,8 @@
 # Script Settings
 
 asicVersion = 1 # <= Select either V1 or V2 of the ASIC
-DebugPrint = True
-NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
+DebugPrint = False
+NofIterationsTOT = 16  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
 LSB_TOTc = 190    # <= Estimate of TOT coarse LSB in ps
 LSB_TOTc = 160
@@ -45,13 +45,12 @@ import rogue.utilities.fileio                                  ##
 import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
-import setASICconfigs                                          ##
 from setASICconfig_v2B6 import *                               ##
                                                                ##
 #################################################################
 
 
-def acquire_data(top, DelayRange, using_vpa): 
+def acquire_data(top, PulserRange, using_TZ_TOT): 
     pixel_stream = feb.PixelReader()    
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
     pixel_data = {
@@ -61,10 +60,11 @@ def acquire_data(top, DelayRange, using_vpa):
     }
     
 
-    for delay_value in DelayRange:
-        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay_value)
+    for pulse_value in PulserRange:
+        print('Scanning Pulse value of ' + str(pulse_value))
+        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(pulse_value)
 
-        for pulse_iteration in range(NofIterationsTOA):
+        for pulse_iteration in range(NofIterationsTOT):
             if (asicVersion == 1):
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
                 time.sleep(0.001)
@@ -72,16 +72,16 @@ def acquire_data(top, DelayRange, using_vpa):
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
 
-        if using_vpa:
-            pixel_data['HitDataTOTf'].append( pixel_stream.HitDataTOTf_vpa.copy() )
-            pixel_data['HitDataTOTc'].append( pixel_stream.HitDataTOTc_vpa.copy() )
-            pixel_data['HitDataTOTc_init1'].append( pixel_stream.HitDataTOTc_init1_vpa.copy() )
-        else:
+        if using_TZ_TOT:
             pixel_data['HitDataTOTf'].append( pixel_stream.HitDataTOTf_tz.copy() )
             pixel_data['HitDataTOTc'].append( pixel_stream.HitDataTOTc_tz.copy() )
-            pixel_data['HitDataTOTc_init1'].append( pixel_stream.HitDataTOTc_init1_tz.copy() )
+            pixel_data['HitDataTOTc_int1'].append( pixel_stream.HitDataTOTc_int1_tz.copy() )
+        else:
+            pixel_data['HitDataTOTf'].append( pixel_stream.HitDataTOTf_vpa.copy() )
+            pixel_data['HitDataTOTc'].append( pixel_stream.HitDataTOTc_vpa.copy() )
+            pixel_data['HitDataTOTc_int1'].append( pixel_stream.HitDataTOTc_int1_vpa.copy() )
 
-        while pixel_stream.count < n_iterations: pass
+        while pixel_stream.count < NofIterationsTOT: pass
         pixel_stream.clear()
 
     return pixel_data
@@ -102,7 +102,7 @@ def parse_arguments():
     pulserMin = 0
     pulserMax = 20
     pulserStep = 1
-    nVPA_TZ = True # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT)
+    using_TZ_tot = False # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT)
     
     
     # Add arguments
@@ -111,7 +111,7 @@ def parse_arguments():
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
     parser.add_argument("--DAC", type = int, required = False, default = DAC_Vth, help = "DAC vth")
-    parser.add_argument("--VPA", type = bool, required = False, default = nVPA_TZ, help = "TOT TDC Processing")
+    parser.add_argument("--VPA", type = bool, required = False, default = using_TZ_tot, help = "TOT TDC Processing")
     parser.add_argument("--pulserMin",  type = int, required = False, default = pulserMin,  help = "pulser start")
     parser.add_argument("--pulserMax",  type = int, required = False, default = pulserMax,  help = "pulser stop")
     parser.add_argument("--pulserStep", type = int, required = False, default = pulserStep, help = "pulser step")
@@ -127,7 +127,7 @@ def measureTOT( argsip,
       pixel_number,
       Qinj,
       DAC,
-      using_vpa,
+      using_TZ_TOT,
       pulserMin,
       pulserMax,
       pulserStep):
@@ -151,16 +151,21 @@ def measureTOT( argsip,
     set_fpga_for_custom_config(top,pixel_number)
     
     # Data Acquisition for TOA
-    pixel_data = acquire_data(top, DelayRange, using_vpa)
+    pixel_data = acquire_data(top, PulserRange, using_TZ_TOT)
     
     #################################################################
     # TOT Fine Interpolator Calibration
     HitDataTOTf_cumulative = []
-    for HitDataTOT in pixel_data: HitDataTOTf_cumulative += HitDataTOT
+    for HitDataTOT in pixel_data['HitDataTOTf']: HitDataTOTf_cumulative += HitDataTOT
+    print (HitDataTOTf_cumulative)
     
     TOTf_bin_width = np.zeros(16)
     for i in range(16):
-        TOTf_bin_width[i]=len(list(np.where(np.asarray(HitDataTOTf_cumulative)==i))[0])
+        array = np.asarray(HitDataTOTf_cumulative)==i
+        nonzeros = np.where(array)
+        mylist = list(nonzeros)
+        TOTf_bin_width[i]=len(mylist[0])
+        #TOTf_bin_width[i]=len(list(np.where(np.asarray(HitDataTOTf_cumulative)==i))[0])
     TOTf_bin_width = TOTf_bin_width/sum(TOTf_bin_width)
     
     TOTf_bin = np.zeros(18)
@@ -272,10 +277,10 @@ def measureTOT( argsip,
     HitDataTOTc = HitDataTOT_list[chosen_TOT_value]
     
     TOT_index_to_plot = -1
-    for delay_value in DelayRange: #find a good delay value to plot
+    for pulse_index, pulse_value in enumerate(PulserRange): #find a good delay value to plot
         #I'd say having 80% of hits come back is good enough to plot
-        if ValidTOTCnt[delay_value] > NofIterationsTOA * 0.8:
-            TOT_index_to_plot = delay_value
+        if ValidTOTCnt[pulse_index] > NofIterationsTOT * 0.8:
+            TOT_index_to_plot = pulse_index
             break
     
     if TOTf_hist == 0 and TOTc_hist == 0:
@@ -325,4 +330,5 @@ def measureTOT( argsip,
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
+
     measureTOT(args.ip, args.cfg, args.ch, args.Q, args.DAC, args.VPA, args.pulserMin, args.pulserMax, args.pulserStep)
