@@ -109,8 +109,8 @@ def timewalk(argip,
       outFile):
 
   LSBest = 20
-  LSBest_TOTc = 160
-  LSBest_TOTf = 40
+  LSB_TOTc = 160
+  LSB_TOTf = 40
   NofIterations = 20  # <= Number of Iterations for each Vth
   useProbe = False        #output discri probe
   pulser_list = range(minPulser,maxPulser,PulserStep)
@@ -150,6 +150,7 @@ def timewalk(argip,
   TOAjit_ps = []
   allTOAdata = []
   allTOTdata = []
+  HitDataTOTf_cumulative = []
   
   for ipuls in range(len(pulser_list)):
       fileName = fileList[ipuls]
@@ -175,15 +176,16 @@ def timewalk(argip,
           pass 
   
       HitDataTOA = dataStream.HitData
+      HitDataTOT = dataStream.HitDataTOT
       allTOAdata.append(HitDataTOA)
-      allTOTdata.append(dataStream.HitDataTOT)
+      allTOTdata.append(HitDataTOT)
       HitDataTOTf = dataStream.HitDataTOTf_vpa
       HitDataTOTc = dataStream.HitDataTOTc_vpa
       HitDataTOTc_int1 = dataStream.HitDataTOTc_int1_vpa
       HitDataTOTf_cumulative = HitDataTOTf_cumulative + dataStream.HitDataTOTf_vpa
   
       ValidTOACnt.append(len(HitDataTOA))
-      ValidTOTCnt.append(len(HitDAtaTOT))
+      ValidTOTCnt.append(len(HitDataTOT))
       if len(HitDataTOTf) > 0:
           list((np.asarray(HitDataTOTc) + 1)*LSB_TOTc - np.asarray(HitDataTOTf)*LSB_TOTf)
 
@@ -194,66 +196,50 @@ def timewalk(argip,
           TOAjit_ps.append(math.sqrt(math.pow(np.std(HitDataTOA, dtype=np.float64),2)+1/12)*LSBest)
           if len(HitDataTOT) > 0:
               TOTmean.append(np.mean(HitDataTOT, dtype=np.float64))
-              TOTjit.append(math.sqrt(math.pow(np.std(HitDataTOT, dtype=np.float64),2) + math.pow(LSB_TOTf_mean,2)/12))
+              TOTjit.append(math.sqrt(math.pow(np.std(HitDataTOT, dtype=np.float64),2) + math.pow(LSB_TOTf,2)/12))
       else:
           TOAmean.append(0)
           TOAjit.append(0)
           TOAmean_ps.append(0)
           TOAjit_ps.append(0)
+          TOTmean.append(0)
+          TOTjit.append(0)
       
   #################################################################
   
   #################################################################
   # Print Data
   #find min th, max th, and middle points:
-  minTH = 0.
-  maxTH = 1024.
-  th50percent = 1024.
+  #minTH = 0.
+  #maxTH = 1024.
+  #th50percent = 1024.
   
-  midPt = []
-  for i in range(len(pulser_list)):
-      try:
-          print('Threshold = %d, ValidTOACnt = %d/%d' % (pulser_list[i], ValidTOACnt[i], NofIterations))
-      except OSError:
-          pass
-      if ValidTOACnt[i] > NofIterations-2:
-          if i>0 and ValidTOACnt[i-1] < (NofIterations-1) :
-              minTH = (pulser_list[i-1]+pulser_list[i])/2
-          elif i<len(pulser_list)-1 and ValidTOACnt[i+1] < NofIterations :
-              maxTH = (pulser_list[i+1]+pulser_list[i])/2
-      if ValidTOACnt[i]/NofIterations < 0.6:
-          th50percent = pulser_list[i]
   
-  th25= (maxTH-minTH)*0.25+minTH
-  th50= (maxTH-minTH)*0.5+minTH
-  th75= (maxTH-minTH)*0.75+minTH
-  print('Found minTH = %d, maxTH = %d  - points at 0.25, 0.50 and 0.75 are %d,%d,%d'% (minTH,maxTH,th25,th50,th75))
-  print('First DAC with efficiency below 60% = ', th50percent)
-  ff = open(outFile,'a')
-  ff.write('Threshold scan ----'+time.ctime()+'\n')
-  ff.write('Pixel = '+str(pixel_number)+'\n')
-  #ff.write('column = '+hex(column)+'\n')
-  ff.write('config file = '+Configuration_LOAD_file+'\n')
-  ff.write('NofIterations = '+str(NofIterations)+'\n')
-  #ff.write('dac_biaspa = '+hex(dac_biaspa)+'\n')
-  ff.write('DAC Vth = '+str(Vth)+'\n')
-  ff.write('LSBest = '+str(LSBest)+'\n')
-  #ff.write('Cd ='+str(cd*0.5)+' fC'+'\n')
-  ff.write('Found minTH = %d, maxTH = %d - points at 0.25, 0.50 and 0.75 are %d,%d,%d \n'% (minTH,maxTH,th25,th50,th75))
-  ff.write('First DAC with efficiency below 0.6 = %d  \n' % (th50percent))
-  ff.write('Threshold = '+str(pulser_list)+'\n')
-  ff.write('N hits = '+str(ValidTOACnt)+'\n')
-  ff.write('Mean TOA = '+str(TOAmean)+'\n')
-  ff.write('Std Dev TOA = '+str(TOAjit)+'\n')
-  ff.write('MeanTOAps = '+str(TOAmean_ps)+'\n')
-  ff.write('StdDevTOAps = '+str(TOAjit_ps)+'\n')
-  ff.write('dacVth   TOA N_TOA'+'\n')
-  for iTh in range(len(pulser_list)):
-      vth = pulser_list[iTh]
-      for itoa in range(len(allTOAdata[iTh])):
-          ff.write(str(vth)+' '+str(allTOAdata[iTh][itoa])+' '+str(len(allTOAdata[iTh]))+'\n')
+  #ff = open(outFile,'a')
+  #ff.write('Threshold scan ----'+time.ctime()+'\n')
+  #ff.write('Pixel = '+str(pixel_number)+'\n')
+  ##ff.write('column = '+hex(column)+'\n')
+  #ff.write('config file = '+Configuration_LOAD_file+'\n')
+  #ff.write('NofIterations = '+str(NofIterations)+'\n')
+  ##ff.write('dac_biaspa = '+hex(dac_biaspa)+'\n')
+  #ff.write('DAC Vth = '+str(Vth)+'\n')
+  #ff.write('LSBest = '+str(LSBest)+'\n')
+  ##ff.write('Cd ='+str(cd*0.5)+' fC'+'\n')
+  #ff.write('Found minTH = %d, maxTH = %d - points at 0.25, 0.50 and 0.75 are %d,%d,%d \n'% (minTH,maxTH,th25,th50,th75))
+  #ff.write('First DAC with efficiency below 0.6 = %d  \n' % (th50percent))
+  #ff.write('Threshold = '+str(pulser_list)+'\n')
+  #ff.write('N hits = '+str(ValidTOACnt)+'\n')
+  #ff.write('Mean TOA = '+str(TOAmean)+'\n')
+  #ff.write('Std Dev TOA = '+str(TOAjit)+'\n')
+  #ff.write('MeanTOAps = '+str(TOAmean_ps)+'\n')
+  #ff.write('StdDevTOAps = '+str(TOAjit_ps)+'\n')
+  #ff.write('dacVth   TOA N_TOA'+'\n')
+  #for iTh in range(len(pulser_list)):
+  #    vth = pulser_list[iTh]
+  #    for itoa in range(len(allTOAdata[iTh])):
+  #        ff.write(str(vth)+' '+str(allTOAdata[iTh][itoa])+' '+str(len(allTOAdata[iTh]))+'\n')
 
-  ff.close()
+  #ff.close()
   
   #################################################################
   #################################################################
@@ -261,17 +247,17 @@ def timewalk(argip,
   fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
   
   #plot N events vs threshold
-  ax1.plot(pulser_list,ValidTOACnt)
+  ax1.scatter(pulser_list,TOAmean)
   #ax1.scatter(pulser_list,ValidTOACnt)
-  ax1.set_title('Number of hits vs Threshold', fontsize = 11)
+  ax1.set_title('Mean TOA vs Qinj', fontsize = 11)
   
   #plot TOA vs threshold
-  ax2.scatter(pulser_list,TOAmean_ps)
-  ax2.set_title('Mean TOA vs Threshold', fontsize = 11)
+  ax2.scatter(pulser_list,TOTmean)
+  ax2.set_title('Mean TOT vs Qinj', fontsize = 11)
   
   #plot jitter vs Threshold
-  ax3.scatter(pulser_list,TOAjit_ps)
-  ax3.set_title('Jitter TOA vs Threshold', fontsize = 11)
+  ax3.scatter(TOTmean,TOAmean)
+  ax3.set_title('Mean TOA vs Mean TOT', fontsize = 11)
   
   plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
   plt.show()

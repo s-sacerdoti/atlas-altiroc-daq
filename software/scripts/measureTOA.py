@@ -13,7 +13,7 @@
 # Script Settings
 
 asicVersion = 1 # <= Select either V1 or V2 of the ASIC
-DebugPrint = False
+DebugPrint = True
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
 
@@ -36,7 +36,8 @@ import rogue.utilities.fileio                                  ##
 import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
-from setASICconfig_v2B6 import *                               ##
+#from setASICconfig_v2B6 import *                               ##
+from setASICconfig_v2B7 import *                               ##
                                                                ##
 #################################################################
 
@@ -44,7 +45,7 @@ from setASICconfig_v2B6 import *                               ##
 def acquire_data(top, DelayRange): 
     pixel_stream = feb.PixelReader()    
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
-    pixel_data = []
+    pixelData = []
 
     for delay_value in DelayRange:
         print('Testing delay value ' + str(delay_value) )
@@ -57,10 +58,10 @@ def acquire_data(top, DelayRange):
             else:
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
-        pixel_data.append( pixel_stream.HitData.copy() )
+        pixelData.append( pixel_stream.HitData.copy() )
         while pixel_stream.count < NofIterationsTOA: pass
         pixel_stream.clear()
-    return pixel_data
+    return pixelData
 #################################################################
 
 
@@ -75,7 +76,7 @@ def parse_arguments():
     DAC_Vth = 320
     Qinj = 13 #10fc
     config_file = 'config/config_v2B6_noPAprobe.yml'
-    dlyMin = 2250 
+    dlyMin = 2300 
     dlyMax = 2700 
     dlyStep = 10
     
@@ -118,9 +119,21 @@ def measureTOA(argsip,
         # Tap the streaming data interface (same interface that writes to file)
         dataStream = feb.MyEventReader()    
         pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
+
+    #testing resets
+    top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x0)
+    time.sleep(0.001)
+    top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x1)
+    time.sleep(0.001)
+    top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)
+    time.sleep(0.001)
+    top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
     
     # Custom Configuration
     set_fpga_for_custom_config(top,pixel_number)
+    top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
+    top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
+
     
     # Data Acquisition for TOA
     pixel_data = acquire_data(top, DelayRange)
@@ -129,13 +142,11 @@ def measureTOA(argsip,
     # Data Processing TOA #
     #######################
     
-    num_valid_TOA_reads = len(pixel_data) 
-    if num_valid_TOA_reads == 0:
-        raise ValueError('No hits were detected during delay sweep. Aborting!')
+    if len(pixel_data) == 0: raise ValueError('No hits were detected during delay sweep. Aborting!')
 
     HitCnt = []
-    DataMean = np.zeros(num_valid_TOA_reads)
-    DataStdev = np.zeros(num_valid_TOA_reads)
+    DataMean = np.zeros(len(DelayRange))
+    DataStdev = np.zeros(len(DelayRange))
     
     for delay_index, delay_value in enumerate(DelayRange):
         HitData = pixel_data[delay_index]
@@ -151,12 +162,20 @@ def measureTOA(argsip,
     MeanDataStdev = np.mean(DataStdev[nonzero])
     
     # LSB estimation based on "DelayStep" value, again ignoring zero values
-    safety_bound = 5 #so we don't measure too close to the edges of the pulse 
+    safety_bound = 2 #so we don't measure too close to the edges of the pulse 
     Delay = np.array(DelayRange)
     fit_x_values = Delay[nonzero][safety_bound:-safety_bound]
     fit_y_values = DataMean[nonzero][safety_bound:-safety_bound]
-    linear_fit_slope = np.polyfit(fit_x_values, fit_y_values, 1)[0]
-    LSBest = DelayStep/abs(linear_fit_slope)
+    if len(fit_x_values) == 0: 
+        LSBest = 99999
+        print('\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        print('WARNING! YOU HAVE TRIED TO FIT OVER TOO FEW VALUES!')
+        print('LSB ESTIMATE CALCULATION IS BEING SKIPPED!')
+        print('LSB ESTIMATE DEFAULTED TO ' + str(LSBest) )
+        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n')
+    else:
+        linear_fit_slope = np.polyfit(fit_x_values, fit_y_values, 1)[0]
+        LSBest = DelayStep/abs(linear_fit_slope)
     
     
     #################################################################
@@ -173,14 +192,15 @@ def measureTOA(argsip,
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
     
     # Plot (0,0) ; top left
-    ax1.plot(Delay, np.multiply(DataMean,LSBest))
+    ax1.plot(Delay, DataMean)
     ax1.grid(True)
     ax1.set_title('TOA Measurment VS Programmable Delay Value', fontsize = 11)
     ax1.set_xlabel('Programmable Delay Value [step estimate = %f ps]' % DelayStep, fontsize = 10)
     ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
     ax1.legend(['LSB estimate: %f ps' % LSBest],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     ax1.set_xlim(left = np.min(Delay), right = np.max(Delay))
-    ax1.set_ylim(bottom = 0, top = np.max(np.multiply(DataMean,LSBest))+100)
+    #ax1.set_ylim(bottom = 0, top = np.max(np.multiply(DataMean,LSBest))+100)
+    ax1.set_ylim(bottom = 0, top = np.max(DataMean)+10)
     
     # Plot (0,1) ; top right
     ax2.scatter(Delay, np.multiply(DataStdev,LSBest))
