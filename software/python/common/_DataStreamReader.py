@@ -156,6 +156,7 @@ class MyFileReader(rogue.interfaces.stream.Slave):
                 dat = eventFrame.pixValue[i]
 
                 if (dat.Hit > 0) and (dat.ToaOverflow == 0):
+                #if (dat.Hit > 0):
                     self.HitData.append(dat.ToaData)
                 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
