@@ -73,13 +73,13 @@ def acquire_data(top, DelayRange, using_vpa):
                 time.sleep(0.001)
 
         if using_vpa:
-            pixel_data['HitDataTOTf'].append(pixel_stream.HitDataTOTf_vpa)
-            pixel_data['HitDataTOTc'].append(pixel_stream.HitDataTOTc_vpa)
-            pixel_data['HitDataTOTc_init1'].append(pixel_stream.HitDataTOTc_init1_vpa)
+            pixel_data['HitDataTOTf'].append( pixel_stream.HitDataTOTf_vpa.copy() )
+            pixel_data['HitDataTOTc'].append( pixel_stream.HitDataTOTc_vpa.copy() )
+            pixel_data['HitDataTOTc_init1'].append( pixel_stream.HitDataTOTc_init1_vpa.copy() )
         else:
-            pixel_data['HitDataTOTf'].append(pixel_stream.HitDataTOTf_tz)
-            pixel_data['HitDataTOTc'].append(pixel_stream.HitDataTOTc_tz)
-            pixel_data['HitDataTOTc_init1'].append(pixel_stream.HitDataTOTc_init1_tz)
+            pixel_data['HitDataTOTf'].append( pixel_stream.HitDataTOTf_tz.copy() )
+            pixel_data['HitDataTOTc'].append( pixel_stream.HitDataTOTc_tz.copy() )
+            pixel_data['HitDataTOTc_init1'].append( pixel_stream.HitDataTOTc_init1_tz.copy() )
 
         while pixel_stream.count < n_iterations: pass
         pixel_stream.clear()
@@ -106,7 +106,7 @@ def parse_arguments():
     
     
     # Add arguments
-    parser.add_argument("--ip", type = str, required = True, help = "IP address")  
+    parser.add_argument( "--ip", nargs ='+', required = True, help = "List of IP addresses",)  
     parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")

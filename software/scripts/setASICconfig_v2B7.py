@@ -16,7 +16,7 @@ import rogue.utilities.fileio
 
 ##############################################################################
 def set_fpga_for_custom_config(top,pixel_number):
-    print('Loading costum config for BOARD 7')
+    print('Loading custom config for BOARD 7')
     top.Fpga[0].Asic.Probe.en_probe_pa.set(0x0)
 
     #first set all to 0

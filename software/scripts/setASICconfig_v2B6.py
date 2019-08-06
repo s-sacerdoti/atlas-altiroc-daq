@@ -16,7 +16,7 @@ import rogue.utilities.fileio
 
 ##############################################################################
 def set_fpga_for_custom_config(top,pixel_number):
-    print('Loading costum config for BOARD 6')
+    print('Loading custom config for BOARD 6')
     top.Fpga[0].Asic.Probe.en_probe_pa.set(0x1)
 
     for i in range(25):
@@ -89,7 +89,7 @@ def set_fpga_for_custom_config(top,pixel_number):
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
 
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
-    top.Fpga[0].Asic.SlowControl.CP_b.set(0x4) #5
+    top.Fpga[0].Asic.SlowControl.CP_b.set(0x0) #5
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #0

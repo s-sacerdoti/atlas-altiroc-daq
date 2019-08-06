@@ -296,6 +296,7 @@ args = parser.parse_args()
 #################################################################
 # Setup root class
 #top = feb.Top(ip= args.ip, loadYaml= False)    
+print(args.ip)
 top = feb.Top(ip= args.ip)    
 
 # Load the default YAML file

@@ -13,7 +13,7 @@
 # Script Settings
 
 asicVersion = 1 # <= Select either V1 or V2 of the ASIC
-DebugPrint = True
+DebugPrint = False
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
 
@@ -36,7 +36,6 @@ import rogue.utilities.fileio                                  ##
 import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
-import setASICconfigs                                          ##
 from setASICconfig_v2B6 import *                               ##
                                                                ##
 #################################################################
@@ -48,6 +47,7 @@ def acquire_data(top, DelayRange):
     pixel_data = []
 
     for delay_value in DelayRange:
+        print('Testing delay value ' + str(delay_value) )
         top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay_value)
 
         for pulse_iteration in range(NofIterationsTOA):
@@ -57,10 +57,9 @@ def acquire_data(top, DelayRange):
             else:
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
-
-        pixel_data.append(pixel_stream.HitData)
-        while pixel_stream.count < n_iterations: pass
-        dataStream.clear()
+        pixel_data.append( pixel_stream.HitData.copy() )
+        while pixel_stream.count < NofIterationsTOA: pass
+        pixel_stream.clear()
     return pixel_data
 #################################################################
 
@@ -82,7 +81,7 @@ def parse_arguments():
     
     
     # Add arguments
-    parser.add_argument("--ip", type = str, required = True, help = "IP address")  
+    parser.add_argument( "--ip", nargs ='+', required = True, help = "List of IP addresses",)  
     parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
@@ -109,7 +108,7 @@ def measureTOA(argsip,
     DelayRange = range( delayMin, delayMax, delayStep )
     
     # Setup root class
-    top = feb.Top(ip= args.ip)    
+    top = feb.Top(ip = argsip)    
     
     # Load the default YAML file
     print('Loading {Configuration_LOAD_file} Configuration File...')
@@ -130,31 +129,34 @@ def measureTOA(argsip,
     # Data Processing TOA #
     #######################
     
+    num_valid_TOA_reads = len(pixel_data) 
+    if num_valid_TOA_reads == 0:
+        raise ValueError('No hits were detected during delay sweep. Aborting!')
+
     HitCnt = []
-    DataMean = []
-    DataStdev = []
+    DataMean = np.zeros(num_valid_TOA_reads)
+    DataStdev = np.zeros(num_valid_TOA_reads)
     
     for delay_index, delay_value in enumerate(DelayRange):
         HitData = pixel_data[delay_index]
         HitCnt.append(len(HitData))
         if len(HitData) > 0:
-            DataMean.append(np.mean(HitData, dtype=np.float64))
-            DataStdev.append(math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12))
-        else:
-            DataMean.append(0)
-            DataStdev.append(0)
+            DataMean[delay_index] = np.mean(HitData, dtype=np.float64)
+            DataStdev[delay_index] = math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12)
     
-    if len(DataMean) == 0:
-        raise ValueError('No hits were detected during delay sweep. Aborting!')
+    # The following calculations ignore points with no data (i.e. Std.Dev = 0)
+    nonzero = DataMean != 0
     
     # Average Std. Dev. Calculation; Points with no data (i.e. Std.Dev.= 0) are ignored
-    index = np.where(np.sort(DataStdev))
-    MeanDataStdev = np.mean(np.sort(DataStdev)[index[0][0]:len(np.sort(DataStdev))])
+    MeanDataStdev = np.mean(DataStdev[nonzero])
     
-    # LSB estimation based on "DelayStep" value
-    index=np.where(DataMean)
-    fit = np.polyfit(Delay[index[0][5]:index[0][-5]], DataMean[index[0][5]:index[0][-5]], 1)
-    LSBest = DelayStep/abs(fit[0])
+    # LSB estimation based on "DelayStep" value, again ignoring zero values
+    safety_bound = 5 #so we don't measure too close to the edges of the pulse 
+    Delay = np.array(DelayRange)
+    fit_x_values = Delay[nonzero][safety_bound:-safety_bound]
+    fit_y_values = DataMean[nonzero][safety_bound:-safety_bound]
+    linear_fit_slope = np.polyfit(fit_x_values, fit_y_values, 1)[0]
+    LSBest = DelayStep/abs(linear_fit_slope)
     
     
     #################################################################
@@ -193,10 +195,10 @@ def measureTOA(argsip,
     # Plot (1,0) ; bottom left
     
     delay_index_to_plot = -1
-    for delay_value in DelayRange: #find a good delay value to plot
+    for delay_index, delay_value in enumerate(DelayRange): #find a good delay value to plot
         #I'd say having 80% of hits come back is good enough to plot
-        if HitCnt[delay_value] > NofIterationsTOA * 0.8:
-            delay_index_to_plot = delay_value
+        if HitCnt[delay_index] > NofIterationsTOA * 0.8:
+            delay_index_to_plot = delay_index
             break
     
     if delay_index_to_plot != -1:
