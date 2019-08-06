@@ -25,8 +25,8 @@ pixel_number = 4 # <= Pixel to be Tested
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 DelayRange_low = 1900     # <= low end of Programmable Delay Sweep
 DelayRange_high = 2700     # <= high end of Programmable Delay Sweep
-DelayRange_step = 10     # <= step size Programmable Delay Sweep
-NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
+DelayRange_step = 2     # <= step size Programmable Delay Sweep
+NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
 
 DataAcqusitionTOT = 0   # <= Enable TOT Data Acquisition (Pulser Sweep)
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
