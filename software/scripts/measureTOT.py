@@ -111,7 +111,7 @@ def parse_arguments():
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
     parser.add_argument("--DAC", type = int, required = False, default = DAC_Vth, help = "DAC vth")
-    parser.add_argument("--VPA", type = bool, required = False, default = using_TZ_tot, help = "TOT TDC Processing")
+    parser.add_argument("--useTZ", type = bool, required = False, default = using_TZ_tot, help = "TOT TDC Processing")
     parser.add_argument("--pulserMin",  type = int, required = False, default = pulserMin,  help = "pulser start")
     parser.add_argument("--pulserMax",  type = int, required = False, default = pulserMax,  help = "pulser stop")
     parser.add_argument("--pulserStep", type = int, required = False, default = pulserStep, help = "pulser step")
@@ -157,23 +157,18 @@ def measureTOT( argsip,
     # TOT Fine Interpolator Calibration
     HitDataTOTf_cumulative = []
     for HitDataTOT in pixel_data['HitDataTOTf']: HitDataTOTf_cumulative += HitDataTOT
-    print (HitDataTOTf_cumulative)
     
-    TOTf_bin_width = np.zeros(16)
-    for i in range(16):
-        array = np.asarray(HitDataTOTf_cumulative)==i
-        nonzeros = np.where(array)
-        mylist = list(nonzeros)
-        TOTf_bin_width[i]=len(mylist[0])
-        #TOTf_bin_width[i]=len(list(np.where(np.asarray(HitDataTOTf_cumulative)==i))[0])
+    TOTf_value_range = 16
+    TOTf_bin_width = np.zeros(TOTf_value_range)
+    for TOTf_value in range(TOTf_value_range):
+        TOTf_bin_width[TOTf_value] = HitDataTOTf_cumulative.count(TOTf_value)
     TOTf_bin_width = TOTf_bin_width/sum(TOTf_bin_width)
     
-    TOTf_bin = np.zeros(18)
-    for i in range(1,17):
-        TOTf_bin[i]=len(list(np.where(np.asarray(HitDataTOTf_cumulative)==i-1))[0])
+    TOTf_bin = np.zeros(TOTf_value_range+2)
+    for TOTf_value in range(1,TOTf_value_range+1):
+        TOTf_bin[TOTf_value] = HitDataTOTf_cumulative.count(TOTf_value-1)
     
-    index = np.where(np.sort(TOTf_bin))
-    LSB_TOTf_mean = np.mean(np.sort(TOTf_bin)[index[0][0]:len(np.sort(TOTf_bin))])/sum(TOTf_bin)
+    LSB_TOTf_mean = np.mean( TOTf_bin[TOTf_bin != 0]  )/sum(TOTf_bin)
     
     TOTf_bin = (TOTf_bin[1:18]/2 + np.cumsum(TOTf_bin)[0:17])/sum(TOTf_bin)
     TOTf_bin[16] = LSB_TOTf_mean
@@ -186,57 +181,36 @@ def measureTOT( argsip,
     #################################################################
     # Data Processing TOT
     ValidTOTCnt = []
-    DataMeanTOT = []
-    DataStdevTOT = []
-    HitDataTOT_list = []
-    HitDataTOTf_list = []
-    HitDataTOTc_list = []
+    DataMeanTOT = np.zeros( len(PulserRange) )
+    DataStdevTOT = np.zeros( len(PulserRange) )
     
-    #for i in range(PulserRangeL, PulserRangeH):
-    for pulser_value in PulserRange:
-        print('Processing Data for Pulser = %d...' % i)
-    
+    for pulser_index, pulser_value in enumerate(PulserRange):
+        print('Processing Data for Pulser = %d...' % pulser_index)
+
+        HitDataTOTf = np.asarray( pixel_data['HitDataTOTf'][pulser_index] )
+        HitDataTOTc = np.asarray( pixel_data['HitDataTOTc'][pulser_index] )
+        HitDataTOTc_int1 = np.asarray( pixel_data['HitDataTOTc_int1'][pulser_index] )
+        ValidTOTCnt.append(len(HitDataTOTf))
         LSB_TOTf_mean = TOTf_bin[16]*2*LSB_TOTc
     
-        def calibration_correction(f,c):
-            if f > 3 and c == 0:
-                return 2
-            else:
-                if f == 0 and c == 1:
-                    return -TOTf_bin[0]*2
-                else:
-                    return 0
-        ##################################
-    
         IntFVa = 1
-        if IntFVa == 1:
-            if len(HitDataTOTf) > 0:
-                HitDataTOT = list((np.asarray(HitDataTOTc_int1)*2 + 1 - np.asarray(list(map(lambda x: TOTf_bin[x], np.asarray(HitDataTOTf, dtype=np.int))))*2)*LSB_TOTc)
-                HitDataTOT = list(HitDataTOT + np.asarray(list(map(calibration_correction, HitDataTOTf, list(map(lambda x: x&1, np.asarray(HitDataTOTc))))))*LSB_TOTc)
+        HitDataTOT = []
+        if len(HitDataTOTf) > 0:
+            if IntFVa == 1:
+                for f, c, int1 in zip(HitDataTOTf, HitDataTOTc, HitDataTOTc_int1):
+                    pre_correction = 2 * ( int1*2+1-TOTf_bin[f] ) * c
+                    if f > 3 and (c&1) == 0: correction = 2
+                    elif f == 0 and (c&1) == 1: correction = -TOTf_bin[0]*2
+                    else: correction = 0
+                    HitDataTOT.append(pre_correction + correction*LSB_TOTc)
             else:
-                HitDataTOT = []    
-        else:
-            if len(HitDataTOTf) > 0:
-                HitDataTOT = list((np.asarray(HitDataTOTc) + 1 - np.asarray(HitDataTOTf)/4)*LSB_TOTc)
-            else:
-                HitDataTOT = []  
+                HitDataTOT = list( (1 + HitDataTOTc - HitDataTOTf/4) * LSB_TOTc )
     
-        HitDataTOT_list.append(HitDataTOT)
-        HitDataTOTf_list.append(HitDataTOTf)
-        HitDataTOTc_list.append(HitDataTOTc)
-    
-        ValidTOTCnt.append(len(HitDataTOT))
-        if len(HitDataTOT) > 0:        
-            DataMeanTOT.append(np.mean(HitDataTOT, dtype=np.float64))
-            DataStdevTOT.append(math.sqrt(math.pow(np.std(HitDataTOT, dtype=np.float64),2) + math.pow(LSB_TOTf_mean,2)/12))
-        else:
-            DataMeanTOT.append(0)
-            DataStdevTOT.append(0)
+            DataMeanTOT[pulser_index] = np.mean(HitDataTOT, dtype=np.float64)
+            DataStdevTOT[pulser_index] = math.sqrt(math.pow(np.std(HitDataTOT, dtype=np.float64),2) + math.pow(LSB_TOTf_mean,2)/12)
     
     # Average Std. Dev. Calculation; Points with no data (i.e. Std.Dev.= 0) are ignored
-    index = np.where(np.sort(DataStdevTOT))
-    MeanDataStdevTOT = np.mean(np.sort(DataStdevTOT)[index[0][0]:len(np.sort(DataStdevTOT))])
-    
+    MeanDataStdevTOT = np.mean( DataStdevTOT[DataStdevTOT!=0] )
     
     #################################################################
     # Plot Data
@@ -244,31 +218,31 @@ def measureTOT( argsip,
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
     
     # Plot (0,0) ; top left
-    ax1.plot(Pulser, DataMeanTOT)
+    ax1.plot(PulserRange, DataMeanTOT)
     ax1.grid(True)
     ax1.set_title('TOT Measurment VS Injected Charge', fontsize = 11)
     ax1.set_xlabel('Pulser DAC Value', fontsize = 10)
     ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
-    ax1.set_xlim(left = np.min(Pulser), right = np.max(Pulser))
+    ax1.set_xlim(left = PulserRange.start, right = PulserRange.stop)
     ax1.set_ylim(bottom = 0, top = np.max(DataMeanTOT)*1.1)
     
     # Plot (0,1) ; top right
     if PlotValidCnt == 0:
-        ax2.scatter(Pulser, DataStdevTOT)
+        ax2.scatter(PulserRange, DataStdevTOT)
         ax2.grid(True)
         ax2.set_title('TOT Jitter VS Injected Charge', fontsize = 11)
         ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
         ax2.set_ylabel('Std. Dev. [ps]', fontsize = 10)
         ax2.legend(['Average Std. Dev. = %f ps' % MeanDataStdevTOT], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-        ax2.set_xlim(left = np.min(Pulser), right = np.max(Pulser))
+        ax2.set_xlim(left = PulserRange.start, right = PulserRange.stop)
         ax2.set_ylim(bottom = 0, top = np.max(DataStdevTOT)*1.1)
     else:
-        ax2.plot(Pulser, ValidTOTCnt)
+        ax2.plot(PulserRange, ValidTOTCnt)
         ax2.grid(True)
         ax2.set_title('TOT Valid Counts VS Injected Charge', fontsize = 11)
         ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
         ax2.set_ylabel('Valid Measurements', fontsize = 10)
-        ax2.set_xlim(left = np.min(Pulser), right = np.max(Pulser))
+        ax2.set_xlim(left = PulserRange.start, right = PulserRange.stop)
         ax2.set_ylim(bottom = 0, top = np.max(ValidTOTCnt)*1.1)
     
     # Plot (1,0)
@@ -331,4 +305,4 @@ if __name__ == "__main__":
     args = parse_arguments()
     print(args)
 
-    measureTOT(args.ip, args.cfg, args.ch, args.Q, args.DAC, args.VPA, args.pulserMin, args.pulserMax, args.pulserStep)
+    measureTOT(args.ip, args.cfg, args.ch, args.Q, args.DAC, args.useTZ, args.pulserMin, args.pulserMax, args.pulserStep)
