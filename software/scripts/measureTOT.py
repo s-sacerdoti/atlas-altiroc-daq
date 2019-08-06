@@ -30,11 +30,11 @@ NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
 delay_list = range(DelayRange_low, DelayRange_high, DelayRange_step)
 
 DataAcqusitionTOT = 1   # <= Enable TOT Data Acquisition (Pulser Sweep)
-useExt = True
+useExt = False
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
 PulserRangeH = 30       # <= High Value of Pulser Sweep Range
-PulserRangeStep = 2     # <= Step Size of Pulser Sweep Range
-NofIterationsTOT = 50   # <= Number of Iterations for each Pulser Value
+PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
+NofIterationsTOT = 20   # <= Number of Iterations for each Pulser Value
 DelayValueTOT = 2400       # <= Value of Programmable Delay for TOT Pulser Sweep
 
 if useExt:
