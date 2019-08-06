@@ -119,7 +119,7 @@ def set_fpga_for_custom_config(top,pixel_number):
     top.Fpga[0].Asic.SlowControl.cd[1].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.cd[2].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x1e) #10
-    top.Fpga[0].Asic.SlowControl.dac_pulser.set(13) #7
+    top.Fpga[0].Asic.SlowControl.dac_pulser.set(13) #3=2.6,6=4.96,13=10.2,26=20.05
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(320) #173 / 183
 
 

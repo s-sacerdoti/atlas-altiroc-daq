@@ -508,7 +508,6 @@ for ipuls in range(len(Pulser)):
   for itot in range(len(allTOTdata_c[ipuls])):
     ff.write(str(pulser)+' '+str(allTOTdata[ipuls][itot])+' '+str(allTOTdata_c[ipuls][itot])+' '+str(allTOTdata_f[ipuls][itot])+'\n')
 #ff.write('TOAvalues = '+str(HitDataTOT)+'\n')
-ff.write('\n')
 ff.close()
 
 print('Saved file '+outFile)
