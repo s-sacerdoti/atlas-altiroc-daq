@@ -72,7 +72,7 @@ def acquire_data(dacScan, top, n_iterations):
     asicVersion = 1 # <= Select either V1 or V2 of the ASIC
 
     for scan_value in dacScan:
-        top.Fpga[0].Asic.SlowControl.DAC10bit.set(i)
+        top.Fpga[0].Asic.SlowControl.DAC10bit.set(scan_value)
     
         for iteration in range(n_iterations):
             if (asicVersion == 1): 
@@ -137,7 +137,7 @@ def thresholdScan(argip,
   for dac_index, dac_value in enumerate(dacScan):
       print('Processing Data for THR DAC = %d...' % dac_value)
   
-      HitData = dataStream.HitData
+      HitData = pixel_data[dac_index]
       allTOA.append(HitData)
   
       HitCnt.append(len(HitData))
@@ -163,7 +163,6 @@ def thresholdScan(argip,
   th50percent = 1024.
   
   midPt = []
-  for i in range(len(dacScan)):
   for dac_index, dac_value in enumerate(dacScan):
       try:
           print('Threshold = %d, HitCnt = %d/%d' % (dac_value, HitCnt[dac_index], NofIterations))
