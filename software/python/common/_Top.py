@@ -34,16 +34,19 @@ class Top(pr.Root):
             initRead    = True,
             configProm  = False,
             advanceUser = False,
+            refClkSel   = 'IntClk',
             pllConfig   = 'config/pll-config/Si5345-RevD-Registers.csv',
             loadYaml    = True,
-            defaultFile = ['config/defaults.yml'],
+            userYaml    = [''],
+            defaultFile = 'config/defaults.yml',
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000038
+        self.minFpgaVersion = 0x20000039
         
         # Cache the parameters
+        self.refClkSel   = refClkSel
         self.pllConfig   = pllConfig
         self.advanceUser = advanceUser
         self.configProm  = configProm
@@ -53,6 +56,7 @@ class Top(pr.Root):
         self._pollEn     = pollEn   if (ip[0] != 'simulation') else False
         self._initRead   = initRead if (ip[0] != 'simulation') else False      
         self.loadYaml    = loadYaml
+        self.userYaml    = userYaml
         self.defaultFile = defaultFile
         
         # File writer
@@ -95,6 +99,7 @@ class Top(pr.Root):
                 offset      = 0x00000000, 
                 configProm  = self.configProm, 
                 advanceUser = self.advanceUser, 
+                expand      = True, 
             ))
         
         ######################################################################
@@ -135,11 +140,20 @@ class Top(pr.Root):
                     errMsg = 'incompatible Version1 FPGA board Detected'
                     click.secho(errMsg, bg='red')
                     raise ValueError(errMsg)
+                    
+                # Check if the list of user YAML file les than number of FPGAs
+                if (len(self.userYaml) < self.numEthDev):
+                    errMsg = 'There are less User YAML files than the number of FPGAs to load'
+                    click.secho(errMsg, bg='red')
+                    raise ValueError(errMsg)                    
                 
                 if (self.advanceUser):
                     # Prevent FEB from thermal shutdown until FPGA Tj = 100 degC (max. operating temp)  
                     self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95)    
          
+                # Set the PLL reference
+                self.Fpga[i].Asic.Gpio.RefClkSel.setDisp(self.refClkSel)
+                     
                 # Load the PLL configurations
                 self.Fpga[i].Pll.CsvFilePath.set(self.pllConfig)
                 
@@ -190,10 +204,17 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.Probe.enable.hidden    = False
                 self.Fpga[i].Asic.Readout.enable.hidden  = False
                 
-                # Check if we should load the default YAML file
-                for idx in range(len(self.defaultFile)):
-                    print(f'Loading {self.defaultFile[idx]} Configuration File...')
-                    self.LoadConfig(self.defaultFile[idx])
+                # Check if we are loading YAML files
+                if self.loadYaml:
+                    
+                    # Load the Default YAML file
+                    print(f'Loading Fpga[{i}]:path={self.defaultFile} Default Configuration File...')
+                    self.LoadConfig(self.defaultFile)                
+                
+                    # Load the board specific YAML file
+                    if (self.userYaml[i] != ''):
+                        print(f'Loading Fpga[{i}]:path={self.userYaml[i]} User Configuration File...')
+                        self.LoadConfig(self.userYaml[i])
             
                 # Reset the RAM, TDC and DLL resets
                 self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x0)
