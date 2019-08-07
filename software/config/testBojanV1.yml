@@ -1,6 +1,12 @@
 Top:
   Fpga[:]: # "[:]" is a wildcard for a dict search
-    Asic:
+    ##########################################################################
+    Asic: # Note: Configuration tuned for ASIC Board V1: #2
+      ##########################################################################
+      Trig:
+        CalStrobeAlign: 0x3 # Cal pulse 40 Mhz alignment to 160 MHz
+        EnCalPulseTrig: 0x1 # Enable Cal pulse to trigger readout      
+      ##########################################################################
       SlowControl:
         ########################
         EN_ck_SRAM[:]: 0x1
@@ -62,7 +68,7 @@ Top:
         
         DAC10bit: 0x173 #173 / 183
 
-        ########################      
+      ##########################################################################
       Probe:
         en_probe_pa: 0x1
         en_probe_dig: 0x1 # pix=3
@@ -75,11 +81,12 @@ Top:
           totf: 0x0
           tot_overflow: 0x0
           toa_busy: 0x1
-          # toa_ready: 0x0 # TODO: review this variable
           tot_busy: 0x0
           tot_ready: 0x0
           en_read: 0x1
+      ##########################################################################
       Readout:
         StartPix: 3 # pix=3
         LastPix: 3 # pix=3
-        OnlySendFirstHit: 0x1
+        OnlySendFirstHit: 0x1 # Only send the first hit per pixel
+      ##########################################################################

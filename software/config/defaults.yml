@@ -1,8 +1,11 @@
 Top:
   Fpga[:]: # "[:]" is a wildcard for a dict search
+    ##########################################################################
     Dac:
       RawValue:  0x8000
+    ##########################################################################
     Asic:
+      ##########################################################################
       Gpio:
         RSTB_RAM: 0x1
         RST_COUNTER: 0x0
@@ -10,27 +13,35 @@ Top:
         RSTB_DLL: 0x1
         DlyCalPulseSet: 0x0 # Rising edge of EXT_TRIG
         DlyCalPulseReset: 0xfff # Falling edge of EXT_TRIG
-        RefClkSel: IntClk # Using the local board OSC
+        ###########################################
+        # Asic.Gpio.RefClkSel is now configured by 
+        # common/top.py via RefClkSel argument
+        ###########################################
+      ##########################################################################
       TdcClk:
         Tdc40MHzClkSel: Pll
         FpgaTdcClkHigh: 0x1
         FpgaTdcClkLow: 0x1
+      ##########################################################################
       CalPulse:
-        CalPulseDelay: 0xFFFF
+        CalPulseDelay: 0x32
         CalPulseCount: 0x0
-        CalPulseWidth: 0x1
+        CalPulseWidth: 0x2
         Continuous: 0x0
+      ##########################################################################
       Trig:
         TrigTypeSel: Slave
-        StrobeAlign: 0x3
-        EnCalPulseTrig: 0x1      
+        CalStrobeAlign: 0x3
+        TrigStrobeAlign: 0x3
+        EnCalPulseTrig: 0x0   
         EnBncExtTrig: 0x0      
         EnPcieLocalTrig: 0x0      
         EnLemoRemoteTrig: 0x0      
-        MasterModeSel: AND      
+        MasterModeSel: OR      
         ReadoutStartDly: 128 # Units of 6.4ns
         TrigSizeBeforePause: 0x0      
         DeadtimeDuration: 0x0      
+      ##########################################################################
       SlowControl:
         dac: 0x0
         ON_dac_LR: 0x1
@@ -62,6 +73,7 @@ Top:
         cBitc: 0x0
         ext_Vcrtlc_en: 0x0
         en_8drivers: 0x0
+        #####################
         EN_ck_SRAM[:]: 0x1
         ON_Ctest[:]: 0x0
         disable_pa[:]: 0x0
@@ -74,6 +86,7 @@ Top:
         cBit_s_TOT[:]: 0x0
         cBit_s_TOA[:]: 0x0
         cBit_f_TOA[:]: 0x0
+        #####################
         cd[0]: 0x0
         cd[1]: 0x0
         cd[2]: 0x0
@@ -104,6 +117,7 @@ Top:
         En_40M: 0x1
         En_640M: 0x1
         rstL: 0x1       
+      ##########################################################################
       Readout:
         StartPix: 0
         LastPix: 24
@@ -118,3 +132,4 @@ Top:
         EnProbeWrite: 0x1
         OnlySendFirstHit: 0x0
         #####################
+      ##########################################################################

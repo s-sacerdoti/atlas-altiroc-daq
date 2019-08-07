@@ -12,18 +12,21 @@
 ##############################################################################
 # Script Settings
 
-asicVersion = 1 # <= Select either V1 or V2 of the ASIC
+asicVersion = 2 # <= Select either V1 or V2 of the ASIC
 
 DebugPrint = True
 
-Configuration_LOAD_file = 'config/testBojan11.yml' # <= Path to the Configuration File to be Loaded
+if (asicVersion == 1):
+    Configuration_LOAD_file = 'config/testBojanV1.yml' # <= Path to the Configuration File to be Loaded
+else:
+    Configuration_LOAD_file = 'config/testBojanV2.yml' # <= Path to the Configuration File to be Loaded
 
 pixel_number = 3 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 #DelayRange = 251        # <= Range of Programmable Delay Sweep 
-DelayRange_low = 2400     # <= low end of Programmable Delay Sweep
-DelayRange_high = 2570     # <= high end of Programmable Delay Sweep
+DelayRange_low = 2300     # <= low end of Programmable Delay Sweep
+DelayRange_high = 2700     # <= high end of Programmable Delay Sweep
 DelayRange_step = 1     # <= step size Programmable Delay Sweep
 #DelayRange = 11        # <= Range of Programmable Delay Sweep 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
@@ -54,8 +57,6 @@ HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistPulserTOT1 = 32  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
 HistPulserTOT2 = 25  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
 
-Disable_CustomConfig = 0 # <= Disables the ASIC Configuration Customization inside the Script (Section Below) => all Configuration Parameters are taken from Configuration File   
-
 TOTf_hist = 0
 TOTc_hist = 0
 Plot_TOTf_lin = 1
@@ -63,61 +64,31 @@ PlotValidCnt = 1
 
 ##############################################################################
 
-#################################################################
-                                                               ##
-import sys                                                     ##
-import rogue                                                   ##
-import time                                                    ##
-import random                                                  ##
-import argparse                                                ##
-                                                               ##
-import pyrogue as pr                                           ##
-import pyrogue.gui                                             ##
-import numpy as np                                             ##
-import common as feb                                           ##
-                                                               ##
-import os                                                      ##
-import rogue.utilities.fileio                                  ##
-                                                               ##
-import statistics                                              ##
-import math                                                    ##
-import matplotlib.pyplot as plt                                ##
-                                                               ##
-#################################################################
+import sys
+import rogue
+import time
+import random
+import argparse
 
-def set_fpga_for_custom_config(top):
-    for i in range(25):
-        top.Fpga[0].Asic.SlowControl.disable_pa[i].set(0x1)
-        top.Fpga[0].Asic.SlowControl.ON_discri[i].set(0x0)
-        top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[i].set(0x1)
-        top.Fpga[0].Asic.SlowControl.EN_trig_ext[i].set(0x0)
-        top.Fpga[0].Asic.SlowControl.ON_Ctest[i].set(0x0)
+import pyrogue as pr
+import pyrogue.gui
+import numpy as np
+import common as feb
 
-        top.Fpga[0].Asic.SlowControl.cBit_f_TOA[i].set(0x0)
-        top.Fpga[0].Asic.SlowControl.cBit_s_TOA[i].set(0x0)
-        top.Fpga[0].Asic.SlowControl.cBit_f_TOT[i].set(0x0)
-        top.Fpga[0].Asic.SlowControl.cBit_s_TOT[i].set(0x0)
-        top.Fpga[0].Asic.SlowControl.cBit_c_TOT[i].set(0x0)
+import os
+import rogue.utilities.fileio
 
-    top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x0)
-    top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x1)
-    top.Fpga[0].Asic.SlowControl.EN_hyst[pixel_number].set(0x1)
-    top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x0)
-    top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)
-    top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x1)
-    top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(0x20)
+import statistics
+import math
+import matplotlib.pyplot as plt
 
-    top.Fpga[0].Asic.SlowControl.cBit_f_TOA[pixel_number].set(0x0)  #0
-    top.Fpga[0].Asic.SlowControl.cBit_s_TOA[pixel_number].set(0x0)  #0
-    top.Fpga[0].Asic.SlowControl.cBit_f_TOT[pixel_number].set(0xf)  #f
-    top.Fpga[0].Asic.SlowControl.cBit_s_TOT[pixel_number].set(0x0)  #0
-    top.Fpga[0].Asic.SlowControl.cBit_c_TOT[pixel_number].set(0xf)  #f
-
-#################################################################
-
+##############################################################################
 
 def acquire_data(range_low, range_high, range_step, top, 
         asic_pulser, file_prefix, n_iterations, dataStream): 
+
+    # # dump the configuration (for debugging purposes)
+    # top.SaveConfig('test_Bojan_dump.yml')
 
     for i in range(range_low, range_high, range_step):
         print(file_prefix+'step = %d' %i)
@@ -134,7 +105,8 @@ def acquire_data(range_low, range_high, range_step, top,
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
                 time.sleep(0.001)
             else:
-                top.Fpga[0].Asic.CalPulse.Start()
+                top.Fpga[0].Asic.LegacyV1AsicCalPulseStart() # We need to understand why the "Altiroc1_V2" TOA does NOT work unless toggle the RSTB_RAM and RSTB_TDC before trigging/readout
+                # top.Fpga[0].Asic.CalPulse.Start() # This command does NOT seem to work without toggling the RSTB_RAM and RSTB_TDC before trigging/readout
                 time.sleep(0.001)
 
         while dataStream.count < n_iterations: pass
@@ -142,15 +114,12 @@ def acquire_data(range_low, range_high, range_step, top,
         dataStream.count = 0
 #################################################################
 
-
 def get_sweep_index(sweep_value, sweep_low, sweep_high, sweep_step):
     if sweep_value < sweep_low or sweep_high < sweep_value:
         raise ValueError( 'Sweep value {} outside of sweep range [{}:{}]'.format(sweep_value, sweep_low, sweep_high) )
     if sweep_value % sweep_step != 0:
         raise ValueError( 'Sweep value {} is not a multiple of sweep step {}'.format(sweep_value, sweep_step) )
     return int ( (sweep_value - sweep_low) / sweep_step )
-#################################################################
-
 
 #################################################################
 # Set the argument parser
@@ -178,18 +147,14 @@ args = parser.parse_args()
 #################################################################
 # Setup root class
 top = feb.Top(
-    ip          = args.ip,
-    defaultFile = ['config/defaults.yml',Configuration_LOAD_file],
+    ip       = args.ip,
+    userYaml = [Configuration_LOAD_file],
     )    
 
 if DebugPrint:
     # Tap the streaming data interface (same interface that writes to file)
     dataStream = feb.PrintEventReader()    
     pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
-
-# Custom Configuration
-if Disable_CustomConfig == 0:
-    set_fpga_for_custom_config(top)
 
 # Data Acquisition for TOA and TOT
 if DataAcqusitionTOA == 1:
@@ -579,6 +544,6 @@ plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
 plt.show()
 #################################################################
 
-time.sleep(0.5)
-# Close
+input("Press Enter to continue...")
 top.stop()
+exit()  
