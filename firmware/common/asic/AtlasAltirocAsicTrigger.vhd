@@ -34,15 +34,16 @@ entity AtlasAltirocAsicTrigger is
       lemoOut         : out sl;
       -- Calibration and 40 Strobe phase alignment Interface
       calPulse        : in  sl;
-      strobeAlign     : out slv(1 downto 0);
+      calStrb40MHz    : out sl;
       -- Readout Interface
       readoutStart    : out sl;
       readoutCnt      : out slv(31 downto 0);
       readoutBusy     : in  sl;
+      probeBusy       : in  sl;
       -- Reference Clock/Reset Interface
       clk160MHz       : in  sl;
       rst160MHz       : in  sl;
-      strobe40MHz     : in  sl;
+      strb40MHz       : in  sl;
       -- AXI-Lite Interface 
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
@@ -72,7 +73,8 @@ architecture rtl of AtlasAltirocAsicTrigger is
       -- Trigger Control
       trigMaster          : sl;
       trigMode            : sl;
-      strobeAlign         : slv(1 downto 0);
+      calStrobeAlign      : slv(1 downto 0);
+      trigStrobeAlign     : slv(1 downto 0);
       enSoftTrig          : sl;
       enBncTrig           : sl;
       enLocalTrig         : sl;
@@ -108,7 +110,8 @@ architecture rtl of AtlasAltirocAsicTrigger is
       -- Trigger Control
       trigMaster          => '0',
       trigMode            => '0',
-      strobeAlign         => "11",
+      calStrobeAlign      => "11",
+      trigStrobeAlign     => "11",
       enSoftTrig          => '0',
       enBncTrig           => '0',
       enLocalTrig         => '0',
@@ -142,8 +145,37 @@ architecture rtl of AtlasAltirocAsicTrigger is
    signal remoteTrig : sl;
    signal orTrig     : sl;
    signal andTrig    : sl;
+   signal trigWindow : sl;
 
 begin
+
+   -----------------------------------------------
+   -- Phase alignment correction for 40 MHz strobe
+   -----------------------------------------------
+
+   U_calStrb40MHz : entity work.SlvDelay
+      generic map (
+         TPD_G        => TPD_G,
+         DELAY_G      => 4,
+         WIDTH_G      => 1,
+         REG_OUTPUT_G => true)
+      port map (
+         clk     => clk160MHz,
+         delay   => r.calStrobeAlign,
+         din(0)  => strb40MHz,
+         dout(0) => calStrb40MHz);
+
+   U_trigWindow : entity work.SlvDelay
+      generic map (
+         TPD_G        => TPD_G,
+         DELAY_G      => 4,
+         WIDTH_G      => 1,
+         REG_OUTPUT_G => true)
+      port map (
+         clk     => clk160MHz,
+         delay   => r.trigStrobeAlign,
+         din(0)  => strb40MHz,
+         dout(0) => trigWindow);
 
    -----------------------
    -- PCIe input connector
@@ -158,12 +190,12 @@ begin
    ----------------------------------------
    -- OR Logic for Remote and Local Trigger
    ----------------------------------------
-   orTrig <= (localTrig or remoteTrig) and not(r.busy) and strobe40MHz and r.trigMode;  -- r.trigMode='1' = OR mode
+   orTrig <= (localTrig or remoteTrig) and not(r.busy) and not(probeBusy) and trigWindow and r.trigMode;  -- r.trigMode='1' = OR mode
 
    -----------------------------------------
    -- AND Logic for Remote and Local Trigger
    -----------------------------------------   
-   andTrig <= (localTrig and remoteTrig) and not(r.busy) and strobe40MHz and not(r.trigMode);  -- r.trigMode='0' = AND mode   
+   andTrig <= (localTrig and remoteTrig) and not(r.busy) and not(probeBusy) and trigWindow and not(r.trigMode);  -- r.trigMode='0' = AND mode   
 
    ------------------------------------------------------------------
    -- LEMO TTL output connector:
@@ -273,7 +305,9 @@ begin
       axiSlaveRegisterR(axilEp, x"20", 0, r.triggerCnt);
 
       axiSlaveRegister (axilEp, x"40", 0, v.trigMaster);
-      axiSlaveRegister (axilEp, x"44", 0, v.strobeAlign);
+
+      axiSlaveRegister (axilEp, x"44", 0, v.calStrobeAlign);
+      axiSlaveRegister (axilEp, x"44", 8, v.trigStrobeAlign);
 
       axiSlaveRegister (axilEp, x"48", 0, v.enSoftTrig);
       axiSlaveRegister (axilEp, x"48", 1, v.enBncTrig);
@@ -473,14 +507,14 @@ begin
       axilReadSlave  <= r.axilReadSlave;
       readoutStart   <= r.readoutStart;
       readoutCnt     <= r.readoutCnt;
-      strobeAlign    <= r.strobeAlign;
 
       -- Reset
       if (rst160MHz = '1') then
          v                     := REG_INIT_C;
          -- Don't touch register configurations
          v.trigMaster          := r.trigMaster;
-         v.strobeAlign         := r.strobeAlign;
+         v.calStrobeAlign      := r.calStrobeAlign;
+         v.trigStrobeAlign     := r.trigStrobeAlign;
          v.enSoftTrig          := r.enSoftTrig;
          v.enBncTrig           := r.enBncTrig;
          v.enLocalTrig         := r.enLocalTrig;
