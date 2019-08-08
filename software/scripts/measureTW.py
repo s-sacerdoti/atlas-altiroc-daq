@@ -37,7 +37,7 @@ def parse_arguments():
 
     #default parameters
     pixel = 4
-    DAC_Vth = 320
+    DAC_Vth = 310
     Qinj = 13 #10fc
     config_file = 'config/config_v2B6_noPAprobe.yml'
     minPulser = 0

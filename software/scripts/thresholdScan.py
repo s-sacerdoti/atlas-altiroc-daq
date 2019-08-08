@@ -25,8 +25,8 @@ import rogue.utilities.fileio                                  ##
 import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
-#from setASICconfig_v2B8 import *
 from setASICconfig_v2B7 import *
+#from setASICconfig_v2B8 import *
 #################################################################
 # Set the argument parser
 def parse_arguments():
@@ -85,7 +85,7 @@ def acquire_data(range_low, range_high, range_step, top,
         for j in range(n_iterations):
             if (asicVersion == 1): 
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
-                time.sleep(0.01)
+                time.sleep(0.05)
             else:
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
@@ -185,6 +185,13 @@ def thresholdScan(argip,
           TOAjit.append(0)
           TOAmean_ps.append(0)
           TOAjit_ps.append(0)
+
+      # Average Std. Dev. Calculation; Points with no data (i.e. Std.Dev.= 0) are ignored
+      index = np.where(np.sort(TOAjit))
+      if len(index)>1:
+        jitterMean = np.mean(np.sort(TOAjit)[index[0][0]:len(np.sort(TOAjit))])
+      else:
+        jitterMean = 0
    
   #################################################################
   
@@ -249,14 +256,21 @@ def thresholdScan(argip,
   ax1.plot(dacScan,HitCnt)
   #ax1.scatter(dacScan,HitCnt)
   ax1.set_title('Number of hits vs Threshold', fontsize = 11)
+  ax1.set_xlabel('Threshold DAC', fontsize = 10)
+  ax1.set_ylabel('Number of TOA hits', fontsize = 10)
   
   #plot TOA vs threshold
   ax2.scatter(dacScan,TOAmean_ps)
   ax2.set_title('Mean TOA vs Threshold', fontsize = 11)
+  ax2.set_xlabel('Threshold DAC', fontsize = 10)
+  ax2.set_ylabel('Mean TOA value [ps]', fontsize = 10)
   
   #plot jitter vs Threshold
   ax3.scatter(dacScan,TOAjit_ps)
   ax3.set_title('Jitter TOA vs Threshold', fontsize = 11)
+  ax3.legend(['Average Std. Dev. = %f ps' % (jitterMean*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+  ax3.set_xlabel('Threshold DAC', fontsize = 10)
+  ax3.set_ylabel('Mean TOA Jitter', fontsize = 10)
   
   plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
   plt.show()

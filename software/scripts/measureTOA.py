@@ -37,7 +37,8 @@ import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
 #from setASICconfig_v2B6 import *                               ##
-from setASICconfig_v2B7 import *                               ##
+#from setASICconfig_v2B7 import *                               ##
+from setASICconfig_v2B8 import *                               ##
                                                                ##
 #################################################################
 
