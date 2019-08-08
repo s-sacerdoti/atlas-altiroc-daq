@@ -486,7 +486,11 @@ if nTOA_TOT_Processing == 0:
 #################################################################
 outFile = 'TestData/TOTmeasurement'
 
-ff = open(outFile+'.txt','a')
+if os.path.exists(outFile):
+  ts = str(int(time.time()))
+  outFile = outFile+ts
+
+ff = open(outFile+'.txt')
 if useExt:
     ff.write('TOT measurement with ext trigger ---- '+time.ctime()+'\n')
 else:
