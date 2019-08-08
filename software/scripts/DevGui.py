@@ -71,11 +71,28 @@ parser.add_argument(
 
 parser.add_argument(
     "--defaultFile", 
+    type     = str,
+    required = False,
+    default  = 'config/defaults.yml',
+    help     = "default configuration file to be loaded before user configuration",
+)  
+
+parser.add_argument(
+    "--userYaml", 
     nargs    ='+',
     required = False,
-    default  = ['config/defaults.yml'],
-    help     = "List of YAML files to load at the root.start()",
+    default  = [''],
+    help     = "List of board specific configurations to be loaded after defaults",
 )  
+
+parser.add_argument(
+    "--refClkSel", 
+    type     = str,
+    required = False,
+    default  = 'IntClk',
+    help     = "Selects the reference input clock for the jitter cleaner \
+                PLL: IntClk = on-board OSC, ExtSmaClk = 50 Ohm SMA Clock, ExtLemoClk = 100Ohm diff pair Clock",
+)
 
 parser.add_argument(
     "--printEvents", 
@@ -106,6 +123,8 @@ top = feb.Top(
     initRead    = args.initRead,       
     loadYaml    = args.loadYaml,       
     defaultFile = args.defaultFile,       
+    userYaml    = args.userYaml,       
+    refClkSel   = args.refClkSel,       
 )    
 
 # Create the Event reader streaming interface
@@ -113,7 +132,7 @@ if (args.printEvents):
     eventReader = feb.PrintEventReader()
 
     # Connect the file reader to the event reader
-    pr.streamConnect(top.dataStream[0], eventReader) 
+    pr.streamTap(top.dataStream[0], eventReader) 
 
 # Create Live Display
 live_display_reset = []
@@ -122,7 +141,7 @@ if args.liveDisplay:
         # Create the fifo to ensure there is no back-pressure
         fifo = rogue.interfaces.stream.Fifo(100, 0, True)
         # Connect the device reader ---> fifo
-        pr.streamConnect(top.dataStream[fpga_index], fifo) 
+        pr.streamTap(top.dataStream[fpga_index], fifo) 
         # Create the pixelreader streaming interface
         event_display = feb.onlineEventDisplay(
                 plot_title='FPGA ' + str(fpga_index),
@@ -139,7 +158,7 @@ if args.liveDisplay:
 
 # Create GUI
 appTop = pr.gui.application(sys.argv)
-guiTop = pr.gui.GuiTop(group='rootMesh')
+guiTop = pr.gui.GuiTop()
 appTop.setStyle('Fusion')
 guiTop.addTree(top)
 guiTop.resize(600, 800)

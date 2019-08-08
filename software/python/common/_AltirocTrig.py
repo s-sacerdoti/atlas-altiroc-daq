@@ -119,13 +119,24 @@ class AltirocTrig(pr.Device):
         ))         
         
         self.add(pr.RemoteVariable(
-            name         = 'StrobeAlign', 
-            description  = '40 MHz strobe alignment correction',
+            name         = 'CalStrobeAlign', 
+            description  = 'Cal Pulse 40 MHz strobe alignment correction',
             units        = '1/160MHz',
             offset       = 0x44,
             bitSize      = 2, 
+            bitOffset    = 0, 
             mode         = 'RW',
         ))
+        
+        self.add(pr.RemoteVariable(
+            name         = 'TrigStrobeAlign', 
+            description  = 'Trigger window 25 ns (40 MHz strobe) alignment correction',
+            units        = '1/160MHz',
+            offset       = 0x44,
+            bitSize      = 2, 
+            bitOffset    = 8, 
+            mode         = 'RW',
+        ))        
         
         self.add(pr.RemoteVariable(
             name         = 'EnCalPulseTrig', 

@@ -139,26 +139,10 @@ architecture mapping of AtlasAltirocAsic is
    signal probeObData  : slv(739 downto 0);
    signal probeBusy    : sl;
 
-   signal calPulse    : sl;
-   signal strobe40MHz : sl;
-   signal strobeAlign : slv(1 downto 0);
+   signal calPulse     : sl;
+   signal calStrb40MHz : sl;
 
 begin
-
-   -----------------------------------------------
-   -- Phase alignment correction for 40 MHz strobe
-   -----------------------------------------------
-   U_SlvDelay : entity work.SlvDelay
-      generic map (
-         TPD_G        => TPD_G,
-         DELAY_G      => 4,
-         WIDTH_G      => 1,
-         REG_OUTPUT_G => true)
-      port map (
-         clk     => clk160MHz,
-         delay   => strobeAlign,
-         din(0)  => strb40MHz,
-         dout(0) => strobe40MHz);
 
    --------------------------
    -- AXI-Lite: Crossbar Core
@@ -257,7 +241,7 @@ begin
          -- AXI-Lite Interface
          clk160MHz       => clk160MHz,
          rst160MHz       => rst160MHz,
-         strobe40MHz     => strobe40MHz,
+         strobe40MHz     => calStrb40MHz,
          axilReadMaster  => calReadMaster,
          axilReadSlave   => calReadSlave,
          axilWriteMaster => calWriteMaster,
@@ -292,21 +276,22 @@ begin
       port map (
          totBusy         => totBusy,
          toaBusyb        => toaBusyb,
-         bncInL           => trigL,
-         bncOut            => busy,
-         lemoInL        => spareInL,
-         lemoOut        => spareOut,
+         bncInL          => trigL,
+         bncOut          => busy,
+         lemoInL         => spareInL,
+         lemoOut         => spareOut,
          -- Calibration and 40 Strobe phase alignment Interface
          calPulse        => calPulse,
-         strobeAlign     => strobeAlign,
+         calStrb40MHz    => calStrb40MHz,
          -- Readout Interface
          readoutStart    => readoutStart,
          readoutCnt      => readoutCnt,
          readoutBusy     => readoutBusy,
+         probeBusy       => probeBusy,
          -- Reference Clock/Reset Interface
          clk160MHz       => clk160MHz,
          rst160MHz       => rst160MHz,
-         strobe40MHz     => strobe40MHz,
+         strb40MHz       => strb40MHz,
          -- AXI-Lite Interface 
          axilReadMaster  => trigReadMaster,
          axilReadSlave   => trigReadSlave,
@@ -365,11 +350,11 @@ begin
          SHIFT_REG_SIZE_G => 740,
          CLK_PERIOD_G     => 6.25E-9,
          -- SCLK_PERIOD_G    => ite(SIMULATION_G, SIM_SCLK_PERIOD_C, 1.0E-6)) -- 1MHz
-         SCLK_PERIOD_G    => ite(SIMULATION_G, SIM_SCLK_PERIOD_C, 1.0E-7)) -- 10MHz
+         SCLK_PERIOD_G    => ite(SIMULATION_G, SIM_SCLK_PERIOD_C, 1.0E-7))  -- 10MHz
       port map (
          -- ASIC Ports
-         srin            => srinProbe,    -- SRIN_PROBE
-         rstb            => rstbProbe,    -- RSTB_PROBE
+         srin            => srinProbe,  -- SRIN_PROBE
+         rstb            => rstbProbe,  -- RSTB_PROBE
          ck              => ckProbeAsic,  -- CK_PROBE_ASIC
          srout           => sroutProbe,   -- SROUT_PROBE
          -- External Interface
