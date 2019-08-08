@@ -124,7 +124,7 @@ def timewalk(argip,
   
   if DebugPrint:
       # Tap the streaming data interface (same interface that writes to file)
-      dataStream = feb.MyEventReader()    
+      dataStream = feb.PrintEventReader()    
       pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
   
   # Custom Configuration
