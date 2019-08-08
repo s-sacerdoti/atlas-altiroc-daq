@@ -158,6 +158,7 @@ def measureTOA(argsip,
         if len(HitData) > 0:
             DataMean[delay_index] = np.mean(HitData, dtype=np.float64)
             DataStdev[delay_index] = math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12)
+            allTOAdata.append(HitData)
     
     # The following calculations ignore points with no data (i.e. Std.Dev = 0)
     nonzero = DataMean != 0
@@ -182,7 +183,38 @@ def measureTOA(argsip,
     print('Mean Std Dev = %f LSB / %f ps' % ( MeanDataStdev, (MeanDataStdev*LSBest) ) )
     print('Average LSB estimate: %f ps' % LSBest)
     #################################################################
+   #################################################################
+    # Save Data
+    #################################################################
+    outFile = 'TestData/TOAmeasurement'
     
+    if os.path.exists(outFile):
+      ts = str(int(time.time()))
+      outFile = outFile+ts
+    
+    ff = open(outFile+'.txt')
+    ff.write('TOA measurement vs Delay ---- '+time.ctime()+'\n')
+    ff.write('Pixel = '+str(pixel_number)+'\n')
+    ff.write('config file = '+Configuration_LOAD_file+'\n')
+    ff.write('NofIterations = '+str(NofIterationsTOA)+'\n')
+    #ff.write('cmd_pulser = '+str(Qinj)+'\n')
+    #ff.write('Delay DAC = '+str(DelayValue)+'\n')
+    ff.write('LSBest = '+str(LSBest)+'\n')
+    #ff.write('Threshold = '+str(DACvalue)+'\n')
+    #ff.write('N hits = '+str(sum(HitCnt))+'\n')
+    #ff.write('Number of events = '+str(len(HitData))+'\n')
+    ff.write('mean value = '+str(DataMean)+'\n')
+    ff.write('sigma = '+str(DataStdev)+'\n')
+    ff.write('Pulse delay   TOA'+'\n')
+    for idel in range(len(DelayRange)):
+      pulser = DelayRange[idel]
+      for itoa in range(len(allTOAdata[idel])):
+        ff.write(str(pulser)+' '+str(allTOAdata[idel][itoa])+'\n')
+    #ff.write('TOAvalues = '+str(HitDataTOT)+'\n')
+    ff.close()
+    
+    print('Saved file '+outFile)
+ 
     #################################################################
     # Plot Data
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
