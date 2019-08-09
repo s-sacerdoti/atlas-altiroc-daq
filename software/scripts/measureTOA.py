@@ -37,8 +37,8 @@ import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
 #from setASICconfig_v2B6 import *                               ##
-#from setASICconfig_v2B7 import *                               ##
-from setASICconfig_v2B8 import *                               ##
+from setASICconfig_v2B7 import *                               ##
+#from setASICconfig_v2B8 import *                               ##
                                                                ##
 #################################################################
 
@@ -80,6 +80,7 @@ def parse_arguments():
     dlyMin = 2300 
     dlyMax = 2700 
     dlyStep = 10
+    outFile = 'TestData/TOAmeasurement'
     
     
     # Add arguments
@@ -91,6 +92,7 @@ def parse_arguments():
     parser.add_argument("--delayMin", type = int, required = False, default = dlyMin, help = "scan start")
     parser.add_argument("--delayMax", type = int, required = False, default = dlyMax, help = "scan stop")
     parser.add_argument("--delayStep", type = int, required = False, default = dlyStep, help = "scan step")
+    parser.add_argument("--out", type = str, required = False, default = outFile, help = "output file")
 
     # Get the arguments
     args = parser.parse_args()
@@ -105,7 +107,8 @@ def measureTOA(argsip,
       DAC,
       delayMin,
       delayMax,
-      delayStep):
+      delayStep,
+      outFile):
 
     DelayRange = range( delayMin, delayMax, delayStep )
     
@@ -151,14 +154,15 @@ def measureTOA(argsip,
     HitCnt = []
     DataMean = np.zeros(num_valid_TOA_reads)
     DataStdev = np.zeros(num_valid_TOA_reads)
+    allTOAdata = []
     
     for delay_index, delay_value in enumerate(DelayRange):
         HitData = pixel_data[delay_index]
         HitCnt.append(len(HitData))
+        allTOAdata.append(HitData)
         if len(HitData) > 0:
             DataMean[delay_index] = np.mean(HitData, dtype=np.float64)
             DataStdev[delay_index] = math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12)
-            allTOAdata.append(HitData)
     
     # The following calculations ignore points with no data (i.e. Std.Dev = 0)
     nonzero = DataMean != 0
@@ -186,13 +190,13 @@ def measureTOA(argsip,
    #################################################################
     # Save Data
     #################################################################
-    outFile = 'TestData/TOAmeasurement'
     
-    if os.path.exists(outFile):
+    if os.path.exists(outFile+'.txt'):
       ts = str(int(time.time()))
       outFile = outFile+ts
+    outFile = outFile+'.txt'
     
-    ff = open(outFile+'.txt')
+    ff = open(outFile,'a')
     ff.write('TOA measurement vs Delay ---- '+time.ctime()+'\n')
     ff.write('Pixel = '+str(pixel_number)+'\n')
     ff.write('config file = '+Configuration_LOAD_file+'\n')
@@ -205,7 +209,7 @@ def measureTOA(argsip,
     #ff.write('Number of events = '+str(len(HitData))+'\n')
     ff.write('mean value = '+str(DataMean)+'\n')
     ff.write('sigma = '+str(DataStdev)+'\n')
-    ff.write('Pulse delay   TOA'+'\n')
+    ff.write('Pulse delay   TOA '+'\n')
     for idel in range(len(DelayRange)):
       pulser = DelayRange[idel]
       for itoa in range(len(allTOAdata[idel])):
@@ -285,4 +289,4 @@ def measureTOA(argsip,
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
-    measureTOA(args.ip, args.cfg, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep)
+    measureTOA(args.ip, args.cfg, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep, args.out)
