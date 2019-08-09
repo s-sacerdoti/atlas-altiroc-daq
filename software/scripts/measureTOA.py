@@ -55,7 +55,7 @@ def acquire_data(top, DelayRange):
         for pulse_iteration in range(NofIterationsTOA):
             if (asicVersion == 1):
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
-                time.sleep(0.001)
+                time.sleep(0.01)
             else:
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
