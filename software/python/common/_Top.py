@@ -237,4 +237,5 @@ class Top(pr.Root):
                 
         if (self._initRead):               
             self.ReadAll()
+            self.ReadAll()
      

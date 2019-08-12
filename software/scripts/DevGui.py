@@ -137,7 +137,7 @@ if (args.printEvents):
 # Create Live Display
 live_display_reset = []
 if args.liveDisplay:
-    for fpga_index in range( len(args.ip) ):
+    for fpga_index in range( top.numEthDev ):
         # Create the fifo to ensure there is no back-pressure
         fifo = rogue.interfaces.stream.Fifo(100, 0, True)
         # Connect the device reader ---> fifo

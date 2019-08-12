@@ -11,7 +11,7 @@ Top:
         RST_COUNTER: 0x0
         RSTB_TDC: 0x1
         RSTB_DLL: 0x1
-        DlyCalPulseSet: 0x0 # Rising edge of EXT_TRIG
+        DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
         DlyCalPulseReset: 0xfff # Falling edge of EXT_TRIG
         ###########################################
         # Asic.Gpio.RefClkSel is now configured by 
