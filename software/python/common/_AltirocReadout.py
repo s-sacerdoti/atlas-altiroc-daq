@@ -43,15 +43,23 @@ class AltirocReadout(pr.Device):
             disp         = '{:d}',
         ))   
 
-        # self.add(pr.RemoteVariable(
-            # name         = 'PixReadIteration', 
-            # description  = 'Sets the number of times that each pixel is readout (zero inclusive). Example: To readout all 400 samples in the ASIC buffer, set to PixReadIteration=399(0x18F)',
-            # offset       = 0x08,
-            # bitSize      = 9, 
-            # mode         = 'RW',
-            # disp         = '{:d}',
-        # ))           
-        
+        self.add(pr.RemoteVariable(
+            name         = 'RstRamPulseWidth', 
+            description  = 'Sets the RSTB_READ pulse width (zero inclusive)',
+            units        = '1/160MHz',
+            offset       = 0x08,
+            bitSize      = 12, 
+            mode         = 'RW',
+        ))        
+
+        self.add(pr.LinkVariable(
+            name         = 'RstRamPulseWidthNs', 
+            units        = 'ns',
+            disp         = '{:1.2f}',
+            dependencies = [self.RstRamPulseWidth],
+            linkedGet    = common.getNsValue,
+        ))
+             
         self.add(pr.RemoteVariable(
             name         = 'SeqCnt', 
             description  = 'Sequence counter that\'s in the header',

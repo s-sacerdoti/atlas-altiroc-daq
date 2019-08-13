@@ -30,6 +30,7 @@ entity AtlasAltirocAsicReadout is
    port (
       -- Readout Ports
       renable         : out sl;         -- RENABLE
+      rstbRam         : out sl;         -- RSTB_RAM      
       rstbRead        : out sl;         -- RSTB_READ
       doutP           : in  sl;         -- DOUT_P
       doutN           : in  sl;         -- DOUT_N
@@ -69,11 +70,12 @@ architecture rtl of AtlasAltirocAsicReadout is
       HDR_S,
       PROBE_CONFIG_S,
       PROBE_TO_RST_DLY_S,
-      RST_S,
+      RST_READ_S,
       RST_TO_RCK_DLY_S,
       RCK_HIGH_CYCLE_S,
       RCK_LOW_CYCLE_S,
       SEND_DATA_S,
+      RST_RAM_S,
       FOOTER_S);
 
    type RegType is record
@@ -88,6 +90,7 @@ architecture rtl of AtlasAltirocAsicReadout is
       enProbeWrite       : sl;
       testPattern        : sl;
       renable            : sl;
+      rstbRam            : sl;
       rstbRead           : sl;
       rdClk              : sl;
       probeValid         : sl;
@@ -95,7 +98,8 @@ architecture rtl of AtlasAltirocAsicReadout is
       probeCache         : slv(740 downto 1);
       cnt                : slv(11 downto 0);
       probeToRstDly      : slv(11 downto 0);
-      rstPulseWidth      : slv(11 downto 0);
+      rstRamPulseWidth   : slv(11 downto 0);
+      rstReadPulseWidth  : slv(11 downto 0);
       rstToReadDly       : slv(11 downto 0);
       rckHighWidth       : slv(11 downto 0);
       rckLowWidth        : slv(11 downto 0);
@@ -129,6 +133,7 @@ architecture rtl of AtlasAltirocAsicReadout is
       enProbeWrite       => '1',
       testPattern        => '0',
       renable            => '0',
+      rstbRam            => '1',
       rstbRead           => '1',
       rdClk              => '0',
       probeValid         => '0',
@@ -136,7 +141,8 @@ architecture rtl of AtlasAltirocAsicReadout is
       probeCache         => (others => '0'),
       cnt                => (others => '0'),
       probeToRstDly      => x"000",
-      rstPulseWidth      => x"00f",
+      rstRamPulseWidth   => x"00f",
+      rstReadPulseWidth  => x"00f",
       rstToReadDly       => x"00f",
       rckHighWidth       => toSlv(3, 12),
       rckLowWidth        => toSlv(3, 12),
@@ -211,10 +217,10 @@ begin
 
       axiSlaveRegister (axilEp, x"00", 0, v.startPix);
       axiSlaveRegister (axilEp, x"04", 0, v.stopPix);
-      -- axiSlaveRegister (axilEp, x"08", 0, v.rdSize);
+      axiSlaveRegister (axilEp, x"08", 0, v.rstRamPulseWidth);
       axiSlaveRegisterR(axilEp, x"0C", 0, r.seqCnt);
       axiSlaveRegister (axilEp, x"10", 0, v.probeToRstDly);
-      axiSlaveRegister (axilEp, x"14", 0, v.rstPulseWidth);
+      axiSlaveRegister (axilEp, x"14", 0, v.rstReadPulseWidth);
       axiSlaveRegister (axilEp, x"18", 0, v.rstToReadDly);
       axiSlaveRegister (axilEp, x"1C", 0, v.rckHighWidth);
       axiSlaveRegister (axilEp, x"20", 0, v.rckLowWidth);
@@ -240,7 +246,7 @@ begin
       -- State Machine      
       case (r.state) is
          ----------------------------------------------------------------------      
-         when IDLE_S =>
+         when IDLE_S =>         
             -- Cache the current probe value
             v.probeCache := probeObData;
 
@@ -294,11 +300,12 @@ begin
                -- Check the counter size
                if (r.cnt = (HDR_SIZE_C-1)) then
                   -- Reset the counter
-                  v.cnt   := (others => '0');
+                  v.cnt := (others => '0');
                   -- Next state
                   v.state := PROBE_CONFIG_S;
                end if;
             end if;
+
          ----------------------------------------------------------------------      
          when PROBE_CONFIG_S =>
             -- Check if need to start the transaction
@@ -376,16 +383,16 @@ begin
                -- Reset the counter
                v.cnt   := (others => '0');
                -- Next state
-               v.state := RST_S;
+               v.state := RST_READ_S;
             end if;
          ----------------------------------------------------------------------      
-         when RST_S =>
+         when RST_READ_S =>
             -- Set the flag
             v.rstbRead := '0';
             -- Increment the counter
             v.cnt      := r.cnt + 1;
             -- Check the counter size
-            if (r.cnt = r.rstPulseWidth) then
+            if (r.cnt = r.rstReadPulseWidth) then
                -- Reset the counter
                v.cnt   := (others => '0');
                -- Next state
@@ -507,10 +514,10 @@ begin
                      -- Restore the probe bus
                      v.probeValid  := r.restoreProbeConfig;
                      v.probeIbData := r.probeCache;
-                     -- Reset the flag
-                     v.renable     := '0';
+                     -- Assert the flag
+                     v.rstbRam := '0';                     
                      -- Next state
-                     v.state       := FOOTER_S;
+                     v.state       := RST_RAM_S;
                   else
                      -- Next state
                      v.state := PROBE_CONFIG_S;
@@ -523,7 +530,22 @@ begin
 
             end if;
          ----------------------------------------------------------------------      
-         when FOOTER_S =>
+         when RST_RAM_S =>
+            -- Increment the counter
+            v.cnt     := r.cnt + 1;
+            -- Check the counter size
+            if (r.cnt = r.rstRamPulseWidth) then
+               -- Reset the counter
+               v.cnt   := (others => '0');
+               -- Deassert the flag
+               v.rstbRam := '1';                  
+               -- Reset the flag
+               v.renable := '0';               
+               -- Next state
+               v.state := FOOTER_S;
+            end if;                
+         ----------------------------------------------------------------------      
+         when FOOTER_S =>         
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                v.txMaster.tLast              := '1';
@@ -541,6 +563,7 @@ begin
       readoutBusy    <= r.renable;
       probeValid     <= r.probeValid;
       probeIbData    <= r.probeIbData;
+      rstbRam        <= r.rstbRam;
 
       if (r.invertRck = '0') then
          rdClk <= r.rdClk;
@@ -556,7 +579,7 @@ begin
          v.stopPix            := r.stopPix;
          v.rdSize             := r.rdSize;
          v.probeToRstDly      := r.probeToRstDly;
-         v.rstPulseWidth      := r.rstPulseWidth;
+         v.rstReadPulseWidth  := r.rstReadPulseWidth;
          v.rstToReadDly       := r.rstToReadDly;
          v.rckHighWidth       := r.rckHighWidth;
          v.rckLowWidth        := r.rckLowWidth;
@@ -569,7 +592,6 @@ begin
          v.invertDout         := r.invertDout;
          v.invertRck          := r.invertRck;
       end if;
-
 
       -- Register the variable for next clock cycle
       rin <= v;

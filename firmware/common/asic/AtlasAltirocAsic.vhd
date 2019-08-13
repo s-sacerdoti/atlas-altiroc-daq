@@ -142,7 +142,20 @@ architecture mapping of AtlasAltirocAsic is
    signal calPulse     : sl;
    signal calStrb40MHz : sl;
 
+   signal rstbRamVec : slv(1 downto 0);
+   signal rstbRamAnd : sl;
+
 begin
+
+   rstbRamAnd <= rstbRamVec(1) and rstbRamVec(0);
+
+   U_rstbRam : entity work.OutputBufferReg
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         C => clk160MHz,
+         I => rstbRamAnd,
+         O => rstbRam);
 
    --------------------------
    -- AXI-Lite: Crossbar Core
@@ -173,7 +186,7 @@ begin
          TPD_G => TPD_G)
       port map (
          -- ASIC Interface
-         rstbRam         => rstbRam,
+         rstbRam         => rstbRamVec(0),
          rstCounter      => rstCounter,
          rstbTdc         => rstbTdc,
          rstbDll         => rstbDll,
@@ -400,6 +413,7 @@ begin
       port map (
          -- Readout Ports
          renable         => renable,
+         rstbRam         => rstbRamVec(1),
          rstbRead        => rstbRead,
          doutP           => doutP,
          doutN           => doutN,
