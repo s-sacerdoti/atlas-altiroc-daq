@@ -30,18 +30,18 @@ NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
 delay_list = range(DelayRange_low, DelayRange_high, DelayRange_step)
 
 DataAcqusitionTOT = 1   # <= Enable TOT Data Acquisition (Pulser Sweep)
-useExt = False
+useExt = True
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
 PulserRangeH = 30       # <= High Value of Pulser Sweep Range
 PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
-NofIterationsTOT = 20   # <= Number of Iterations for each Pulser Value
+NofIterationsTOT = 30   # <= Number of Iterations for each Pulser Value
 DelayValueTOT = 2400       # <= Value of Programmable Delay for TOT Pulser Sweep
 
 if useExt:
-    DelayValueTOT = 100
-minExtWidth = 200
+    DelayValueTOT = 3000
+minExtWidth = 100
 maxExtWidth = 3000
-extTrigStep = 10
+extTrigStep = 20
 
 if useExt:
     pulser_list = range(minExtWidth,maxExtWidth,extTrigStep)
@@ -94,8 +94,8 @@ import rogue.utilities.fileio                                  ##
 import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
-#from setASICconfig_v2B8 import *                               
-from setASICconfig_v2B7 import *                               
+from setASICconfig_v2B8 import *                               
+#from setASICconfig_v2B7 import *                               
 #################################################################
 #################################################################
 
@@ -227,9 +227,11 @@ if DataAcqusitionTOT == 1 and not useExt:
 
 if DataAcqusitionTOT == 1 and useExt:   
     print("Will use only Ext trigger =====")
-    top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValueTOT)
+    top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(DelayValueTOT)
+    #fileList = acquire_data(minExtWidth, maxExtWidth, extTrigStep, top, 
+    #        top.Fpga[0].Asic.Gpio.DlyCalPulseReset, 'TOT', NofIterationsTOT, dataStream)
     fileList = acquire_data(minExtWidth, maxExtWidth, extTrigStep, top, 
-            top.Fpga[0].Asic.Gpio.DlyCalPulseReset, 'TOT', NofIterationsTOT, dataStream)
+            top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOT', NofIterationsTOT, dataStream)
 #######################
 # Data Processing TOA #
 #######################
@@ -490,11 +492,11 @@ if os.path.exists(outFile):
   ts = str(int(time.time()))
   outFile = outFile+ts
 
-ff = open(outFile+'.txt')
+ff = open(outFile+'.txt','a')
 if useExt:
-    ff.write('TOT measurement with ext trigger ---- '+time.ctime()+'\n')
+    ff.write('TOT measurement with ext trigger ---- '+str(time.ctime())+'\n')
 else:
-    ff.write('TOT measurement with charge scan ---- '+time.ctime()+'\n')
+    ff.write('TOT measurement with charge scan ---- '+str(time.ctime())+'\n')
 ff.write('Pixel = '+str(pixel_number)+'\n')
 ff.write('config file = '+Configuration_LOAD_file+'\n')
 ff.write('NofIterations = '+str(NofIterationsTOT)+'\n')
