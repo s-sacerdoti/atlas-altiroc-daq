@@ -31,7 +31,7 @@ DelayRange_step = 1     # <= step size Programmable Delay Sweep
 #DelayRange = 11        # <= Range of Programmable Delay Sweep 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 
-DataAcqusitionTOT = 0   # <= Enable TOT Data Acquisition (Pulser Sweep)
+DataAcqusitionTOT = 1   # <= Enable TOT Data Acquisition (Pulser Sweep)
 PulserRangeL = 800        # <= Low Value of Pulser Sweep Range
 PulserRangeH = 2850       # <= High Value of Pulser Sweep Range
 PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
@@ -40,7 +40,7 @@ DelayValueTOT = 3000       # <= Value of Programmable Delay for TOT Pulser Sweep
 
 nTOA_TOT_Processing = 1 # <= Selects the Data to be Processed and Plotted (0 = TOA, 1 = TOT) 
 
-TOT_f_Calibration_En = 0                                       	   # <= Enables Calculation of TOT Fine-Interpolation Calibration Data and Saves them
+TOT_f_Calibration_En = 1                                       	   # <= Enables Calculation of TOT Fine-Interpolation Calibration Data and Saves them
 #TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_nocalibration.txt'
 TOT_c_Calibration_LOAD_file = 'TestData/TOT_coarse_calibration.txt'  # <= Path to the TOT Coarse Calibration File used in TOT Data Processing
 TOT_c_Calibration_SAVE_file = 'TestData/TOT_coarse_calibration.txt'  # <= Path to the File where TOT Coarse Calibration Data are Saved
