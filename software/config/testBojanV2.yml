@@ -26,20 +26,20 @@ Top:
         ON_Ctest[4]: 0x1
         disable_pa[4]: 0x0
         bit_vth_cor[4]: 0x40
-        ON_discri[4]: 0x1
+        ON_discri[4]: 0x0
         EN_hyst[4]: 0x1
-        EN_trig_ext[4]: 0x0
+        EN_trig_ext[4]: 0x1
         cBit_f_TOA[4]: 0x0 #0
         cBit_s_TOA[4]: 0x0 #0
-        cBit_f_TOT[4]: 0xf #f
+        cBit_f_TOT[4]: 0x0 #f
         cBit_s_TOT[4]: 0x0 #0
-        cBit_c_TOT[4]: 0xf #f
+        cBit_c_TOT[4]: 0x0 #f
         ########################     
         
         DLL_ALockR_en: 0x1
-        CP_b: 0x0 #5
+        CP_b: 0x5 #5
         
-        ext_Vcrtlf_en: 0x1 #need to fix value externally
+        ext_Vcrtlf_en: 0x0 #need to fix value externally
         ext_Vcrtls_en: 0x1 #need to fix value externally
         ext_Vcrtlc_en: 0x0 #0
 
@@ -47,7 +47,7 @@ Top:
         totc_satovfw: 0x1
         toa_satovfw: 0x1      
       
-        SatFVa: 0x4 #3
+        SatFVa: 0x3 #3
         IntFVa: 0x0 #1
         SatFTz: 0x4 #4
         IntFTz: 0x1 #1  
