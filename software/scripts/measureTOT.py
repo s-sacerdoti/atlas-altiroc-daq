@@ -488,8 +488,8 @@ if nTOA_TOT_Processing == 0:
 #################################################################
 outFile = 'TestData/TOTmeasurement'
 
-if os.path.exists(outFile):
-  ts = str(int(time.time()))
+if os.path.exists(outFile+'.txt'):
+  ts = '_'+str(int(time.time()))
   outFile = outFile+ts
 
 ff = open(outFile+'.txt','a')
