@@ -185,6 +185,7 @@ class PixelReader(rogue.interfaces.stream.Slave):
         rogue.interfaces.stream.Slave.__init__(self)
         self.count = 0
         self.HitData = []
+        self.HitDataTOT = []
         self.HitDataTOTf_vpa = []
         self.HitDataTOTf_tz = []
         self.HitDataTOTc_vpa = []
@@ -226,6 +227,7 @@ class PixelReader(rogue.interfaces.stream.Slave):
                     self.HitData.append(dat.ToaData)
                 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
+                    self.HitDataTOT.append(dat.TotData)
                     self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
                     self.HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
                     self.HitDataTOTc_int1_vpa_temp = (((dat.TotData >>  2) + 1) >> 1) & 0x3F

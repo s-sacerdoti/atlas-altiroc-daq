@@ -17,7 +17,8 @@ DebugPrint = True
 NofIterationsTOT = 20  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
 LSB_TOTc = 160    # <= Estimate of TOT coarse LSB in ps
-DelayValueTOT = 3000
+riseEdge = 2400
+fallEdge = 3000
 
 TOTf_hist = True
 TOTc_hist = True
@@ -52,7 +53,7 @@ from setASICconfig_v2B8 import *                               ##
 #################################################################
 
 
-def acquire_data(top, PulserRange, using_TZ_TOT): 
+def acquire_data(top, pulser, PulserRange, using_TZ_TOT): 
     pixel_stream = feb.PixelReader()    
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
     pixel_data = {
@@ -65,7 +66,7 @@ def acquire_data(top, PulserRange, using_TZ_TOT):
 
     for pulse_value in PulserRange:
         print('Scanning Pulse value of ' + str(pulse_value))
-        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(pulse_value)
+        pulser.set(pulse_value)
 
         for pulse_iteration in range(NofIterationsTOT):
             if (asicVersion == 1):
@@ -113,7 +114,7 @@ def parse_arguments():
     # Add arguments
     parser.add_argument( "--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP addresses")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
-    parser.add_argument( "--useExt", type = int, required = False, default = 1,help = "Use external trigger")
+    parser.add_argument( "--useExt", type = bool, required = False, default = False,help = "Use external trigger")
     parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
@@ -175,17 +176,20 @@ def measureTOT( argsip,
 
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
-    top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(DelayValueTOT)
+    top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(fallEdge)
 
-    if useExt:
+    if useExt: #scan with external trigger
         top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x1)
         top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x0)
         top.Fpga[0].Asic.SlowControl.EN_hyst[pixel_number].set(0x1)
         top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x1)
         top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x0)
+        pixel_data = acquire_data(top, top.Fpga[0].Asic.Gpio.DlyCalPulseSet, PulserRange, using_TZ_TOT)
 
-    # Data Acquisition for TOA
-    pixel_data = acquire_data(top, PulserRange, using_TZ_TOT)
+    #scan changing Qinj
+    else:
+        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(riseEdge)
+        pixel_data = acquire_data(top, top.Fpga[0].Asic.SlowControl.dac_pulser, PulserRange, using_TZ_TOT)
     
     #################################################################
     # TOT Fine Interpolator Calibration
@@ -219,6 +223,7 @@ def measureTOT( argsip,
     DataStdevTOT = np.zeros( len(PulserRange) )
 
     HitDataTOT_list = []
+
     for pulser_index, pulser_value in enumerate(PulserRange):
         print('Processing Data for Pulser = %d...' % pulser_value)
 
@@ -227,17 +232,28 @@ def measureTOT( argsip,
         HitDataTOTc_int1 = np.asarray( pixel_data['HitDataTOTc_int1'][pulser_index] )
         ValidTOTCnt.append(len(HitDataTOTf))
         LSB_TOTf_mean = TOTf_bin[16]*2*LSB_TOTc
-    
+   
+        def calibration_correction(f,c):
+            if f > 3 and c == 0:
+                return 2
+            else:
+                if f == 0 and c == 1:
+                    return -TOTf_bin[0]*2
+                else:
+                    return 0   
         IntFVa = 1
         HitDataTOT = []
         if len(HitDataTOTf) > 0:
             if IntFVa == 1:
-                for f, c, int1 in zip(HitDataTOTf, HitDataTOTc, HitDataTOTc_int1):
-                    pre_correction = 2 * ( int1*2+1-TOTf_bin[f] ) * c
-                    if f > 3 and (c&1) == 0: correction = 2
-                    elif f == 0 and (c&1) == 1: correction = -TOTf_bin[0]*2
-                    else: correction = 0
-                    HitDataTOT.append(pre_correction + correction*LSB_TOTc)
+                HitDataTOT = list((np.asarray(HitDataTOTc_int1)*2 + 1 - np.asarray(list(map(lambda x: TOTf_bin[x], np.asarray(HitDataTOTf, dtype=np.int))))*2)*LSB_TOTc)
+                HitDataTOT = list(HitDataTOT + np.asarray(list(map(calibration_correction, HitDataTOTf, list(map(lambda x: x&1, np.asarray(HitDataTOTc))))))*LSB_TOTc)
+
+                #for f, c, int1 in zip(HitDataTOTf, HitDataTOTc, HitDataTOTc_int1):
+                #    pre_correction = 2 * ( int1*2+1-TOTf_bin[f] ) * c
+                #    if f > 3 and (c&1) == 0: correction = 2
+                #    elif f == 0 and (c&1) == 1: correction = -TOTf_bin[0]*2
+                #    else: correction = 0
+                #    HitDataTOT.append(pre_correction + correction*LSB_TOTc)
             else:
                 HitDataTOT = list( (1 + HitDataTOTc - HitDataTOTf/4) * LSB_TOTc )
     
@@ -274,10 +290,10 @@ def measureTOT( argsip,
     ff.write('mean value = '+str(DataMeanTOT)+'\n')
     ff.write('sigma = '+str(DataStdevTOT)+'\n')
     ff.write('Pulse width   TOT   TOTc   TOTf'+'\n')
-    for ipuls in range(len(Pulser)):
-      pulser = Pulser[ipuls]-DelayValueTOT
-      for itot in range(len(allTOTdata_c[ipuls])):
-        ff.write(str(pulser)+' '+str(allTOTdata[ipuls][itot])+' '+str(allTOTdata_c[ipuls][itot])+' '+str(allTOTdata_f[ipuls][itot])+'\n')
+    for ipuls, pulser in enumerate(PulserRange):
+      pulser = pulser-fallEdge
+      for itot in range(len(pixel_data['HitDataTOTc'][ipuls])):
+        ff.write(str(pulser)+' '+str(pixel_data['allTOTdata'][ipuls][itot])+' '+str(pixel_data['HitDataTOTc'][ipuls][itot])+' '+str(pixel_data['HitDataTOTf'][ipuls][itot])+'\n')
     #ff.write('TOAvalues = '+str(HitDataTOT)+'\n')
     ff.close()
     
