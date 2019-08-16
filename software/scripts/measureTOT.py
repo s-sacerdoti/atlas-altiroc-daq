@@ -172,7 +172,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--ip", 
     nargs    ='+',
-    required = True,
+    required = False,
+    default = [192.168.1.10],
     help     = "List of IP addresses",
 )  
 # Get the arguments
