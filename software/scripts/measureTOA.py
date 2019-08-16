@@ -38,7 +38,7 @@ import math                                                    ##
 import matplotlib.pyplot as plt                                ##
 #from setASICconfig_v2B6 import *                               ##
 from setASICconfig_v2B7 import *                               ##
-#from setASICconfig_v2B8 import *                               ##
+from setASICconfig_v2B8 import *                               ##
                                                                ##
 #################################################################
 
@@ -81,11 +81,12 @@ def parse_arguments():
     dlyMax = 2700 
     dlyStep = 10
     outFile = 'TestData/TOAmeasurement'
-    ipIN=[192.168.1.10]
+    ipIN=['192.168.1.10']
     
     
     # Add arguments
-    parser.add_argument( "--ip", nargs ='+', required = False, default = ipIN,help = "List of IP addresses",)  
+    parser.add_argument( "--ip", nargs ='+', required = False, default = ipIN,help = "List of IP addresses")  
+    parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")  
     parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
@@ -102,6 +103,7 @@ def parse_arguments():
 
 
 def measureTOA(argsip,
+      board,
       Configuration_LOAD_file,
       pixel_number,
       Qinj,
@@ -135,7 +137,11 @@ def measureTOA(argsip,
     top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
     
     # Custom Configuration
-    set_fpga_for_custom_config(top,pixel_number)
+    if board == 7:
+      set_fpga_for_custom_config_B7(top,pixel_number)
+    elif board == 8:
+      set_fpga_for_custom_config_B8(top,pixel_number)
+
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
 
@@ -290,4 +296,4 @@ def measureTOA(argsip,
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
-    measureTOA(args.ip, args.cfg, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep, args.out)
+    measureTOA(args.ip, args.board,args.cfg, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep, args.out)

@@ -15,7 +15,7 @@ import os
 import rogue.utilities.fileio
 
 ##############################################################################
-def set_fpga_for_custom_config(top,pixel_number):
+def set_fpga_for_custom_config_B7(top,pixel_number):
     print('Loading costum config for BOARD 7')
     top.Fpga[0].Asic.Probe.en_probe_pa.set(0x0)
 
@@ -74,7 +74,7 @@ def set_fpga_for_custom_config(top,pixel_number):
         top.Fpga[0].Asic.SlowControl.cBit_s_TOA[i].set(0x0)
         top.Fpga[0].Asic.SlowControl.cBit_f_TOT[i].set(0x0)
         top.Fpga[0].Asic.SlowControl.cBit_s_TOT[i].set(0x0)
-        top.Fpga[0].Asic.SlowControl.cBit_c_TOT[i].set(0x0)
+        top.Fpga[0].Asic.SlowControl.cBit_c_TOT[i].set(0xf)
 
     for i in range(16):
         top.Fpga[0].Asic.SlowControl.EN_trig_ext[i].set(0x0)
@@ -91,7 +91,7 @@ def set_fpga_for_custom_config(top,pixel_number):
     top.Fpga[0].Asic.SlowControl.Precharge_opt.set(0x0)
 
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
-    top.Fpga[0].Asic.SlowControl.CP_b.set(0x3) #5 32ps LSB for B7
+    top.Fpga[0].Asic.SlowControl.CP_b.set(0x4) #5 32ps LSB for B7
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #1=need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #1=need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x1) #

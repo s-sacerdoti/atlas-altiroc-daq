@@ -26,7 +26,7 @@ import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
 from setASICconfig_v2B7 import *
-#from setASICconfig_v2B8 import *
+from setASICconfig_v2B8 import *
 #################################################################
 #script settings
 LSBest = 20
@@ -53,7 +53,8 @@ def parse_arguments():
 
 
     # Add arguments
-    parser.add_argument("--ip", nargs ='+', required = True, help = "List of IP address")
+    parser.add_argument("--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP address")
+    parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
     parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
     parser.add_argument("--ch", type = int, required = False, default = pixel, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
@@ -96,6 +97,7 @@ def acquire_data(top, dac_list,asic_pulser):
 #################################################################
 #################################################################
 def thresholdScan(argip,
+      board,
       Configuration_LOAD_file,
       pixel_number,
       Qinj,
@@ -119,7 +121,10 @@ def thresholdScan(argip,
       pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
   
   # Custom Configuration
-  set_fpga_for_custom_config(top, pixel_number)
+  if board == 7:
+    set_fpga_for_custom_config_B7(top,pixel_number)
+  elif board == 8:
+    set_fpga_for_custom_config_B8(top,pixel_number)
   #some more config
   top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValue)
   top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
@@ -258,5 +263,5 @@ def thresholdScan(argip,
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
-    thresholdScan(args.ip, args.cfg, args.ch, args.Q,args.delay, args.minVth, args.maxVth, args.VthStep, args.out)
+    thresholdScan(args.ip, args.board, args.cfg, args.ch, args.Q,args.delay, args.minVth, args.maxVth, args.VthStep, args.out)
 

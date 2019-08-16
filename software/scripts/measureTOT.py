@@ -95,7 +95,7 @@ import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
 from setASICconfig_v2B8 import *                               
-#from setASICconfig_v2B7 import *                               
+from setASICconfig_v2B7 import *                               
 #################################################################
 #################################################################
 
@@ -167,15 +167,17 @@ argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
 #################################################################
 # Set the argument parser
 parser = argparse.ArgumentParser()
+ipdef = ['192.168.1.10']
 
 # Add arguments
 parser.add_argument(
     "--ip", 
     nargs    ='+',
     required = False,
-    default = [192.168.1.10],
+    default = ipdef,
     help     = "List of IP addresses",
 )  
+parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
 # Get the arguments
 args = parser.parse_args()
 
@@ -203,7 +205,11 @@ time.sleep(0.001)
 top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
 
 # Custom Configuration
-set_fpga_for_custom_config(top,pixel_number)
+board = args.board
+if board == 7:
+  set_fpga_for_custom_config_B7(top,pixel_number)
+elif board == 8:
+  set_fpga_for_custom_config_B8(top,pixel_number)
 
 #disable preamp and discri for using ext trigger
 if useExt:
