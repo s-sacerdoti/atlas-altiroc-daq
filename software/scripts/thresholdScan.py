@@ -26,7 +26,13 @@ import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
 from setASICconfig_v2B7 import *
-#from setASICconfig_v2B8 import *
+from setASICconfig_v2B8 import *
+#################################################################
+#script settings
+LSBest = 20
+NofIterations = 20  # <= Number of Iterations for each Vth
+useProbe = False        #output discri probe
+DebugPrint = True
 #################################################################
 # Set the argument parser
 def parse_arguments():
@@ -47,7 +53,8 @@ def parse_arguments():
 
 
     # Add arguments
-    parser.add_argument("--ip", nargs ='+', required = True, help = "List of IP address")
+    parser.add_argument("--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP address")
+    parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
     parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
     parser.add_argument("--ch", type = int, required = False, default = pixel, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
@@ -63,42 +70,34 @@ def parse_arguments():
 
 ##############################################################################
 ##############################################################################
-def acquire_data(range_low, range_high, range_step, top, 
-        asic_pulser, file_prefix, n_iterations, dataStream): 
+def acquire_data(top, dac_list,asic_pulser): 
     
-    fileList = []
-    asicVersion = 1 # <= Select either V1 or V2 of the ASIC
+    pixel_stream = feb.PixelReader()
+    pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
+    pixelData = []
+    asicVersion = 1 #hardcoded for now...
 
-    for i in range(range_low, range_high, range_step):
-        print(file_prefix+'step = %d' %i) 
+    for i in dac_list:
+        print('Vth DAC = %d' %i) 
         top.Fpga[0].Asic.SlowControl.DAC10bit.set(i)
     
-        ts = str(int(time.time()))
-        val = '%d_' %i
-        filename = 'TestData/'+file_prefix+val+ts+'.dat'
-        try: os.remove(filename)
-        except OSError: pass
-
-        top.dataWriter._writer.open(filename)
-        fileList.append(filename)
-
-        for j in range(n_iterations):
+        for j in range(NofIterations):
             if (asicVersion == 1): 
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
                 time.sleep(0.05)
             else:
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
-
-        while dataStream.count < n_iterations: pass
-        top.dataWriter._writer.close()
-        dataStream.count = 0 
+        pixelData.append( pixel_stream.HitData.copy() )
+        while pixel_stream.count < NofIterations: pass
+        pixel_stream.clear()
     
-    return fileList
+    return pixelData
 
 #################################################################
 #################################################################
 def thresholdScan(argip,
+      board,
       Configuration_LOAD_file,
       pixel_number,
       Qinj,
@@ -108,11 +107,7 @@ def thresholdScan(argip,
       DACstep,
       outFile):
 
-  LSBest = 20
-  NofIterations = 20  # <= Number of Iterations for each Vth
-  useProbe = False        #output discri probe
   dacScan = range(minDAC,maxDAC,DACstep)
-  DebugPrint = True
   # Setup root class
   top = feb.Top(ip=argip)    
   
@@ -126,54 +121,38 @@ def thresholdScan(argip,
       pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
   
   # Custom Configuration
-  set_fpga_for_custom_config(top, pixel_number)
+  if board == 7:
+    set_fpga_for_custom_config_B7(top,pixel_number)
+  elif board == 8:
+    set_fpga_for_custom_config_B8(top,pixel_number)
   #some more config
   top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValue)
   top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
   
   #Take data
-  fileList = acquire_data(minDAC, maxDAC, DACstep, top,
-             top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOA', NofIterations, dataStream)
+  pixel_data = acquire_data(top, dacScan,
+             top.Fpga[0].Asic.Gpio.DlyCalPulseSet)
   
   #################################################################
   # Data Processing
   
-  thr_DAC = []
   HitCnt = []
   TOAmean = []
   TOAjit = []
   TOAmean_ps = []
   TOAjit_ps = []
   allTOA = []
+
+  num_valid_TOA_reads = len(pixel_data)
+  if num_valid_TOA_reads == 0:
+      raise ValueError('No hits were detected during delay sweep. Aborting!')
   
-  for idac in range(len(dacScan)):
-      fileName = fileList[idac]
-      dacval = dacScan[idac]
-      # Create the File reader streaming interface
-      dataReader = rogue.utilities.fileio.StreamReader()
+  for idac,dacval in enumerate(dacScan):
       
-      # Create the Event reader streaming interface
-      dataStream = feb.MyFileReader()
-      
-      # Connect the file reader to the event reader
-      pr.streamConnect(dataReader, dataStream) 
-      
-      # Open the file
-      dataReader.open(fileName)
-      
-      # Close file once everything processed
-      dataReader.closeWait()
-  
-      try:
-          print('Processing Data for THR DAC = %d...' % dacval)
-      except OSError:
-          pass 
-  
-      HitData = dataStream.HitData
-      allTOA.append(HitData)
-  
-      thr_DAC.append(dacval)
+      HitData = pixel_data[idac]
       HitCnt.append(len(HitData))
+      allTOA.append(HitData)
+
       if len(HitData) > 0:
           TOAmean.append(np.mean(HitData, dtype=np.float64))
           TOAjit.append(math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12))
@@ -284,5 +263,5 @@ def thresholdScan(argip,
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
-    thresholdScan(args.ip, args.cfg, args.ch, args.Q,args.delay, args.minVth, args.maxVth, args.VthStep, args.out)
+    thresholdScan(args.ip, args.board, args.cfg, args.ch, args.Q,args.delay, args.minVth, args.maxVth, args.VthStep, args.out)
 
