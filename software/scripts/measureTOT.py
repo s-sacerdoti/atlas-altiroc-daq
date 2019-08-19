@@ -34,12 +34,12 @@ useExt = True
 PulserRangeL = 0        # <= Low Value of Pulser Sweep Range
 PulserRangeH = 30       # <= High Value of Pulser Sweep Range
 PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
-NofIterationsTOT = 30   # <= Number of Iterations for each Pulser Value
+NofIterationsTOT = 20   # <= Number of Iterations for each Pulser Value
 DelayValueTOT = 2400       # <= Value of Programmable Delay for TOT Pulser Sweep
 
 if useExt:
     DelayValueTOT = 3000
-minExtWidth = 100
+minExtWidth = 800
 maxExtWidth = 3000
 extTrigStep = 20
 
@@ -96,6 +96,7 @@ import math                                                    ##
 import matplotlib.pyplot as plt                                ##
 from setASICconfig_v2B8 import *                               
 from setASICconfig_v2B7 import *                               
+from setASICconfig_v2B3 import *                               
 #################################################################
 #################################################################
 
@@ -210,6 +211,8 @@ if board == 7:
   set_fpga_for_custom_config_B7(top,pixel_number)
 elif board == 8:
   set_fpga_for_custom_config_B8(top,pixel_number)
+elif board == 3:
+  set_fpga_for_custom_config_B3(top,pixel_number)
 
 #disable preamp and discri for using ext trigger
 if useExt:
