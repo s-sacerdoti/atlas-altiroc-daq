@@ -25,6 +25,7 @@ import rogue.utilities.fileio                                  ##
 import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
+from setASICconfig_v2B3 import *
 from setASICconfig_v2B7 import *
 from setASICconfig_v2B8 import *
 #################################################################
@@ -125,6 +126,8 @@ def thresholdScan(argip,
     set_fpga_for_custom_config_B7(top,pixel_number)
   elif board == 8:
     set_fpga_for_custom_config_B8(top,pixel_number)
+  elif board == 3:
+    set_fpga_for_custom_config_B3(top,pixel_number)
   #some more config
   top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValue)
   top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)

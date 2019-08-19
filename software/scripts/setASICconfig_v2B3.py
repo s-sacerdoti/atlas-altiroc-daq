@@ -93,7 +93,7 @@ def set_fpga_for_custom_config_B3(top,pixel_number):
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
     top.Fpga[0].Asic.SlowControl.CP_b.set(0x4) #5 32ps LSB for B7
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #1=need to fix value externally
-    top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x0) #1=need to fix value externally
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #1=need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #
 
     top.Fpga[0].Asic.SlowControl.totf_satovfw.set(0x0)
@@ -115,7 +115,7 @@ def set_fpga_for_custom_config_B3(top,pixel_number):
     top.Fpga[0].Asic.SlowControl.cBit_s_TOT[pixel_number].set(0x0)  #0
     top.Fpga[0].Asic.SlowControl.cBit_c_TOT[pixel_number].set(0x0)  #f
     top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(0x0) #0
-    top.Fpga[0].Asic.SlowControl.cd[0].set(0x7) #6
+    top.Fpga[0].Asic.SlowControl.cd[0].set(0x0) #6
     top.Fpga[0].Asic.SlowControl.cd[1].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.cd[2].set(0x7) #6
     top.Fpga[0].Asic.SlowControl.dac_biaspa.set(0x1e) #10

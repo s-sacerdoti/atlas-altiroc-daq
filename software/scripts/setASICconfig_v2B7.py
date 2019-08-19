@@ -93,15 +93,15 @@ def set_fpga_for_custom_config_B7(top,pixel_number):
     top.Fpga[0].Asic.SlowControl.DLL_ALockR_en.set(0x1)
     top.Fpga[0].Asic.SlowControl.CP_b.set(0x4) #5 32ps LSB for B7
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlf_en.set(0x1) #1=need to fix value externally
-    top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #1=need to fix value externally
-    top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x1) #
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x0) #1=need to fix value externally
+    top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x0) #
 
     top.Fpga[0].Asic.SlowControl.totf_satovfw.set(0x0)
-    top.Fpga[0].Asic.SlowControl.totc_satovfw.set(0x0)
+    top.Fpga[0].Asic.SlowControl.totc_satovfw.set(0x1)
     top.Fpga[0].Asic.SlowControl.toa_satovfw.set(0x0)
 
-    top.Fpga[0].Asic.SlowControl.SatFVa.set(0x0) #3
-    top.Fpga[0].Asic.SlowControl.IntFVa.set(0x0) #1
+    top.Fpga[0].Asic.SlowControl.SatFVa.set(0x1) #3
+    top.Fpga[0].Asic.SlowControl.IntFVa.set(0x1) #1
     #top.Fpga[0].Asic.SlowControl.SatFTz.set(0x0) #4
     #top.Fpga[0].Asic.SlowControl.IntFTz.set(0x0) #1
 
