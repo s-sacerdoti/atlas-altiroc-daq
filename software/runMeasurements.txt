@@ -1,0 +1,5 @@
+python scripts/measureTOT.py --board 3
+python scripts/measureTOA.py --ch 1 --board 3 --DAC 450 --Q 13 --delayMin 2000
+python scripts/thresholdScan.py --ch 1 --minVth 400 --maxVth 500 --VthStep 10 --Q 13 --delay 2400 --board 3
+
+python scripts/measureTOT_cm.py --ch 1 --board 3 --DAC 450 --Q 13 --useExt True --pulserMin 1700 --pulserMax 2800 --pulserStep 20

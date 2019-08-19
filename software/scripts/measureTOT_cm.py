@@ -47,6 +47,8 @@ import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
 #from setASICconfig_v2B6 import *                               ##
+from setASICconfig_v2B2 import *                               ##
+from setASICconfig_v2B3 import *                               ##
 from setASICconfig_v2B7 import *                               ##
 from setASICconfig_v2B8 import *                               ##
                                                                ##
@@ -173,6 +175,10 @@ def measureTOT( argsip,
       set_fpga_for_custom_config_B7(top,pixel_number)
     elif board == 8:
       set_fpga_for_custom_config_B8(top,pixel_number)
+    elif board == 3:
+      set_fpga_for_custom_config_B3(top,pixel_number)
+    elif board == 2:
+      set_fpga_for_custom_config_B2(top,pixel_number)
 
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
