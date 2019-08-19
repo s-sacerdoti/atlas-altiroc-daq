@@ -25,18 +25,19 @@ pixel_number = 3 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 0   # <= Enable TOA Data Acquisition (Delay Sweep)
 #DelayRange = 251        # <= Range of Programmable Delay Sweep 
-DelayRange_low = 2300     # <= low end of Programmable Delay Sweep
-DelayRange_high = 2700     # <= high end of Programmable Delay Sweep
+DelayRange_low = 1950     # <= low end of Programmable Delay Sweep
+DelayRange_high = 2300     # <= high end of Programmable Delay Sweep
 DelayRange_step = 1     # <= step size Programmable Delay Sweep
 #DelayRange = 11        # <= Range of Programmable Delay Sweep 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 
-DataAcqusitionTOT = 1   # <= Enable TOT Data Acquisition (Pulser Sweep)
-PulserRangeL = 800        # <= Low Value of Pulser Sweep Range
-PulserRangeH = 2850       # <= High Value of Pulser Sweep Range
-PulserRangeStep = 1     # <= Step Size of Pulser Sweep Range
-NofIterationsTOT = 16   # <= Number of Iterations for each Pulser Value
-DelayValueTOT = 3000       # <= Value of Programmable Delay for TOT Pulser Sweep
+DataAcqusitionTOT = 1   # <= Enable TOT Data Acquisition
+TOT_RisingEdgeSweep = 0
+TOT_DelayRangeL = 850        # <= Low Value of Delay Sweep Range    #850
+TOT_DelayRangeH = 3000       # <= High Value of Delay Sweep Range   #3000
+TOT_DelayRangeStep = 1     # <= Step Size of Delay Sweep Range
+NofIterationsTOT = 16   # <= Number of Iterations for each Delay Value
+DelayValueTOT = 3200       # <= Value of Programmable Delay for TOT Pulser Sweep  #3200 / 800
 
 nTOA_TOT_Processing = 1 # <= Selects the Data to be Processed and Plotted (0 = TOA, 1 = TOT) 
 
@@ -54,10 +55,10 @@ LSB_TOTc = 1
 
 nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
 
-HistDelayTOA1 = 2425  # <= Delay Value for Histogram to be plotted in Plot (1,0)
-HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
+HistDelayTOA1 = 2217  # <= Delay Value for Histogram to be plotted in Plot (1,0)
+HistDelayTOA2 = 2100 # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistDelayTOT1 = 1750  # <= TOT Delay Value for Histogram to be plotted in Plot (1,0)
-HistDelayTOT2 = 2750  # <= TOT Delay Value for Histogram to be plotted in Plot (1,1)
+HistDelayTOT2 = 1750  # <= TOT Delay Value for Histogram to be plotted in Plot (1,1)
 
 TOTf_hist = 0
 TOTc_hist = 0
@@ -108,8 +109,8 @@ def acquire_data(range_low, range_high, range_step, top,
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
                 time.sleep(0.001)
             else:
-                top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
-                #top.Fpga[0].Asic.CalPulse.Start()
+                #top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
+                top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
 
         while dataStream.count < n_iterations: pass
@@ -130,8 +131,8 @@ parser = argparse.ArgumentParser()
 
 HistDelayTOA1_index  = get_sweep_index(HistDelayTOA1 , DelayRange_low, DelayRange_high, DelayRange_step)
 HistDelayTOA2_index  = get_sweep_index(HistDelayTOA2 , DelayRange_low, DelayRange_high, DelayRange_step)
-HistDelayTOT1_index = get_sweep_index(HistDelayTOT1, PulserRangeL, PulserRangeH, PulserRangeStep)
-HistDelayTOT2_index = get_sweep_index(HistDelayTOT2, PulserRangeL, PulserRangeH, PulserRangeStep)
+HistDelayTOT1_index = get_sweep_index(HistDelayTOT1, TOT_DelayRangeL, TOT_DelayRangeH, TOT_DelayRangeStep)
+HistDelayTOT2_index = get_sweep_index(HistDelayTOT2, TOT_DelayRangeL, TOT_DelayRangeH, TOT_DelayRangeStep)
 
 
 # Convert str to bool
@@ -163,6 +164,7 @@ if DebugPrint:
 #top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x0)
 
 top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x0)
+time.sleep(1)
 top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x1)
 time.sleep(0.1)
 top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)
@@ -174,13 +176,18 @@ if DataAcqusitionTOA == 1:
     acquire_data(DelayRange_low, DelayRange_high, DelayRange_step, top,
             top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOA', NofIterationsTOA, dataStream)
 
-top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(DelayValueTOT)
-
 if DataAcqusitionTOT == 1:
-    #acquire_data(PulserRangeL, PulserRangeH, PulserRangeStep, top, 
+
+    #acquire_data(TOT_DelayRangeL, TOT_DelayRangeH, TOT_DelayRangeStep, top, 
     #        top.Fpga[0].Asic.SlowControl.dac_pulser, 'TOT', NofIterationsTOT, dataStream)
-    acquire_data(PulserRangeL, PulserRangeH, PulserRangeStep, top, 
-            top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOT', NofIterationsTOT, dataStream)
+    if TOT_RisingEdgeSweep == 1:
+        top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(DelayValueTOT)
+        acquire_data(TOT_DelayRangeL, TOT_DelayRangeH, TOT_DelayRangeStep, top, 
+                top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOT', NofIterationsTOT, dataStream)
+    else:
+        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValueTOT)
+        acquire_data(TOT_DelayRangeL, TOT_DelayRangeH, TOT_DelayRangeStep, top, 
+                top.Fpga[0].Asic.Gpio.DlyCalPulseReset, 'TOT', NofIterationsTOT, dataStream)
 
 #######################
 # Data Processing TOA #
@@ -283,7 +290,7 @@ if nTOA_TOT_Processing == 1 and TOT_f_Calibration_En == 1:
     HitDataTOTf_cumulative30 = []
     HitDataTOTf_cumulative31 = []
 
-    for i in range(PulserRangeL, PulserRangeH):
+    for i in range(TOT_DelayRangeL, TOT_DelayRangeH):
         # Create the File reader streaming interface
         dataReader = rogue.utilities.fileio.StreamReader()
 
@@ -387,7 +394,7 @@ if nTOA_TOT_Processing == 1:
     DataStdevTOT = []
     HitDataTOTf_cumulative = []
     
-    for i in range(PulserRangeL, PulserRangeH):
+    for i in range(TOT_DelayRangeL, TOT_DelayRangeH):
         # Create the File reader streaming interface
         dataReader = rogue.utilities.fileio.StreamReader()
 
@@ -525,7 +532,7 @@ if nTOA_TOT_Processing == 0:
 
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
 
-# LSBest = 1
+#LSBest = 1
 
 if nTOA_TOT_Processing == 0:
     # Plot (0,0) ; top left
@@ -579,6 +586,8 @@ else:
         ax2.set_ylabel('Valid Measurements', fontsize = 10)
         ax2.set_xlim(left = np.min(DelayTOT), right = np.max(DelayTOT))
         ax2.set_ylim(bottom = 0, top = np.max(ValidTOTCnt)*1.1)
+
+#LSBest = 1
 
 if nTOA_TOT_Processing == 0:
     # Plot (1,0) ; bottom left

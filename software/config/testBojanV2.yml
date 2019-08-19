@@ -37,7 +37,7 @@ Top:
         ########################     
         
         DLL_ALockR_en: 0x1
-        CP_b: 0x5 #5
+        CP_b: 0x7 #5
         
         ext_Vcrtlf_en: 0x0 #need to fix value externally
         ext_Vcrtls_en: 0x1 #need to fix value externally
@@ -53,7 +53,7 @@ Top:
         IntFTz: 0x1 #1  
       
         cBitf: 0x0 #0
-        cBits: 0x0 #f
+        cBits: 0x6 #f
         cBitc: 0x0 #f      
       
         Rin_Vpa: 0x0 #0
