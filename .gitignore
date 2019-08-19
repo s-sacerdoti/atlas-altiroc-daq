@@ -37,3 +37,6 @@ build*
 *.mcs
 *.gz
 *.ltx
+
+#data
+TestData
