@@ -105,8 +105,7 @@ def acquire_data(range_low, range_high, range_step, top,
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
                 time.sleep(0.001)
             else:
-                top.Fpga[0].Asic.LegacyV1AsicCalPulseStart() # We need to understand why the "Altiroc1_V2" TOA does NOT work unless toggle the RSTB_RAM and RSTB_TDC before trigging/readout
-                # top.Fpga[0].Asic.CalPulse.Start() # This command does NOT seem to work without toggling the RSTB_RAM and RSTB_TDC before trigging/readout
+                top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
 
         while dataStream.count < n_iterations: pass
@@ -152,6 +151,7 @@ top = feb.Top(
     )    
 
 if DebugPrint:
+    top.Fpga[0].AxiVersion.printStatus()
     # Tap the streaming data interface (same interface that writes to file)
     dataStream = feb.PrintEventReader()    
     pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
