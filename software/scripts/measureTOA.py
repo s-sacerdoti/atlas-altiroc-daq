@@ -53,7 +53,7 @@ def acquire_data(top, DelayRange):
         for pulse_iteration in range(NofIterationsTOA):
             if (asicVersion == 1):
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
-                time.sleep(0.001)
+                time.sleep(0.01)
             else:
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
@@ -74,21 +74,23 @@ def parse_arguments():
     pixel_number = 4
     DAC_Vth = 320
     Qinj = 13 #10fc
-    config_file = 'config/measureTOA_B6.yml'
     dlyMin = 2300 
     dlyMax = 2700 
     dlyStep = 10
+    outFile = 'TestData/TOAmeasurement'
+    ipIN=['192.168.1.10']
     
     
     # Add arguments
-    parser.add_argument( "--ip", nargs ='+', required = True, help = "List of IP addresses",)  
-    parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
+    parser.add_argument( "--ip", nargs ='+', required = False, default = ipIN, help = "List of IP addresses")  
+    parser.add_argument( "--board", type = int, required = False, default = 7, help = "Choose board")  
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
     parser.add_argument("--DAC", type = int, required = False, default = DAC_Vth, help = "DAC vth")
     parser.add_argument("--delayMin", type = int, required = False, default = dlyMin, help = "scan start")
     parser.add_argument("--delayMax", type = int, required = False, default = dlyMax, help = "scan stop")
     parser.add_argument("--delayStep", type = int, required = False, default = dlyStep, help = "scan step")
+    parser.add_argument("--out", type = str, required = False, default = outFile, help = "output file")
 
     # Get the arguments
     args = parser.parse_args()
@@ -97,13 +99,14 @@ def parse_arguments():
 
 
 def measureTOA(argsip,
-      Configuration_LOAD_file,
+      board,
       pixel_number,
       Qinj,
       DAC,
       delayMin,
       delayMax,
-      delayStep):
+      delayStep,
+      outFile):
 
     DelayRange = range( delayMin, delayMax, delayStep )
     
@@ -111,6 +114,7 @@ def measureTOA(argsip,
     top = feb.Top(ip = argsip)    
     
     # Load the YAML file
+    Configuration_LOAD_file = 'config/measureTOA_B' + str(board) + '.yml'
     print('Loading {Configuration_LOAD_file} Configuration File...')
     top.LoadConfig(arg = Configuration_LOAD_file)
     
@@ -141,15 +145,18 @@ def measureTOA(argsip,
     # Data Processing TOA #
     #######################
     
+    num_valid_TOA_reads = len(pixel_data)
     if len(pixel_data) == 0: raise ValueError('No hits were detected during delay sweep. Aborting!')
 
     HitCnt = []
-    DataMean = np.zeros(len(DelayRange))
-    DataStdev = np.zeros(len(DelayRange))
+    DataMean = np.zeros(num_valid_TOA_reads)
+    DataStdev = np.zeros(num_valid_TOA_reads)
+    allTOAdata = []
     
     for delay_index, delay_value in enumerate(DelayRange):
         HitData = pixel_data[delay_index]
         HitCnt.append(len(HitData))
+        allTOAdata.append(HitData)
         if len(HitData) > 0:
             DataMean[delay_index] = np.mean(HitData, dtype=np.float64)
             DataStdev[delay_index] = math.sqrt(math.pow(np.std(HitData, dtype=np.float64),2)+1/12)
@@ -185,7 +192,38 @@ def measureTOA(argsip,
     print('Mean Std Dev = %f LSB / %f ps' % ( MeanDataStdev, (MeanDataStdev*LSBest) ) )
     print('Average LSB estimate: %f ps' % LSBest)
     #################################################################
+   #################################################################
+    # Save Data
+    #################################################################
     
+    if os.path.exists(outFile+'.txt'):
+      ts = str(int(time.time()))
+      outFile = outFile+ts
+    outFile = outFile+'.txt'
+    
+    ff = open(outFile,'a')
+    ff.write('TOA measurement vs Delay ---- '+time.ctime()+'\n')
+    ff.write('Pixel = '+str(pixel_number)+'\n')
+    ff.write('config file = '+Configuration_LOAD_file+'\n')
+    ff.write('NofIterations = '+str(NofIterationsTOA)+'\n')
+    #ff.write('cmd_pulser = '+str(Qinj)+'\n')
+    #ff.write('Delay DAC = '+str(DelayValue)+'\n')
+    ff.write('LSBest = '+str(LSBest)+'\n')
+    #ff.write('Threshold = '+str(DACvalue)+'\n')
+    #ff.write('N hits = '+str(sum(HitCnt))+'\n')
+    #ff.write('Number of events = '+str(len(HitData))+'\n')
+    ff.write('mean value = '+str(DataMean)+'\n')
+    ff.write('sigma = '+str(DataStdev)+'\n')
+    ff.write('Pulse delay   TOA '+'\n')
+    for idel in range(len(DelayRange)):
+      pulser = DelayRange[idel]
+      for itoa in range(len(allTOAdata[idel])):
+        ff.write(str(pulser)+' '+str(allTOAdata[idel][itoa])+'\n')
+    #ff.write('TOAvalues = '+str(HitDataTOT)+'\n')
+    ff.close()
+    
+    print('Saved file '+outFile)
+ 
     #################################################################
     # Plot Data
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
@@ -255,4 +293,4 @@ def measureTOA(argsip,
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
-    measureTOA(args.ip, args.cfg, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep)
+    measureTOA(args.ip, args.board, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep, args.out)

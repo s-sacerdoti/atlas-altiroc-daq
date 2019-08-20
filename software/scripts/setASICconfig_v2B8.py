@@ -15,8 +15,8 @@ import os
 import rogue.utilities.fileio
 
 ##############################################################################
-def set_fpga_for_custom_config(top,pixel_number):
-    print('Loading custom config for BOARD 8')
+def set_fpga_for_custom_config_B8(top,pixel_number):
+    print('Loading costum config for BOARD 8')
     top.Fpga[0].Asic.Probe.en_probe_pa.set(0x1)
 
     for i in range(25):
@@ -94,12 +94,12 @@ def set_fpga_for_custom_config(top,pixel_number):
     top.Fpga[0].Asic.SlowControl.ext_Vcrtls_en.set(0x1) #need to fix value externally
     top.Fpga[0].Asic.SlowControl.ext_Vcrtlc_en.set(0x1) #0
 
-    top.Fpga[0].Asic.SlowControl.totf_satovfw.set(0x0)
+    top.Fpga[0].Asic.SlowControl.totf_satovfw.set(0x1)
     top.Fpga[0].Asic.SlowControl.totc_satovfw.set(0x0)
     top.Fpga[0].Asic.SlowControl.toa_satovfw.set(0x1)
 
-    top.Fpga[0].Asic.SlowControl.SatFVa.set(0x0) #3
-    top.Fpga[0].Asic.SlowControl.IntFVa.set(0x0) #1
+    top.Fpga[0].Asic.SlowControl.SatFVa.set(0x1) #3
+    top.Fpga[0].Asic.SlowControl.IntFVa.set(0x1) #1
     #top.Fpga[0].Asic.SlowControl.SatFTz.set(0x0) #4
     #top.Fpga[0].Asic.SlowControl.IntFTz.set(0x0) #1
     

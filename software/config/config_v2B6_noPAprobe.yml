@@ -197,7 +197,7 @@ Top:
         CP_b: 0x5
         ext_Vcrtlf_en: 0x0
         cBits: 0xf
-        ext_Vcrtls_en: 0x1
+        ext_Vcrtls_en: 0x0
         cBitc: 0xf
         ext_Vcrtlc_en: 0x0
         en_8drivers: 0x1

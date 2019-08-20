@@ -9,7 +9,7 @@
 ##############################################################################
 
 ## Activate Rogue conda Environment
-source /home/hgtd-lal/Documents/anaconda3/etc/profile.d/conda.sh
+source /home/hgtd-lal/anaconda3/etc/profile.d/conda.sh
 conda activate rogue_V2
 
 # Python Package directories
