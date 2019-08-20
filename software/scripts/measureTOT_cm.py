@@ -46,11 +46,7 @@ import rogue.utilities.fileio                                  ##
 import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
-#from setASICconfig_v2B6 import *                               ##
-from setASICconfig_v2B2 import *                               ##
-from setASICconfig_v2B3 import *                               ##
-from setASICconfig_v2B7 import *                               ##
-from setASICconfig_v2B8 import *                               ##
+from setASICconfig import set_pixel_specific_parameters        ##
                                                                ##
 #################################################################
 
@@ -105,7 +101,7 @@ def parse_arguments():
     pixel_number = 4
     DAC_Vth = 320
     Qinj = 13 #10fc
-    config_file = 'config/config_v2B6_noPAprobe.yml'
+    config_file = 'config/measureTOA_B7.yml'
     pulserMin = 0
     pulserMax = 20
     pulserStep = 1
@@ -150,15 +146,12 @@ def measureTOT( argsip,
     PulserRange = range( pulserMin, pulserMax, pulserStep )
     
     # Setup root class
-    top = feb.Top(ip= argsip)
-    
-    # Load the default YAML file
-    print('Loading {Configuration_LOAD_file} Configuration File...')
-    top.LoadConfig(arg = Configuration_LOAD_file)
+    top = feb.Top(ip = argsip, userYaml = [Configuration_LOAD_file])
     
     if DebugPrint:
+        top.Fpga[0].AxiVersion.printStatus()
         # Tap the streaming data interface (same interface that writes to file)
-        dataStream = feb.MyEventReader()    
+        dataStream = feb.PrintEventReader()    
         pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
    
     #testing resets
@@ -170,15 +163,7 @@ def measureTOT( argsip,
     time.sleep(0.001)
     top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
 
-    # Custom Configuration
-    if board == 7:
-      set_fpga_for_custom_config_B7(top,pixel_number)
-    elif board == 8:
-      set_fpga_for_custom_config_B8(top,pixel_number)
-    elif board == 3:
-      set_fpga_for_custom_config_B3(top,pixel_number)
-    elif board == 2:
-      set_fpga_for_custom_config_B2(top,pixel_number)
+    set_pixel_specific_parameters(top, pixel_number)
 
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
@@ -190,12 +175,18 @@ def measureTOT( argsip,
         top.Fpga[0].Asic.SlowControl.EN_hyst[pixel_number].set(0x1)
         top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x1)
         top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x0)
-        pixel_data = acquire_data(top, top.Fpga[0].Asic.Gpio.DlyCalPulseSet, PulserRange, using_TZ_TOT)
+        pulser = top.Fpga[0].Asic.Gpio.DlyCalPulseSet
 
     #scan changing Qinj
     else:
         top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(riseEdge)
-        pixel_data = acquire_data(top, top.Fpga[0].Asic.SlowControl.dac_pulser, PulserRange, using_TZ_TOT)
+        pulser = top.Fpga[0].Asic.SlowControl.dac_pulser
+        
+    #You MUST call this function after doing ASIC configurations!!!
+    top.initialize()
+
+    pixel_data = acquire_data(top, pulser, PulserRange, using_TZ_TOT)
+
     
     #################################################################
     # TOT Fine Interpolator Calibration

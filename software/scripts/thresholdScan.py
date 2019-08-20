@@ -25,10 +25,7 @@ import rogue.utilities.fileio                                  ##
 import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
-from setASICconfig_v2B2 import *
-from setASICconfig_v2B3 import *
-from setASICconfig_v2B7 import *
-from setASICconfig_v2B8 import *
+from setASICconfig import set_pixel_specific_parameters        ##
 #################################################################
 #script settings
 LSBest = 20
@@ -90,11 +87,11 @@ def acquire_data(dacScan, top, n_iterations):
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
 
-        pixelData.append( pixel_stream.HitData.copy() )
+        pixel_data.append( pixel_stream.HitData.copy() )
         while pixel_stream.count < NofIterations: pass
         pixel_stream.clear()
     
-    return pixelData
+    return pixel_data
 
 #################################################################
 def thresholdScan(argip,
@@ -110,29 +107,23 @@ def thresholdScan(argip,
 
   dacScan = range(minDAC,maxDAC,DACstep)
   # Setup root class
-  top = feb.Top(ip=argip)    
-  
-  # Load the default YAML file
-  print(f'Loading {Configuration_LOAD_file} Configuration File...')
-  top.LoadConfig(arg = Configuration_LOAD_file)
+  top = feb.Top(ip = argip, userYaml = [Configuration_LOAD_file])
   
   if DebugPrint:
-      # Tap the streaming data interface (same interface that writes to file)
-      dataStream = feb.PrintEventReader()    
-      pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
+    top.Fpga[0].AxiVersion.printStatus()
+    # Tap the streaming data interface (same interface that writes to file)
+    dataStream = feb.PrintEventReader()    
+    pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
   
-  # Custom Configuration
-  if board == 7:
-    set_fpga_for_custom_config_B7(top,pixel_number)
-  elif board == 8:
-    set_fpga_for_custom_config_B8(top,pixel_number)
-  elif board == 2:
-    set_fpga_for_custom_config_B2(top,pixel_number)
-  elif board == 3:
-    set_fpga_for_custom_config_B3(top,pixel_number)
+
+  set_pixel_specific_parameters(top, pixel_number)
+
   #some more config
   top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValue)
   top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
+
+  #You MUST call this function after doing ASIC configurations!!!
+  top.initialize()
   
   #################################################################
   # Data Processing
@@ -194,7 +185,7 @@ def thresholdScan(argip,
       if HitCnt[dac_index] > NofIterations-2:
           if dac_index>0 and HitCnt[dac_index-1] < (NofIterations-1) :
               minTH = (dacScan[dac_index-1]+dacScan[dac_index])/2
-          elif i<len(dacScan)-1 and HitCnt[dac_index+1] < NofIterations :
+          elif dac_index<len(dacScan)-1 and HitCnt[dac_index+1] < NofIterations :
               maxTH = (dacScan[dac_index+1]+dacScan[dac_index])/2
       if HitCnt[dac_index]/NofIterations < 0.6:
           th50percent = dac_value

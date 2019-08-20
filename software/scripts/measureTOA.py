@@ -137,7 +137,7 @@ def measureTOA(argsip,
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
 
-    #You MUST call this function after any ASIC configurations
+    #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
 
     
