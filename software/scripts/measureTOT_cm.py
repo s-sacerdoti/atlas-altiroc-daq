@@ -101,7 +101,7 @@ def parse_arguments():
     pixel_number = 4
     DAC_Vth = 320
     Qinj = 13 #10fc
-    config_file = 'config/measureTOA_B7.yml'
+    config_file = 'config/asic_config_B7.yml'
     pulserMin = 0
     pulserMax = 20
     pulserStep = 1

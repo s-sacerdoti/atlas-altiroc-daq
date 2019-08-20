@@ -79,7 +79,7 @@ def parse_arguments():
     dlyMax = 2700 
     dlyStep = 10
     outFile = 'TestData/TOAmeasurement'
-    config_file = 'config/measureTOA_B7.yml' # <= Path to the Configuration File to be Loaded
+    config_file = 'config/asic_config_B7.yml' # <= Path to the Configuration File to be Loaded
     ipIN=['192.168.1.10']
     
     

@@ -196,7 +196,7 @@ parser = argparse.ArgumentParser()
 # Convert str to bool
 argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
 
-config_file = 'config/measureTOA_B7.yml' # <= Path to the Configuration File to be Loaded
+config_file = 'config/asic_config_B7.yml' # <= Path to the Configuration File to be Loaded
 ipIN=['192.168.1.10']
 
 # Add arguments

@@ -44,7 +44,7 @@ def parse_arguments():
     pixel = 4
     DAC_Vth = 320
     Qinj = 13 #10fc
-    config_file = 'config/config_v2B6_noPAprobe.yml'
+    config_file = 'config/asic_config_B7.yml'
     minDAC = 280
     maxDAC = 420
     DACstep = 5
