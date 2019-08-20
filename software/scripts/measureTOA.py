@@ -78,12 +78,14 @@ def parse_arguments():
     dlyMax = 2700 
     dlyStep = 10
     outFile = 'TestData/TOAmeasurement'
+    config_file = 'config/measureTOA_B7.yml' # <= Path to the Configuration File to be Loaded
     ipIN=['192.168.1.10']
     
     
     # Add arguments
     parser.add_argument( "--ip", nargs ='+', required = False, default = ipIN, help = "List of IP addresses")  
     parser.add_argument( "--board", type = int, required = False, default = 7, help = "Choose board")  
+    parser.add_argument( "--cfg", required = False, default = config_file, help = "Select yml configuration file to load")  
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
     parser.add_argument("--DAC", type = int, required = False, default = DAC_Vth, help = "DAC vth")
@@ -100,6 +102,7 @@ def parse_arguments():
 
 def measureTOA(argsip,
       board,
+      Configuration_LOAD_file,
       pixel_number,
       Qinj,
       DAC,
@@ -114,7 +117,6 @@ def measureTOA(argsip,
     top = feb.Top(ip = argsip)    
     
     # Load the YAML file
-    Configuration_LOAD_file = 'config/measureTOA_B' + str(board) + '.yml'
     print('Loading {Configuration_LOAD_file} Configuration File...')
     top.LoadConfig(arg = Configuration_LOAD_file)
     
@@ -293,4 +295,4 @@ def measureTOA(argsip,
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
-    measureTOA(args.ip, args.board, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep, args.out)
+    measureTOA(args.ip, args.board, args.cfg, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep, args.out)
