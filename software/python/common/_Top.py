@@ -45,6 +45,9 @@ class Top(pr.Root):
         # Set the min. firmware Version support by the software
         self.minFpgaVersion = 0x20000040
         
+        # Enable Init after config
+        self.InitAfterConfig._default = True        
+        
         # Cache the parameters
         self.refClkSel   = refClkSel
         self.pllConfig   = pllConfig
@@ -215,19 +218,6 @@ class Top(pr.Root):
                     if (self.userYaml[i] != ''):
                         print(f'Loading Fpga[{i}]:path={self.userYaml[i]} User Configuration File...')
                         self.LoadConfig(self.userYaml[i])
-            
-                # Reset the RAM, TDC and DLL resets
-                self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x0)
-                self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x0)
-                self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x0)
-                time.sleep(0.001)
-                self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x1)                
-                self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x1)
-                self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x1)
-                
-                # Reset the sequence and trigger counters
-                self.Fpga[i].Asic.Trig.CountReset()
-                self.Fpga[i].Asic.Readout.SeqCntRst()
                 
         else:
             # Hide all the "enable" variables
@@ -239,3 +229,20 @@ class Top(pr.Root):
             self.ReadAll()
             self.ReadAll()
      
+    # Function calls after loading YAML configuration
+    def initialize(self):
+        super().initialize()
+        for i in range(self.numEthDev):
+            # Reset the RAM, TDC and DLL resets
+            self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x0)
+            self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x0)
+            self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x0)
+            time.sleep(0.001)
+            self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x1)                
+            self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x1)
+            self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x1)
+            
+            # Reset the sequence and trigger counters
+            self.Fpga[i].Asic.Trig.CountReset()
+            self.Fpga[i].Asic.Readout.SeqCntRst()
+            
