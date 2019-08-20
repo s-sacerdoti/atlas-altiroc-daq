@@ -21,23 +21,22 @@ Top:
         cBit_f_TOT[:]: 0x0
         cBit_s_TOT[:]: 0x0
         cBit_c_TOT[:]: 0x0
-        ########################
         
         DLL_ALockR_en: 0x1
-        CP_b: 0x4 #5
+        CP_b: 0x5 #5
         
-        ext_Vcrtlf_en: 0x1 #need to fix value externally
-        ext_Vcrtls_en: 0x0 #need to fix value externally
+        ext_Vcrtlf_en: 0x0 #need to fix value externally
+        ext_Vcrtls_en: 0x1 #need to fix value externally
         ext_Vcrtlc_en: 0x0 #0
 
-        totf_satovfw: 0x0
+        totf_satovfw: 0x1
         totc_satovfw: 0x1
-        toa_satovfw: 0x0
+        toa_satovfw: 0x1      
       
-        SatFVa: 0x1 #3
-        IntFVa: 0x1 #1
-        SatFTz: 0x0 #4
-        IntFTz: 0x0 #1  
+        SatFVa: 0x4 #3
+        IntFVa: 0x0 #1
+        SatFTz: 0x4 #4
+        IntFTz: 0x1 #1  
       
         cBitf: 0x0 #0
         cBits: 0x0 #f
@@ -52,7 +51,7 @@ Top:
         dac_biaspa: 0x1e #10
         dac_pulser: 12 #7
       
-        DAC10bit: 320 #173 / 183
+        DAC10bit: 350 #173 / 183
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -60,11 +59,6 @@ Top:
 
         PLL: 0x0
         Shifted_ck40: 0x0
-      ##########################################################################
-      Probe:
-        EN_dout: 0x1
-        en_probe_pa: 0x1
-        en_probe_dig: 0x1 # pix=4
       ##########################################################################
       Readout:
         RckHighWidth: 0x3

@@ -21,7 +21,6 @@ Top:
         cBit_f_TOT[:]: 0x0
         cBit_s_TOT[:]: 0x0
         cBit_c_TOT[:]: 0x0
-        ########################
         
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
@@ -34,10 +33,10 @@ Top:
         totc_satovfw: 0x1
         toa_satovfw: 0x1      
       
-        SatFVa: 0x1 #3
-        IntFVa: 0x1 #1
-        SatFTz: 0x0 #4
-        IntFTz: 0x0 #1  
+        SatFVa: 0x4 #3
+        IntFVa: 0x0 #1
+        SatFTz: 0x4 #4
+        IntFTz: 0x1 #1  
       
         cBitf: 0x0 #0
         cBits: 0x0 #f
@@ -45,7 +44,7 @@ Top:
       
         Rin_Vpa: 0x0 #0
       
-        cd[0]: 0x0 #6
+        cd[0]: 0x7 #6
         cd[1]: 0x7 #6
         cd[2]: 0x7 #6
    
@@ -60,11 +59,6 @@ Top:
 
         PLL: 0x0
         Shifted_ck40: 0x0
-      ##########################################################################
-      Probe:
-        EN_dout: 0x1
-        en_probe_pa: 0x1
-        en_probe_dig: 0x1 # pix=4
       ##########################################################################
       Readout:
         RckHighWidth: 0x3
