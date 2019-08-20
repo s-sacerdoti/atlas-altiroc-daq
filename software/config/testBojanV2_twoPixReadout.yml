@@ -21,19 +21,22 @@ Top:
         cBit_f_TOT[:]: 0x0
         cBit_s_TOT[:]: 0x0
         cBit_c_TOT[:]: 0x0
-        ########################
-        EN_ck_SRAM[4]: 0x1
-        ON_Ctest[4]: 0x1
-        disable_pa[4]: 0x0
-        bit_vth_cor[4]: 0x40
-        ON_discri[4]: 0x1
-        EN_hyst[4]: 0x1
-        EN_trig_ext[4]: 0x0
-        cBit_f_TOA[4]: 0x0 #0
-        cBit_s_TOA[4]: 0x0 #0
-        cBit_f_TOT[4]: 0xf #f
-        cBit_s_TOT[4]: 0x0 #0
-        cBit_c_TOT[4]: 0xf #f
+        ##################################################################
+        # [3:5]: # Set channel3 through less channel 5 (not including 5) #
+        ##################################################################
+        EN_ck_SRAM[3:5]: 0x1
+        ON_Ctest[3:5]: 0x1
+        disable_pa[3:5]: 0x0
+        bit_vth_cor[3]: 0x20 # diff VTH
+        bit_vth_cor[4]: 0x40 # diff VTH
+        ON_discri[3:5]: 0x1
+        EN_hyst[3:5]: 0x1
+        EN_trig_ext[3:5]: 0x0
+        cBit_f_TOA[3:5]: 0x0 #0
+        cBit_s_TOA[3:5]: 0x0 #0
+        cBit_f_TOT[3:5]: 0xf #f
+        cBit_s_TOT[3:5]: 0x0 #0
+        cBit_c_TOT[3:5]: 0xf #f
         ########################     
         
         DLL_ALockR_en: 0x1
@@ -76,9 +79,9 @@ Top:
       ##########################################################################
       Probe:
         EN_dout: 0x1
-        en_probe_pa: 0x1
-        en_probe_dig: 0x1 # pix=4
-        pix[4]:
+        en_probe_pa: 0x0
+        en_probe_dig: 0x0
+        pix[3:5]: # Set channel3 through less channel 5 (not including 5)
           probe_pa: 0x1
           probe_vthc: 0x0
           probe_dig_out_disc: 0x1
@@ -96,7 +99,7 @@ Top:
         RckHighWidth: 0x3
         RckLowWidth: 0x3
         RstToReadDly: 0xF
-        StartPix: 4 # pix=4
+        StartPix: 3 # pix=3
         LastPix: 4 # pix=4
         OnlySendFirstHit: 0x1 # Only send the first hit per pixel
       ##########################################################################
