@@ -16,6 +16,7 @@ asicVersion = 1 # <= Select either V1 or V2 of the ASIC
 DebugPrint = True
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
+DelayValueTOT = 100       # <= Value of Programmable Delay for TOT Pulser Sweep
 
 #################################################################
                                                                ##
@@ -114,13 +115,10 @@ def measureTOA(argsip,
     DelayRange = range( delayMin, delayMax, delayStep )
     
     # Setup root class
-    top = feb.Top(ip = argsip)    
-    
-    # Load the YAML file
-    print('Loading {Configuration_LOAD_file} Configuration File...')
-    top.LoadConfig(arg = Configuration_LOAD_file)
+    top = feb.Top(ip = argsip, userYaml = [Configuration_LOAD_file])
     
     if DebugPrint:
+        top.Fpga[0].AxiVersion.printStatus()
         # Tap the streaming data interface (same interface that writes to file)
         dataStream = feb.PrintEventReader()    
         pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
@@ -138,6 +136,9 @@ def measureTOA(argsip,
     
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
+
+    #You MUST call this function after any ASIC configurations
+    top.initialize()
 
     
     # Data Acquisition for TOA

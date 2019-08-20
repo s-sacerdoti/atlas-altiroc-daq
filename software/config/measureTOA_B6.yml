@@ -21,7 +21,6 @@ Top:
         cBit_f_TOT[:]: 0x0
         cBit_s_TOT[:]: 0x0
         cBit_c_TOT[:]: 0x0
-        ########################
         
         DLL_ALockR_en: 0x1
         CP_b: 0x7 #5
@@ -60,11 +59,6 @@ Top:
 
         PLL: 0x0
         Shifted_ck40: 0x0
-      ##########################################################################
-      Probe:
-        EN_dout: 0x1
-        en_probe_pa: 0x1
-        en_probe_dig: 0x1 # pix=4
       ##########################################################################
       Readout:
         RckHighWidth: 0x3
