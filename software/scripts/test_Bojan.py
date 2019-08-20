@@ -19,14 +19,14 @@ DebugPrint = True
 if (asicVersion == 1):
     Configuration_LOAD_file = 'config/testBojanV1.yml' # <= Path to the Configuration File to be Loaded
 else:
-    Configuration_LOAD_file = 'config/testBojanV2.yml' # <= Path to the Configuration File to be Loaded
+    Configuration_LOAD_file = 'config/measureTOA_V2_pix1-4.yml' # <= Path to the Configuration File to be Loaded
 
 pixel_number = 3 # <= Pixel to be Tested
 
 DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 #DelayRange = 251        # <= Range of Programmable Delay Sweep 
-DelayRange_low = 2300     # <= low end of Programmable Delay Sweep
-DelayRange_high = 2700     # <= high end of Programmable Delay Sweep
+DelayRange_low = 2450     # <= low end of Programmable Delay Sweep
+DelayRange_high = 2600     # <= high end of Programmable Delay Sweep
 DelayRange_step = 1     # <= step size Programmable Delay Sweep
 #DelayRange = 11        # <= Range of Programmable Delay Sweep 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
@@ -52,7 +52,7 @@ LSB_TOTc = 160
 
 nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
 
-HistDelayTOA1 = 2425  # <= Delay Value for Histogram to be plotted in Plot (1,0)
+HistDelayTOA1 = 2470  # <= Delay Value for Histogram to be plotted in Plot (1,0)
 HistDelayTOA2 = 2550 # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistPulserTOT1 = 32  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
 HistPulserTOT2 = 25  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
@@ -69,6 +69,7 @@ import rogue
 import time
 import random
 import argparse
+import inspect
 
 import pyrogue as pr
 import pyrogue.gui
@@ -107,8 +108,17 @@ def acquire_data(range_low, range_high, range_step, top,
             else:
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
+            idlestate = top.Fpga[0].Asic.Trig.TrigState.get()
+            while(idlestate != 0):
+                time.sleep(0.1)
+                print(idlestate)
+            
 
-        while dataStream.count < n_iterations: pass
+        while dataStream.count < n_iterations: 
+            #time.sleep(0.1)
+            dropped = top.Fpga[0].Asic.Trig.CalPulseTrigDropCnt.get()
+            #pass
+
         top.dataWriter._writer.close()
         dataStream.count = 0
 #################################################################
