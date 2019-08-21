@@ -246,7 +246,7 @@ def measureTOT( argsip,
                     return -TOTf_bin[0]*2
                 else:
                     return 0   
-        IntFVa = 1
+        IntFVa = 0
         HitDataTOT = []
         if len(HitDataTOTf) > 0:
             if IntFVa == 1:
