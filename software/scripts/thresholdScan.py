@@ -106,6 +106,16 @@ def thresholdScan(argip,
       outFile):
 
   dacScan = range(minDAC,maxDAC,DACstep)
+
+  #choose config file:
+  Configuration_LOAD_file = 'config/asic_config_B7.yml'
+  if board == 8:
+      Configuration_LOAD_file = 'config/asic_config_B8.yml'
+  elif board == 3:
+      Configuration_LOAD_file = 'config/asic_config_B3.yml'
+  elif board == 2:
+      Configuration_LOAD_file = 'config/asic_config_B2.yml'
+
   # Setup root class
   top = feb.Top(ip = argip, userYaml = [Configuration_LOAD_file])
   

@@ -28,7 +28,7 @@ def set_pixel_specific_parameters(top, pixel_number):
     top.Fpga[0].Asic.Probe.pix[pixel_number].probe_tot.set(0x0)
     top.Fpga[0].Asic.Probe.pix[pixel_number].totf.set(0x0)
     top.Fpga[0].Asic.Probe.pix[pixel_number].tot_overflow.set(0x0)
-    top.Fpga[0].Asic.Probe.pix[pixel_number].toa_busy.set(0x1)
+    top.Fpga[0].Asic.Probe.pix[pixel_number].toa_busy.set(0x0)
     top.Fpga[0].Asic.Probe.pix[pixel_number].tot_busy.set(0x0)
     top.Fpga[0].Asic.Probe.pix[pixel_number].tot_ready.set(0x0)
     top.Fpga[0].Asic.Probe.pix[pixel_number].en_read.set(0x1)
