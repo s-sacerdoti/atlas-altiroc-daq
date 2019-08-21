@@ -43,12 +43,14 @@ Top:
         cBitc: 0x0 #f      
       
         Rin_Vpa: 0x0 #0
+        Cp_Vpa: 0x0
       
         cd[0]: 0x7 #6
         cd[1]: 0x7 #6
         cd[2]: 0x7 #6
    
         dac_biaspa: 0x1e #10
+        ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
         DAC10bit: 350 #173 / 183
@@ -59,6 +61,14 @@ Top:
 
         PLL: 0x0
         Shifted_ck40: 0x0
+        dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
+      ##########################################################################
+      Probe:
+        en_probe_pa: 0x0
+        en_probe_dig: 0x1
+        EN_dout: 0x1
+        rstL: 0x1
+
       ##########################################################################
       Readout:
         RckHighWidth: 0x3
