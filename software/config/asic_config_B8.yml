@@ -3,9 +3,21 @@ Top:
     ##########################################################################
     Asic: # Note: Configuration tuned for ASIC Board V2: #6
       ##########################################################################
+      Gpio:
+        RSTB_RAM: 0x1
+        RST_COUNTER: 0x0
+        DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
+        DlyCalPulseReset: 0 # Falling edge of EXT_TRIG
       Trig:
         CalStrobeAlign: 0x3 # Cal pulse 40 Mhz alignment to 160 MHz
         EnCalPulseTrig: 0x1 # Enable Cal pulse to trigger readout      
+      TdcClk:
+        Tdc40MHzClkSel: Pll
+        FpgaTdcClkHigh: 0x1
+        FpgaTdcClkLow: 0x1
+      CalPulse:
+        CalPulseWidth: 0x2 
+        Continuous: 0x0 
       ##########################################################################
       SlowControl:
         ########################
@@ -43,13 +55,15 @@ Top:
         cBitc: 0x0 #f      
       
         Rin_Vpa: 0x0 #0
+        Cp_Vpa: 0x0
       
         cd[0]: 0x7 #6
         cd[1]: 0x7 #6
         cd[2]: 0x7 #6
    
         dac_biaspa: 0x1e #10
-        dac_pulser: 13 #7
+        ON_dac_biaspa: 0x1
+        dac_pulser: 12 #7
       
         DAC10bit: 310 #173 / 183
 
@@ -59,10 +73,21 @@ Top:
 
         PLL: 0x0
         Shifted_ck40: 0x0
+        #dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
+
+
       ##########################################################################
       Readout:
-        RckHighWidth: 0x3
-        RckLowWidth: 0x3
-        RstToReadDly: 0xF
-        OnlySendFirstHit: 0x1 # Only send the first hit per pixel
-      ##########################################################################
+        #####################
+        RstRamPulseWidth: 0xF
+        ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
+        RstPulseWidth: 0xF
+        RstToReadDly: 0x0   # Min. tuned on 18JULY2019:LLR
+        RckHighWidth: 0x2   # Min. tuned on 18JULY2019:LLR
+        RckLowWidth: 0x2    # Min. tuned on 18JULY2019:LLR
+        #####################
+        RestoreProbeConfig: 0x0
+        EnProbeWrite: 0x1
+        OnlySendFirstHit: 0x1
+        #####################
+
