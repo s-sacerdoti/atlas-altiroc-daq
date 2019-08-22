@@ -241,6 +241,7 @@ def measureTOA(argsip,
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
     
     # Plot (0,0) ; top left
+    #ax1.plot(Delay, np.multiply(DataMean,LSBest))
     ax1.plot(Delay, DataMean)
     ax1.grid(True)
     ax1.set_title('TOA Measurment VS Programmable Delay Value', fontsize = 11)

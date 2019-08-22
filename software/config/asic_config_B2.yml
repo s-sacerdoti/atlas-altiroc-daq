@@ -25,9 +25,9 @@ Top:
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
         
-        ext_Vcrtlf_en: 0x0 #need to fix value externally
+        ext_Vcrtlf_en: 0x1 #need to fix value externally
         ext_Vcrtls_en: 0x1 #need to fix value externally
-        ext_Vcrtlc_en: 0x0 #0
+        ext_Vcrtlc_en: 0x1 #0
 
         totf_satovfw: 0x1
         totc_satovfw: 0x1
@@ -44,9 +44,9 @@ Top:
       
         Rin_Vpa: 0x0 #0
       
-        cd[0]: 0x7 #6
-        cd[1]: 0x7 #6
-        cd[2]: 0x7 #6
+        cd[0]: 0x0 #6
+        cd[1]: 0x0 #6
+        cd[2]: 0x0 #6
    
         dac_biaspa: 0x1e #10
         dac_pulser: 13 #7
