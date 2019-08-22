@@ -10,7 +10,7 @@
 
 ## Activate Rogue conda Environment
 source /home/hgtd-lal/anaconda3/etc/profile.d/conda.sh
-conda activate rogue_V2
+conda activate rogue_V3
 
 # Python Package directories
 export SURF_DIR=${PWD}/../firmware/submodules/surf/python

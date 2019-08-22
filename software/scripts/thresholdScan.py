@@ -54,6 +54,7 @@ def parse_arguments():
     # Add arguments
     parser.add_argument("--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP address")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
+    parser.add_argument( "--checkOvF", type = bool, required = False, default = False, help = "use check on TOA overflow bit")
     parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
     parser.add_argument("--ch", type = int, required = False, default = pixel, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
@@ -68,9 +69,9 @@ def parse_arguments():
     return args
 
 ##############################################################################
-def acquire_data(dacScan, top, n_iterations): 
+def acquire_data(dacScan, top, checkOvF, n_iterations): 
     pixel_stream = feb.PixelReader() 
-    pixel_stream.checkTOAOverflow=True #Nikola
+    pixel_stream.checkTOAOverflow=checkOvF #Nikola
    
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
     pixel_data = []
@@ -98,6 +99,7 @@ def acquire_data(dacScan, top, n_iterations):
 #################################################################
 def thresholdScan(argip,
       board,
+      checkOvF,
       Configuration_LOAD_file,
       pixel_number,
       Qinj,
@@ -139,7 +141,7 @@ def thresholdScan(argip,
   
   #################################################################
   # Data Processing
-  pixel_data = acquire_data(dacScan, top, NofIterations)
+  pixel_data = acquire_data(dacScan, top, checkOvF, NofIterations)
   
   #################################################################
   # Data Processing
@@ -269,5 +271,5 @@ def thresholdScan(argip,
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
-    thresholdScan(args.ip, args.board, args.cfg, args.ch, args.Q,args.delay, args.minVth, args.maxVth, args.VthStep, args.out)
+    thresholdScan(args.ip, args.board, args.checkOvF, args.cfg, args.ch, args.Q,args.delay, args.minVth, args.maxVth, args.VthStep, args.out)
 
