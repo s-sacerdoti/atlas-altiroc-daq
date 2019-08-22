@@ -53,8 +53,8 @@ end AtlasAltirocClk;
 architecture mapping of AtlasAltirocClk is
 
    type RegType is record
-      fastCnt     : natural range 0 to 11;
-      slowCnt     : natural range 0 to 47;
+      fastCnt     : natural range 0 to 5;
+      slowCnt     : natural range 0 to 23;
       fastSyncClk : sl;
       slowSyncClk : sl;
    end record;
@@ -72,6 +72,7 @@ architecture mapping of AtlasAltirocClk is
    signal localRefClk   : sl;
    signal pllClkIn      : slv(1 downto 0);
    signal clock160MHz   : sl;
+   signal sample40MHz   : sl;
    signal strobe40MHz   : sl;
    signal reset160MHz   : sl;
 
@@ -139,7 +140,7 @@ begin
       port map (
          C  => clock160MHz,
          I  => pllClkIn(1),
-         Q2 => strobe40MHz);
+         Q2 => sample40MHz);
 
    U_strb40MHz : entity work.SynchronizerOneShot
       generic map (
@@ -147,14 +148,14 @@ begin
          BYPASS_SYNC_G => true)
       port map (
          clk     => clock160MHz,
-         dataIn  => strobe40MHz,
-         dataOut => strb40MHz);
+         dataIn  => sample40MHz,
+         dataOut => strobe40MHz);
 
-   ----------------------------------------------
-   -- Not synchronizing the DC/DC to system clock
-   ----------------------------------------------
+   strb40MHz <= strobe40MHz;
 
-
+   ------------------------------------------
+   -- Synchronizing the DC/DC to 40 MHz clock
+   ------------------------------------------
    comb : process (r) is
       variable v : RegType;
    begin
@@ -162,22 +163,22 @@ begin
       v := r;
 
       -- Check for last count
-      if r.fastCnt = 11 then
+      if r.fastCnt = 5 then
          -- Reset the counter
          v.fastCnt     := 0;
          -- Toggle the flag
-         v.fastSyncClk := not (r.fastSyncClk);
+         v.fastSyncClk := not (r.fastSyncClk);  -- 3.33 MHz = 40MHz/(2 x 6)
       else
          -- Increment the counter
          v.fastCnt := r.fastCnt + 1;
       end if;
 
       -- Check for last count
-      if r.slowCnt = 47 then
+      if r.slowCnt = 23 then
          -- Reset the counter
          v.slowCnt     := 0;
          -- Reset the flag
-         v.slowSyncClk := not (r.slowSyncClk);
+         v.slowSyncClk := not (r.slowSyncClk);  -- 833 kHz = 40MHz/(2 x 24)
       else
          -- Increment the counter
          v.slowCnt := r.slowCnt + 1;
