@@ -69,7 +69,9 @@ def parse_arguments():
 
 ##############################################################################
 def acquire_data(dacScan, top, n_iterations): 
-    pixel_stream = feb.PixelReader()    
+    pixel_stream = feb.PixelReader() 
+    pixel_stream.checkTOAOverflow=True #Nikola
+   
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
     pixel_data = []
     

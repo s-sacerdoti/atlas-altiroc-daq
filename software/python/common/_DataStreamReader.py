@@ -200,6 +200,7 @@ class PixelReader(rogue.interfaces.stream.Slave):
         self.HitDataTOTc_tz_temp = 0
         self.HitDataTOTc_int1_vpa_temp = 0
         self.HitDataTOTc_int1_tz_temp = 0
+        self.checkTOAOverflow=True #Nikola
 
     def clear(self):
         self.count = 0
@@ -226,9 +227,14 @@ class PixelReader(rogue.interfaces.stream.Slave):
             for i in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[i]
 
-                if (dat.Hit > 0) and (dat.ToaOverflow == 0):
-                    self.HitData.append(dat.ToaData)
-                
+                #:odified by Nikola 21/08/2019
+                if self.checkTOAOverflow:
+                    if (dat.Hit > 0) and dat.ToaOverflow == 0:
+                        self.HitData.append(dat.ToaData)
+                else:
+                    if (dat.Hit > 0):
+                        self.HitData.append(dat.ToaData) 
+
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
                     self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*(2**2)
                     self.HitDataTOT.append(dat.TotData)
