@@ -17,6 +17,7 @@ DebugPrint = True
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
 DelayValueTOT = 100       # <= Value of Programmable Delay for TOT Pulser Sweep
+fallEdge = 3000
 
 #################################################################
                                                                ##
@@ -42,14 +43,14 @@ from setASICconfig import set_pixel_specific_parameters        ##
 #################################################################
 
 
-def acquire_data(top, DelayRange): 
+def acquire_data(top, pulser, DelayRange): 
     pixel_stream = feb.PixelReader()    
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
     pixelData = []
 
     for delay_value in DelayRange:
         print('Testing delay value ' + str(delay_value) )
-        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay_value)
+        pulser.set(delay_value)
 
         for pulse_iteration in range(NofIterationsTOA):
             if (asicVersion == 1):
@@ -87,6 +88,7 @@ def parse_arguments():
     parser.add_argument( "--ip", nargs ='+', required = False, default = ipIN, help = "List of IP addresses")  
     parser.add_argument( "--board", type = int, required = False, default = 7, help = "Choose board")  
     parser.add_argument( "--cfg", required = False, default = config_file, help = "Select yml configuration file to load")  
+    parser.add_argument( "--useExt", type = bool, required = False, default = False,help = "Use external trigger")
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
     parser.add_argument("--DAC", type = int, required = False, default = DAC_Vth, help = "DAC vth")
@@ -103,6 +105,7 @@ def parse_arguments():
 
 def measureTOA(argsip,
       board,
+      useExt,
       Configuration_LOAD_file,
       pixel_number,
       Qinj,
@@ -145,13 +148,23 @@ def measureTOA(argsip,
     
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
+    top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(fallEdge) #set the falling edge of the extTrig
 
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
 
     
     # Data Acquisition for TOA
-    pixel_data = acquire_data(top, DelayRange)
+    #with external
+    if useExt:
+        top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x1)
+        top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x0)
+        top.Fpga[0].Asic.SlowControl.EN_hyst[pixel_number].set(0x1)
+        top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x1)
+        top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x0)
+
+    pulser = top.Fpga[0].Asic.Gpio.DlyCalPulseSet #rising edge of pulser and extTrig
+    pixel_data = acquire_data(top, pulser, DelayRange)
     
     #######################
     # Data Processing TOA #
@@ -215,6 +228,8 @@ def measureTOA(argsip,
     
     ff = open(outFile,'a')
     ff.write('TOA measurement vs Delay ---- '+time.ctime()+'\n')
+    if useExt:
+        ff.write('Using ext trigger, falling edge = '+str(fallEdge)+'\n')
     ff.write('Pixel = '+str(pixel_number)+'\n')
     ff.write('config file = '+Configuration_LOAD_file+'\n')
     ff.write('NofIterations = '+str(NofIterationsTOA)+'\n')
@@ -306,4 +321,5 @@ def measureTOA(argsip,
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
-    measureTOA(args.ip, args.board, args.cfg, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep, args.out)
+
+    measureTOA(args.ip, args.board, ars.useExt,args.cfg, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep, args.out)
