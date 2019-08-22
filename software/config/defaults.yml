@@ -41,7 +41,8 @@ Top:
         MasterModeSel: OR      
         ReadoutStartDly: 128 # Units of 6.4ns
         TrigSizeBeforePause: 0x0      
-        DeadtimeDuration: 0x0      
+        DeadtimeDuration: 0x0
+        EnableReadout: 0x1
       ##########################################################################
       SlowControl:
         dac: 0x0

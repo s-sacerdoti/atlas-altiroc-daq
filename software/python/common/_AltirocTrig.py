@@ -295,6 +295,14 @@ class AltirocTrig(pr.Device):
             pollInterval = 1,
         ))           
        
+        self.add(pr.RemoteVariable(
+            name         = 'EnableReadout', 
+            description  = 'Enable the triggers to start the readout process',
+            offset       = 0x80,
+            bitSize      = 1, 
+            mode         = 'RW',   
+        ))               
+       
         self.add(pr.RemoteCommand(   
             name         = 'CountReset',
             description  = 'Status counter reset',
