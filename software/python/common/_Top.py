@@ -209,15 +209,14 @@ class Top(pr.Root):
                 
                 # Check if we are loading YAML files
                 if self.loadYaml:
+                    # Load the Default YAML file
+                    print(f'Loading Fpga[{i}]:path={self.defaultFile} Default Configuration File...')
+                    self.LoadConfig(self.defaultFile)                
                     # Load the board specific YAML file
                     if (self.userYaml[i] != ''):
                         print(f'Loading Fpga[{i}]:path={self.userYaml[i]} User Configuration File...')
                         self.LoadConfig(self.userYaml[i])
 
-                    # Load the Default YAML file
-                    else:
-                        print(f'Loading Fpga[{i}]:path={self.defaultFile} Default Configuration File...')
-                        self.LoadConfig(self.defaultFile)                
                 
                     
                 
