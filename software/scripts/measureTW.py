@@ -8,6 +8,16 @@
 ## may be copied, modified, propagated, or distributed except according to 
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+# Script Settings
+
+asicVersion = 1 # <= Select either V1 or V2 of the ASIC
+DebugPrint = True
+NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
+DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
+DelayValueTOT = 100       # <= Value of Programmable Delay for TOT Pulser Sweep
+fallEdge = 3000
+
+##############################################################################
 import sys                                                     ##
 import rogue                                                   ##
 import time                                                    ##
