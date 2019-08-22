@@ -131,7 +131,28 @@ def testbeamDAQ(argsip,
     LoopCnt = 0
     
     #open output file, write first lines with run configuration
-    #config is a dict! just get it from there :P
+    #config is a dict! can I just get the info?
+    ts = str(int(time.time()))
+    if os.path.exists(outFile+'.txt'):
+      outFile = outFile+ts
+    outFile = outFile+'.txt'
+    
+    ff = open(outFile,'a')
+    ff.write('TOA measurement vs Delay ---- '+time.ctime()+'\n')
+    if useExt:
+        ff.write('Using ext trigger, width = '+str(pulseWidth)+'\n')
+    ff.write('Pixel = '+str(pixel_number)+'\n')
+    ff.write('config file = '+Configuration_LOAD_file+'\n')
+    ff.write('NofIterations = '+str(NofIterationsTOA)+'\n')
+    #ff.write('cmd_pulser = '+str(Qinj)+'\n')
+    #ff.write('Delay DAC = '+str(DelayValue)+'\n')
+    ff.write('LSBest = '+str(LSBest)+'\n')
+    #ff.write('Threshold = '+str(DACvalue)+'\n')
+    #ff.write('N hits = '+str(sum(HitCnt))+'\n')
+    #ff.write('Number of events = '+str(len(HitData))+'\n')
+    ff.write('mean value = '+str(DataMean)+'\n')
+    ff.write('sigma = '+str(DataStdev)+'\n')
+    ff.write('Pulse delay   TOA '+'\n')
 
     # Data Acquisition
     print("Setting up trigger --- ")
@@ -155,27 +176,7 @@ def testbeamDAQ(argsip,
 
     
     
-    if os.path.exists(outFile+'.txt'):
-      ts = str(int(time.time()))
-      outFile = outFile+ts
-    outFile = outFile+'.txt'
     
-    ff = open(outFile,'a')
-    ff.write('TOA measurement vs Delay ---- '+time.ctime()+'\n')
-    if useExt:
-        ff.write('Using ext trigger, width = '+str(pulseWidth)+'\n')
-    ff.write('Pixel = '+str(pixel_number)+'\n')
-    ff.write('config file = '+Configuration_LOAD_file+'\n')
-    ff.write('NofIterations = '+str(NofIterationsTOA)+'\n')
-    #ff.write('cmd_pulser = '+str(Qinj)+'\n')
-    #ff.write('Delay DAC = '+str(DelayValue)+'\n')
-    ff.write('LSBest = '+str(LSBest)+'\n')
-    #ff.write('Threshold = '+str(DACvalue)+'\n')
-    #ff.write('N hits = '+str(sum(HitCnt))+'\n')
-    #ff.write('Number of events = '+str(len(HitData))+'\n')
-    ff.write('mean value = '+str(DataMean)+'\n')
-    ff.write('sigma = '+str(DataStdev)+'\n')
-    ff.write('Pulse delay   TOA '+'\n')
     for idel in range(len(DelayRange)):
       pulser = DelayRange[idel]
       for itoa in range(len(allTOAdata[idel])):
