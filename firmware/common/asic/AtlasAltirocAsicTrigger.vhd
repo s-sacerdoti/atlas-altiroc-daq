@@ -63,6 +63,7 @@ architecture rtl of AtlasAltirocAsicTrigger is
 
    type RegType is record
       cntRst              : sl;
+      enableReadout       : sl;
       -- Oscilloscope Deadtime
       trigPauseCnt        : slv(15 downto 0);
       trigSizeBeforePause : slv(15 downto 0);
@@ -100,6 +101,7 @@ architecture rtl of AtlasAltirocAsicTrigger is
    end record RegType;
    constant REG_INIT_C : RegType := (
       cntRst              => '0',
+      enableReadout       => '1',
       -- Oscilloscope Deadtime
       trigPauseCnt        => (others => '0'),
       trigSizeBeforePause => (others => '0'),
@@ -304,6 +306,7 @@ begin
       axiSlaveRegisterR(axilEp, x"1C", 0, r.trigCnt(3));
       axiSlaveRegisterR(axilEp, x"20", 0, r.triggerCnt);
 
+
       axiSlaveRegister (axilEp, x"40", 0, v.trigMaster);
 
       axiSlaveRegister (axilEp, x"44", 0, v.calStrobeAlign);
@@ -327,6 +330,8 @@ begin
       axiSlaveRegisterR(axilEp, x"60", 2, remoteTrig);
       axiSlaveRegisterR(axilEp, x"60", 3, orTrig);
       axiSlaveRegisterR(axilEp, x"60", 4, andTrig);
+
+      axiSlaveRegister (axilEp, x"80", 0, v.enableReadout);
 
       axiSlaveRegister (axilEp, x"FC", 0, v.cntRst);
 
@@ -414,7 +419,7 @@ begin
          when IDLE_S =>
             v.stateEncode := x"00";
             -- Check for trigger
-            if (trigger = '1') then
+            if (trigger = '1') and (r.enableReadout = '1') then
                -- Increment the counter
                v.trigPauseCnt := r.trigPauseCnt + 1;
                -- Latch the triggerCnt
@@ -512,6 +517,7 @@ begin
       if (rst160MHz = '1') then
          v                     := REG_INIT_C;
          -- Don't touch register configurations
+         v.enableReadout       := r.enableReadout;
          v.trigMaster          := r.trigMaster;
          v.calStrobeAlign      := r.calStrobeAlign;
          v.trigStrobeAlign     := r.trigStrobeAlign;

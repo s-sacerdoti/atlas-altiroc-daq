@@ -6,6 +6,7 @@ Top:
       Trig:
         CalStrobeAlign: 0x3 # Cal pulse 40 Mhz alignment to 160 MHz
         EnCalPulseTrig: 0x1 # Enable Cal pulse to trigger readout      
+        EnableReadout: 0x1
       ##########################################################################
       SlowControl:
         ########################
