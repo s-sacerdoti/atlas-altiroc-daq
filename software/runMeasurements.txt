@@ -2,3 +2,6 @@ python scripts/measureTOA.py --ch 1 --board 8 --DAC 450 --Q 13 --delayMin 2000
 python scripts/thresholdScan.py --ch 2 --minVth 300 --maxVth 500 --VthStep 20 --Q 13 --delay 2400 --board 8
 python scripts/measureTOT.py --ch 1 --board 8 --DAC 450 --Q 13 --useExt True --pulserMin 200 --pulserMax 2800 --pulserStep 20
 
+##update firmware
+python scripts/ReprogramFpga.py --ip 192.168.1.10 --mcs ../firmware/targets/AtlasAltirocFpga1GbE/images/nameoffile.mcs
+

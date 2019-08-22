@@ -16,8 +16,7 @@ asicVersion = 1 # <= Select either V1 or V2 of the ASIC
 DebugPrint = True
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
-DelayValueTOT = 100       # <= Value of Programmable Delay for TOT Pulser Sweep
-fallEdge = 3000
+pulseWidth = 500
 
 #################################################################
                                                                ##
@@ -43,14 +42,18 @@ from setASICconfig import set_pixel_specific_parameters        ##
 #################################################################
 
 
-def acquire_data(top, pulser, DelayRange): 
+def acquire_data(top, useExt, DelayRange): 
     pixel_stream = feb.PixelReader()    
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
     pixelData = []
+    pulser = top.Fpga[0].Asic.Gpio.DlyCalPulseSet #rising edge of pulser and extTrig
 
     for delay_value in DelayRange:
         print('Testing delay value ' + str(delay_value) )
         pulser.set(delay_value)
+        if useExt:
+            top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(delay_value+pulseWidth)
+
 
         for pulse_iteration in range(NofIterationsTOA):
             if (asicVersion == 1):
@@ -148,7 +151,6 @@ def measureTOA(argsip,
     
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
-    top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(fallEdge) #set the falling edge of the extTrig
 
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
@@ -163,8 +165,7 @@ def measureTOA(argsip,
         top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x1)
         top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x0)
 
-    pulser = top.Fpga[0].Asic.Gpio.DlyCalPulseSet #rising edge of pulser and extTrig
-    pixel_data = acquire_data(top, pulser, DelayRange)
+    pixel_data = acquire_data(top, useExt, DelayRange)
     
     #######################
     # Data Processing TOA #
@@ -229,7 +230,7 @@ def measureTOA(argsip,
     ff = open(outFile,'a')
     ff.write('TOA measurement vs Delay ---- '+time.ctime()+'\n')
     if useExt:
-        ff.write('Using ext trigger, falling edge = '+str(fallEdge)+'\n')
+        ff.write('Using ext trigger, width = '+str(pulseWidth)+'\n')
     ff.write('Pixel = '+str(pixel_number)+'\n')
     ff.write('config file = '+Configuration_LOAD_file+'\n')
     ff.write('NofIterations = '+str(NofIterationsTOA)+'\n')
@@ -263,8 +264,8 @@ def measureTOA(argsip,
     ax1.set_xlabel('Programmable Delay Value [step estimate = %f ps]' % DelayStep, fontsize = 10)
     ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
     ax1.legend(['LSB estimate: %f ps' % LSBest],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-    ax1.set_xlim(left = np.min(Delay), right = np.max(Delay))
     #ax1.set_ylim(bottom = 0, top = np.max(np.multiply(DataMean,LSBest))+100)
+    ax1.set_xlim(left = np.min(Delay), right = np.max(Delay))
     ax1.set_ylim(bottom = 0, top = np.max(DataMean)+10)
     
     # Plot (0,1) ; top right
@@ -322,4 +323,4 @@ if __name__ == "__main__":
     args = parse_arguments()
     print(args)
 
-    measureTOA(args.ip, args.board, ars.useExt,args.cfg, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep, args.out)
+    measureTOA(args.ip, args.board, args.useExt,args.cfg, args.ch, args.Q, args.DAC, args.delayMin, args.delayMax, args.delayStep, args.out)
