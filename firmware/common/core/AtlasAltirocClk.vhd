@@ -52,11 +52,29 @@ end AtlasAltirocClk;
 
 architecture mapping of AtlasAltirocClk is
 
+   type RegType is record
+      fastCnt     : natural range 0 to 5;
+      slowCnt     : natural range 0 to 23;
+      fastSyncClk : sl;
+      slowSyncClk : sl;
+   end record;
+
+   constant REG_INIT_C : RegType := (
+      fastCnt     => 0,
+      slowCnt     => 0,
+      fastSyncClk => '0',
+      slowSyncClk => '0');
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
    signal localRefClock : sl;
    signal localRefClk   : sl;
    signal pllClkIn      : slv(1 downto 0);
    signal clock160MHz   : sl;
+   signal sample40MHz   : sl;
    signal strobe40MHz   : sl;
+   signal reset160MHz   : sl;
 
 begin
 
@@ -73,8 +91,8 @@ begin
 
    U_localRefClk : BUFG
       port map (
-         I   => localRefClock,
-         O   => localRefClk); 
+         I => localRefClock,
+         O => localRefClk);
 
    U_ClkOutBufDiff : entity work.ClkOutBufDiff
       generic map (
@@ -111,9 +129,10 @@ begin
       port map (
          clk      => clock160MHz,
          asyncRst => pllLolL,
-         syncRst  => rst160MHz);
+         syncRst  => reset160MHz);
 
    clk160MHz <= clock160MHz;
+   rst160MHz <= reset160MHz;
 
    U_strobe40MHz : entity work.InputBufferReg
       generic map (
@@ -121,7 +140,7 @@ begin
       port map (
          C  => clock160MHz,
          I  => pllClkIn(1),
-         Q2 => strobe40MHz);
+         Q2 => sample40MHz);
 
    U_strb40MHz : entity work.SynchronizerOneShot
       generic map (
@@ -129,14 +148,64 @@ begin
          BYPASS_SYNC_G => true)
       port map (
          clk     => clock160MHz,
-         dataIn  => strobe40MHz,
-         dataOut => strb40MHz);
+         dataIn  => sample40MHz,
+         dataOut => strobe40MHz);
 
-   ----------------------------------------------
-   -- Not synchronizing the DC/DC to system clock
-   ----------------------------------------------
-   pwrSyncSclk <= '0';
-   pwrSyncFclk <= '0';
+   strb40MHz <= strobe40MHz;
+
+   ------------------------------------------
+   -- Synchronizing the DC/DC to 40 MHz clock
+   ------------------------------------------
+   comb : process (r) is
+      variable v : RegType;
+   begin
+      -- Latch the current value
+      v := r;
+
+      -- Check for last count
+      if r.fastCnt = 5 then
+         -- Reset the counter
+         v.fastCnt     := 0;
+         -- Toggle the flag
+         v.fastSyncClk := not (r.fastSyncClk);  -- 3.33 MHz = 40MHz/(2 x 6)
+      else
+         -- Increment the counter
+         v.fastCnt := r.fastCnt + 1;
+      end if;
+
+      -- Check for last count
+      if r.slowCnt = 23 then
+         -- Reset the counter
+         v.slowCnt     := 0;
+         -- Reset the flag
+         v.slowSyncClk := not (r.slowSyncClk);  -- 833 kHz = 40MHz/(2 x 24)
+      else
+         -- Increment the counter
+         v.slowCnt := r.slowCnt + 1;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+      -- Outputs
+      pwrSyncFclk <= r.fastSyncClk;
+      pwrSyncSclk <= r.slowSyncClk;
+
+   end process comb;
+
+   seq : process (clock160MHz, reset160MHz) is
+   begin
+      -- Asynchronous reset
+      if (reset160MHz = '1') then
+         r <= REG_INIT_C after TPD_G;
+      -- Clock 
+      elsif rising_edge(clock160MHz) then
+         -- Clock Enable
+         if (strobe40MHz = '1') then
+            r <= rin after TPD_G;
+         end if;
+      end if;
+   end process seq;
 
    ---------------------
    -- OSC Always enabled
