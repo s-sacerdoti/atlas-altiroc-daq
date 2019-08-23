@@ -149,6 +149,8 @@ class MyFileReader(rogue.interfaces.stream.Slave):
         self.HitDataTOTc_tz_temp = 0
         self.HitDataTOTc_int1_vpa_temp = 0
         self.HitDataTOTc_int1_tz_temp = 0
+        self.OvfTOA = 0
+        self.OvfTOT = 0
 
     def _acceptFrame(self,frame):
         # First it is good practice to hold a lock on the frame data.
@@ -160,17 +162,19 @@ class MyFileReader(rogue.interfaces.stream.Slave):
                 #if (dat.Hit > 0) and (dat.ToaOverflow == 0):
                 if (dat.Hit > 0):
                     self.HitData.append(dat.ToaData)
+                    self.OvfTOA.append(dat.ToaOverflow)
                 
                 #if (dat.Hit > 0) and (dat.TotData != 0x1fc):
                 if (dat.Hit > 0):
                     self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
-                    self.HitDataTOT.append(dat.TotData)
                     #self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3)
+                    self.HitDataTOT.append(dat.TotData)
                     self.HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
                     self.HitDataTOTc_int1_vpa_temp = (((dat.TotData >>  2) + 1) >> 1) & 0x3F
                     self.HitDataTOTf_vpa.append(self.HitDataTOTf_vpa_temp)
                     self.HitDataTOTc_vpa.append(self.HitDataTOTc_vpa_temp)
                     self.HitDataTOTc_int1_vpa.append(self.HitDataTOTc_int1_vpa_temp)
+                    self.OvfTOT.append(dat.TotOverflow)
 
                 #if (dat.Hit > 0) and (dat.TotData != 0x1f8):
                 #    self.HitDataTOTf_tz_temp = ((dat.TotData >>  0) & 0x7) + dat.TotOverflow*math.pow(2,3)
