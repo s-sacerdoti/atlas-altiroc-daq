@@ -39,6 +39,8 @@ def convertTBdata(inFiles):
         HitDataTOTc = []
         HitDataTOTf = []
         overflowTOT = []
+        cntTOA = 0
+        cntTOT = 0
 
         # Create the File reader streaming interface
         dataReader = rogue.utilities.fileio.StreamReader()
@@ -56,10 +58,21 @@ def convertTBdata(inFiles):
         dataReader.closeWait()
 
         HitData = dataStream.HitData
+        HitDataTOTc = dataStream.HitDataTOTc_vpa
+        HitDataTOTf = dataStream.HitDataTOTf_vpa
+        overflowTOA = dataStream.OvfTOA
+        overflowTOT = dataStream.OvfTOT
 
+        cntTOA = len(HitData)
+        cntTOT = len(HitDataTOTc)
 
         #name output equal to input
         outFile = inFile[:inFile.find('dat')-2]+'.txt'
+        if os.path.exists(outFile)
+            ts = str(int(time.time()))
+            outFile = outFile[:outFile.find('txt')-2]+ts+'.txt'
+            print('File exists, will be saved as '+outFile)
+        myfile = open(outFile,'w+')
     
 #################################################################
 if __name__ == "__main__":
