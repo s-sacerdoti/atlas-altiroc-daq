@@ -157,10 +157,12 @@ class MyFileReader(rogue.interfaces.stream.Slave):
             for i in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[i]
 
-                if (dat.Hit > 0) and (dat.ToaOverflow == 0):
+                #if (dat.Hit > 0) and (dat.ToaOverflow == 0):
+                if (dat.Hit > 0):
                     self.HitData.append(dat.ToaData)
                 
-                if (dat.Hit > 0) and (dat.TotData != 0x1fc):
+                #if (dat.Hit > 0) and (dat.TotData != 0x1fc):
+                if (dat.Hit > 0):
                     self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
                     self.HitDataTOT.append(dat.TotData)
                     #self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3)
@@ -170,13 +172,13 @@ class MyFileReader(rogue.interfaces.stream.Slave):
                     self.HitDataTOTc_vpa.append(self.HitDataTOTc_vpa_temp)
                     self.HitDataTOTc_int1_vpa.append(self.HitDataTOTc_int1_vpa_temp)
 
-                if (dat.Hit > 0) and (dat.TotData != 0x1f8):
-                    self.HitDataTOTf_tz_temp = ((dat.TotData >>  0) & 0x7) + dat.TotOverflow*math.pow(2,3)
-                    self.HitDataTOTc_tz_temp = (dat.TotData >>  3) & 0x3F
-                    self.HitDataTOTc_int1_tz_temp = (((dat.TotData >>  3) + 1) >> 1) & 0x1F
-                    self.HitDataTOTf_tz.append(self.HitDataTOTf_tz_temp)                    
-                    self.HitDataTOTc_tz.append(self.HitDataTOTc_tz_temp)
-                    self.HitDataTOTc_int1_tz.append(self.HitDataTOTc_int1_tz_temp)
+                #if (dat.Hit > 0) and (dat.TotData != 0x1f8):
+                #    self.HitDataTOTf_tz_temp = ((dat.TotData >>  0) & 0x7) + dat.TotOverflow*math.pow(2,3)
+                #    self.HitDataTOTc_tz_temp = (dat.TotData >>  3) & 0x3F
+                #    self.HitDataTOTc_int1_tz_temp = (((dat.TotData >>  3) + 1) >> 1) & 0x1F
+                #    self.HitDataTOTf_tz.append(self.HitDataTOTf_tz_temp)                    
+                #    self.HitDataTOTc_tz.append(self.HitDataTOTc_tz_temp)
+                #    self.HitDataTOTc_int1_tz.append(self.HitDataTOTc_int1_tz_temp)
 
 #################################################################
 

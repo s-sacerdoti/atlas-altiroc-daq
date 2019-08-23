@@ -89,8 +89,8 @@ Top:
 
       ##########################################################################
       Readout:
-        StartPix: 0
-        LastPix: 14
+        StartPix: 1
+        LastPix: 1
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
