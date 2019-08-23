@@ -207,16 +207,17 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.Probe.enable.hidden    = False
                 self.Fpga[i].Asic.Readout.enable.hidden  = False
                 
-                # Check if we are loading YAML files
-                if self.loadYaml:
-                    
-                    # Load the Default YAML file
-                    print(f'Loading Fpga[{i}]:path={self.defaultFile} Default Configuration File...')
-                    self.LoadConfig(self.defaultFile)                
+            # Check if we are loading YAML files
+            if self.loadYaml:
                 
-                    # Load the board specific YAML file
-                    if (self.userYaml[i] != ''):
-                        print(f'Loading Fpga[{i}]:path={self.userYaml[i]} User Configuration File...')
+                # Load the Default YAML file
+                print(f'Loading path={self.defaultFile} Default Configuration File...')
+                self.LoadConfig(self.defaultFile)                
+                
+                # Load the User YAML file(s)
+                if (self.userYaml[i] != ''): 
+                    for i in range(len(self.userYaml)):
+                        print(f'Loading path={self.userYaml[i]} User Configuration File...')
                         self.LoadConfig(self.userYaml[i])
                 
         else:
