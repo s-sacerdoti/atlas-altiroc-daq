@@ -133,11 +133,10 @@ def testbeamDAQ(argsip,
     #open output file, write first lines with run configuration
     #config is a dict! can I just get the info?
     ts = str(int(time.time()))
-    if os.path.exists(outFile+'.txt'):
-      outFile = outFile+ts
-    outFile = outFile+'.txt'
-    
-    ff = open(outFile,'a')
+    outFile1 = 'TestData/altiroc2_'+tb+'.txt'
+    outFile2 = 'TestData/altiroc3_'+tb+'.txt'
+     
+    file1 = open(outFile2,'w')
     ff.write('TOA measurement vs Delay ---- '+time.ctime()+'\n')
     if useExt:
         ff.write('Using ext trigger, width = '+str(pulseWidth)+'\n')
