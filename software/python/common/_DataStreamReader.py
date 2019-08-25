@@ -136,6 +136,7 @@ class MyFileReader(rogue.interfaces.stream.Slave):
     def __init__(self):
         rogue.interfaces.stream.Slave.__init__(self)
         self.HitData = []
+        self.PixelData = []
         self.HitDataTOT = []
         self.HitDataTOTf_vpa = []
         self.HitDataTOTf_tz = []
@@ -154,8 +155,10 @@ class MyFileReader(rogue.interfaces.stream.Slave):
         # First it is good practice to hold a lock on the frame data.
         with frame.lock():
             eventFrame = ParseFrame(frame)
+            pixData = [None]*25
             for i in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[i]
+                pixData[dat.PixelIndex] = dat
 
                 if (dat.Hit > 0) and (dat.ToaOverflow == 0):
                     self.HitData.append(dat.ToaData)
@@ -177,6 +180,7 @@ class MyFileReader(rogue.interfaces.stream.Slave):
                     self.HitDataTOTf_tz.append(self.HitDataTOTf_tz_temp)                    
                     self.HitDataTOTc_tz.append(self.HitDataTOTc_tz_temp)
                     self.HitDataTOTc_int1_tz.append(self.HitDataTOTc_int1_tz_temp)
+            PixelData.append(pixData)
 
 #################################################################
 
