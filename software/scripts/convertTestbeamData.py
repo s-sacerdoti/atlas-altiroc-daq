@@ -30,7 +30,6 @@ def parse_arguments():
 #################################################################
 
 def convertTBdata(inFiles):
-    
     for inFile in inFiles:
         print("Opening file "+inFile)
 
