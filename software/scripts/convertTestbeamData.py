@@ -65,23 +65,27 @@ def convertTBdata(inFiles):
         cntTOA = len(HitDataTOA)
         cntTOT = len(HitDataTOTc)
 
+        output_text_data = ''
+
         for frame in range( len(HitDataTOA) ):
-            print('frame {}'.format(frame) )
+            output_text_data += 'frame {}\n'.format(frame)
             for channel in range( len(HitDataTOA[frame]) ):
                 toa = HitDataTOA[frame][channel]
                 totc = HitDataTOTc[frame][channel]
                 totf = HitDataTOTf[frame][channel]
                 toaOV = overflowTOA[frame][channel]
                 totOV = overflowTOT[frame][channel]
-                print('|---- {}: {} {} {} {} {}'.format(channel,toa,totc,totf,toaOV,totOV) )
+                output_text_data += '{} {} {} {} {} {}\n'.format(channel,toa,totc,totf,toaOV,totOV)
 
         #name output equal to input
-        outFile = inFile[:inFile.find('dat')-2]+'.txt'
+        outFile = inFile[:inFile.find('dat')]+'txt'
         if os.path.exists(outFile):
             ts = str(int(time.time()))
-            outFile = outFile[:outFile.find('txt')-2]+ts+'.txt'
+            outFile = outFile[:outFile.find('txt')]+ts+'txt'
             print('File exists, will be saved as '+outFile)
         myfile = open(outFile,'w+')
+        myfile.write(output_text_data)
+        myfile.close()
     
 #################################################################
 if __name__ == "__main__":
