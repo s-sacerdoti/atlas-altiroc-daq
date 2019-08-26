@@ -105,6 +105,21 @@ class Top(pr.Root):
                 expand      = True, 
             ))
         
+            ######################################################################
+            
+        self.add(pr.LocalVariable(    
+            name         = "LiveDisplayRst",
+            mode         = "RW",
+            value        = 0x0,
+            hidden       = True, 
+        ))            
+        
+        @self.command()
+        def LiveDisplayReset(arg):    
+            print('LiveDisplayReset()')
+            self.LiveDisplayRst.set(1)
+            self.LiveDisplayRst.set(0)
+            
         ######################################################################
         
         # Start the system
