@@ -132,6 +132,7 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
 
 # Class for Reading the Data from File
 class BeamTestFileReader(rogue.interfaces.stream.Slave):
+    _num_channels = 25
 
     def __init__(self):
         rogue.interfaces.stream.Slave.__init__(self)
@@ -145,26 +146,29 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
         # First it is good practice to hold a lock on the frame data.
         with frame.lock():
             eventFrame = ParseFrame(frame)
-            for i in range( len(eventFrame.pixValue) ):
-                dat = eventFrame.pixValue[i]
+
+            self.HitDataTOA.append([])
+            self.HitDataTOTf_vpa.append([])
+            self.HitDataTOTc_vpa.append([])
+            self.TOAOvflow.append([])
+            self.TOTOvflow.append([])
+
+            for channel in range( len(eventFrame.pixValue) ):
+                dat = eventFrame.pixValue[channel]
+                self.HitDataTOA[-1].append(dat.ToaData)
+                self.TOAOvflow[-1].append(dat.ToaOverflow)
+                self.TOTOvflow[-1].append(dat.TotOverflow)
 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
-                    self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
-                    self.HitDataTOT.append(dat.TotData)
-                    #self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3)
-                    self.HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
-                    self.HitDataTOTc_int1_vpa_temp = (((dat.TotData >>  2) + 1) >> 1) & 0x3F
-                    self.HitDataTOTf_vpa.append(self.HitDataTOTf_vpa_temp)
-                    self.HitDataTOTc_vpa.append(self.HitDataTOTc_vpa_temp)
-                    self.HitDataTOTc_int1_vpa.append(self.HitDataTOTc_int1_vpa_temp)
+                    HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
+                    #HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3)
+                    HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
+                    self.HitDataTOTf_vpa[-1].append(HitDataTOTf_vpa_temp)
+                    self.HitDataTOTc_vpa[-1].append(HitDataTOTc_vpa_temp)
+                else:
+                    self.HitDataTOTf_vpa[-1].append(None)
+                    self.HitDataTOTc_vpa[-1].append(None)
 
-                if (dat.Hit > 0) and (dat.TotData != 0x1f8):
-                    self.HitDataTOTf_tz_temp = ((dat.TotData >>  0) & 0x7) + dat.TotOverflow*math.pow(2,3)
-                    self.HitDataTOTc_tz_temp = (dat.TotData >>  3) & 0x3F
-                    self.HitDataTOTc_int1_tz_temp = (((dat.TotData >>  3) + 1) >> 1) & 0x1F
-                    self.HitDataTOTf_tz.append(self.HitDataTOTf_tz_temp)                    
-                    self.HitDataTOTc_tz.append(self.HitDataTOTc_tz_temp)
-                    self.HitDataTOTc_int1_tz.append(self.HitDataTOTc_int1_tz_temp)
 
 #################################################################
 

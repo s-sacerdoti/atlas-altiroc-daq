@@ -22,7 +22,7 @@ def parse_arguments():
     # Convert str to bool
     argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
     
-    parser.add_argument("--in", nargs ='+',required = True, help = "input files")
+    parser.add_argument("--infile", nargs ='+',required = True, help = "input files")
 
     # Get the arguments
     args = parser.parse_args()
@@ -34,7 +34,7 @@ def convertTBdata(inFiles):
     for inFile in inFiles:
         print("Opening file "+inFile)
 
-        HitData = []
+        HitDataTOA = []
         overflowTOA = []
         HitDataTOTc = []
         HitDataTOTf = []
@@ -46,7 +46,7 @@ def convertTBdata(inFiles):
         dataReader = rogue.utilities.fileio.StreamReader()
 
         # Create the Event reader streaming interface
-        dataStream = feb.MyFileReader()
+        dataStream = feb.BeamTestFileReader()
 
         # Connect the file reader ---> event reader
         pr.streamConnect(dataReader, dataStream)
@@ -57,18 +57,28 @@ def convertTBdata(inFiles):
         # Close file once everything processed
         dataReader.closeWait()
 
-        HitData = dataStream.HitData
+        HitDataTOA = dataStream.HitDataTOA
         HitDataTOTc = dataStream.HitDataTOTc_vpa
         HitDataTOTf = dataStream.HitDataTOTf_vpa
-        overflowTOA = dataStream.OvfTOA
-        overflowTOT = dataStream.OvfTOT
+        overflowTOA = dataStream.TOAOvflow
+        overflowTOT = dataStream.TOAOvflow
 
-        cntTOA = len(HitData)
+        cntTOA = len(HitDataTOA)
         cntTOT = len(HitDataTOTc)
+
+        for frame in range( len(HitDataTOA) ):
+            print('frame {}'.format(frame) )
+            for channel in range( len(HitDataTOA[frame]) ):
+                toa = HitDataTOA[frame][channel]
+                totc = HitDataTOTc[frame][channel]
+                totf = HitDataTOTf[frame][channel]
+                toaOV = overflowTOA[frame][channel]
+                totOV = overflowTOT[frame][channel]
+                print('|---- {}: {} {} {} {} {}'.format(channel,toa,totc,totf,toaOV,totOV) )
 
         #name output equal to input
         outFile = inFile[:inFile.find('dat')-2]+'.txt'
-        if os.path.exists(outFile)
+        if os.path.exists(outFile):
             ts = str(int(time.time()))
             outFile = outFile[:outFile.find('txt')-2]+ts+'.txt'
             print('File exists, will be saved as '+outFile)
@@ -78,4 +88,4 @@ def convertTBdata(inFiles):
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)    
-    convertTBdata(agrs.in)
+    convertTBdata(args.infile)
