@@ -151,30 +151,27 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
         with frame.lock():
             eventFrame = ParseFrame(frame)
 
-            self.HitDataTOA.append([])
-            self.HitDataTOTf_vpa.append([])
-            self.HitDataTOTc_vpa.append([])
-            self.TOAOvflow.append([])
-            self.TOTOvflow.append([])
+            self.HitDataTOA.append([-1]*25)
+            self.HitDataTOTf_vpa.append([-1]*25)
+            self.HitDataTOTc_vpa.append([-1]*25)
+            self.TOAOvflow.append([-1]*25)
+            self.TOTOvflow.append([-1]*25)
             self.FPGA_channel.append( frame.getChannel() )
             self.SeqCnt.append( eventFrame.SeqCnt )
             self.TrigCnt.append( eventFrame.TrigCnt)
 
             for channel in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[channel]
-                self.HitDataTOA[-1].append(dat.ToaData)
-                self.TOAOvflow[-1].append(dat.ToaOverflow)
-                self.TOTOvflow[-1].append(dat.TotOverflow)
+                self.HitDataTOA[-1][pixValue] = dat.ToaData
+                self.TOAOvflow[-1][pixValue] = dat.ToaOverflow
+                self.TOTOvflow[-1][pixValue] = dat.TotOverflow
 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
                     HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
                     #HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3)
                     HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
-                    self.HitDataTOTf_vpa[-1].append(HitDataTOTf_vpa_temp)
-                    self.HitDataTOTc_vpa[-1].append(HitDataTOTc_vpa_temp)
-                else:
-                    self.HitDataTOTf_vpa[-1].append(-1)
-                    self.HitDataTOTc_vpa[-1].append(-1)
+                    self.HitDataTOTf_vpa[-1][pixValue] = HitDataTOTf_vpa_temp
+                    self.HitDataTOTc_vpa[-1][pixValue] = HitDataTOTc_vpa_temp
 
 
 #################################################################
