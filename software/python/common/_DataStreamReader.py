@@ -160,8 +160,8 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
             self.SeqCnt.append( eventFrame.SeqCnt )
             self.TrigCnt.append( eventFrame.TrigCnt)
 
-            for channel in range( len(eventFrame.pixValue) ):
-                dat = eventFrame.pixValue[channel]
+            for dat in eventFrame.pixValue:
+                pixValue = dat.pixValue
                 self.HitDataTOA[-1][pixValue] = dat.ToaData
                 self.TOAOvflow[-1][pixValue] = dat.ToaOverflow
                 self.TOTOvflow[-1][pixValue] = dat.TotOverflow
