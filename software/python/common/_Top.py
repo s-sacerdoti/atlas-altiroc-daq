@@ -165,12 +165,6 @@ class Top(pr.Root):
                     click.secho(errMsg, bg='red')
                     raise ValueError(errMsg)
                     
-                # Check if the list of user YAML file les than number of FPGAs
-                if (len(self.userYaml) < self.numEthDev):
-                    errMsg = 'There are less User YAML files than the number of FPGAs to load'
-                    click.secho(errMsg, bg='red')
-                    raise ValueError(errMsg)                    
-                
                 if (self.advanceUser):
                     # Prevent FEB from thermal shutdown until FPGA Tj = 100 degC (max. operating temp)  
                     self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95)    
