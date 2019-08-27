@@ -1,0 +1,43 @@
+Top:
+  Fpga[0]: # AD/B2/slave
+    ##########################################################################
+    Asic:
+      ##########################################################################
+      SlowControl:
+        ########################
+        bit_vth_cor[0]: 0x40 #channel broken
+        bit_vth_cor[1]: 0x40 #channel broken
+        bit_vth_cor[2]: 0x40 #channel broken
+        bit_vth_cor[3]: 0x40 #channel broken
+        bit_vth_cor[4]: 0x40 #channel broken
+        bit_vth_cor[5]: 76
+        bit_vth_cor[6]: 71
+        bit_vth_cor[7]: 71
+        bit_vth_cor[8]: 51
+        bit_vth_cor[9]: 0x40  #channel broken
+        bit_vth_cor[10]: 81
+        bit_vth_cor[11]: 0x40  #channel broken
+        bit_vth_cor[12]: 51
+        bit_vth_cor[13]: 61
+        bit_vth_cor[14]: 51
+   Fpga[1]: # AB/B3/master
+    ##########################################################################
+    Asic: 
+      ##########################################################################
+      SlowControl:
+        ########################
+        bit_vth_cor[0]: 0x40 #channel broken
+        bit_vth_cor[1]: 98
+        bit_vth_cor[2]: 33
+        bit_vth_cor[3]: 56
+        bit_vth_cor[4]: 48
+        bit_vth_cor[5]: 73
+        bit_vth_cor[6]: 63
+        bit_vth_cor[7]: 56
+        bit_vth_cor[8]: 63
+        bit_vth_cor[9]: 0x40  #channel broken
+        bit_vth_cor[10]: 48
+        bit_vth_cor[11]: 68
+        bit_vth_cor[12]: 58
+        bit_vth_cor[13]: 78
+        bit_vth_cor[14]: 88       
