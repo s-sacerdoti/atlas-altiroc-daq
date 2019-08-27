@@ -68,8 +68,6 @@ def convertTBdata(inFiles):
             seqcnt = seq_cnt_list[frame_index]
             trigcnt = trig_cnt_list[frame_index]
             
-            print( '{} {} {}'.format(fpga_index, seqcnt, trigcnt) )
-
             output_text_data[fpga_index] += 'frame {}\n'.format(frame_index)
             for channel in range( len(HitDataTOA[frame_index]) ):
                 toa = HitDataTOA[frame_index][channel]
