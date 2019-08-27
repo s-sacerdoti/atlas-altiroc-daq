@@ -142,6 +142,8 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
         self.HitDataTOTc_vpa = []
         self.TOAOvflow = []
         self.TOTOvflow = []
+        self.SeqCnt = []
+        self.TrigCnt = []
         self.FPGA_channel = []
 
     def _acceptFrame(self,frame):
@@ -155,6 +157,8 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
             self.TOAOvflow.append([])
             self.TOTOvflow.append([])
             self.FPGA_channel.append( frame.getChannel() )
+            self.SeqCnt.append( eventFrame.SeqCnt )
+            self.TrigCnt.append( eventFrame.TrigCnt)
 
             for channel in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[channel]

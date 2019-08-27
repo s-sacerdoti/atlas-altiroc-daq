@@ -31,12 +31,19 @@ Top:
       ##########################################################################
       SlowControl:
         ########################
-        EN_ck_SRAM[:]: 0x1
+        #general settings
+        EN_ck_SRAM[:]: 0x0
         ON_Ctest[:]: 0x0
-        ON_Ctest[4]: 0x1
         disable_pa[:]: 0x1
-        bit_vth_cor[:]: 0x40
         ON_discri[:]: 0x0
+
+        #turn on one pixel
+        EN_ck_SRAM[5]: 0x1
+        ON_Ctest[5]: 0x1
+        disable_pa[5]: 0x0
+        ON_discri[5]: 0x1
+
+        bit_vth_cor[:]: 0x40
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
         cBit_f_TOA[:]: 0x0        
@@ -74,9 +81,9 @@ Top:
    
         dac_biaspa: 0x1e #10
         ON_dac_biaspa: 0x1
-        dac_pulser: 12 #7
+        dac_pulser: 26 #7
       
-        DAC10bit: 460 #173 / 183
+        DAC10bit: 410 #173 / 183
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1

@@ -122,7 +122,7 @@ Top:
       ##########################################################################
       Readout:
         StartPix: 0
-        LastPix: 24
+        LastPix: 14
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR

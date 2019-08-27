@@ -54,6 +54,8 @@ def convertTBdata(inFiles):
         overflowTOA = dataStream.TOAOvflow
         overflowTOT = dataStream.TOAOvflow
         fpga_channel = dataStream.FPGA_channel
+        seq_cnt_list = dataStream.SeqCnt
+        trig_cnt_list = dataStream.TrigCnt
 
         cntTOA = len(HitDataTOA)
         cntTOT = len(HitDataTOTc)
@@ -63,6 +65,10 @@ def convertTBdata(inFiles):
 
         for frame_index in range( len(HitDataTOA) ):
             fpga_index = fpga_channel[frame_index]
+            seqcnt = seq_cnt_list[frame_index]
+            trigcnt = trig_cnt_list[frame_index]
+            
+            print( '{} {} {}'.format(fpga_index, seqcnt, trigcnt) )
 
             output_text_data[fpga_index] += 'frame {}\n'.format(frame_index)
             for channel in range( len(HitDataTOA[frame_index]) ):

@@ -31,11 +31,25 @@ Top:
       ##########################################################################
       SlowControl:
         ########################
+        #general settings
         EN_ck_SRAM[:]: 0x1
         ON_Ctest[:]: 0x0
-        disable_pa[:]: 0x1
+        disable_pa[:]: 0x0
+        ON_discri[:]: 0x1
+        
+        ###################
+        #turn off broken channels
+        EN_ck_SRAM[0]: 0x0
+        EN_ck_SRAM[9]: 0x0
+
+        disable_pa[0]: 0x1
+        disable_pa[9]: 0x1
+
+        ON_discri[0]: 0x0
+        ON_discri[9]: 0x0
+        ###################
+
         bit_vth_cor[:]: 0x40
-        ON_discri[:]: 0x0
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
         cBit_f_TOA[:]: 0x0        
