@@ -105,6 +105,21 @@ class Top(pr.Root):
                 expand      = True, 
             ))
         
+            ######################################################################
+            
+        self.add(pr.LocalVariable(    
+            name         = "LiveDisplayRst",
+            mode         = "RW",
+            value        = 0x0,
+            hidden       = True, 
+        ))            
+        
+        @self.command()
+        def LiveDisplayReset(arg):    
+            print('LiveDisplayReset()')
+            self.LiveDisplayRst.set(1)
+            self.LiveDisplayRst.set(0)
+            
         ######################################################################
         
         # Start the system
@@ -207,6 +222,7 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.Probe.enable.hidden    = False
                 self.Fpga[i].Asic.Readout.enable.hidden  = False
                 
+<<<<<<< HEAD
                 # Check if we are loading YAML files
                 if self.loadYaml:
                     # Load the Default YAML file
@@ -215,6 +231,19 @@ class Top(pr.Root):
                     # Load the board specific YAML file
                     if (self.userYaml[i] != ''):
                         print(f'Loading Fpga[{i}]:path={self.userYaml[i]} User Configuration File...')
+=======
+            # Check if we are loading YAML files
+            if self.loadYaml:
+                
+                # Load the Default YAML file
+                print(f'Loading path={self.defaultFile} Default Configuration File...')
+                self.LoadConfig(self.defaultFile)                
+                
+                # Load the User YAML file(s)
+                if (self.userYaml[i] != ''): 
+                    for i in range(len(self.userYaml)):
+                        print(f'Loading path={self.userYaml[i]} User Configuration File...')
+>>>>>>> master
                         self.LoadConfig(self.userYaml[i])
 
                 

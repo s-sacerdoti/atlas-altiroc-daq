@@ -105,7 +105,8 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                 #if (pixel.Hit != 0) and (pixel.ToaData != 0x7F) : #make sure this pixel is worth printing
                 if (pixel.Hit != 0) and ((pixel.ToaData != 0x7F) or (pixel.TotData !=0)): #make sure this pixel is worth printing
                     if header_still_needs_to_be_printed: #print the header only once per pixel
-                        print('payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
+                        print('FPGA {:#}'.format( frame.getChannel() ) +
+                              ', payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
                               ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
                               ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
                               ', StartPix {:#}'.format(eventFrame.StartPix) +
