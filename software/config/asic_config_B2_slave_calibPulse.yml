@@ -32,16 +32,13 @@ Top:
       SlowControl:
         ########################
         EN_ck_SRAM[:]: 0x1
-        ON_Ctest[0:3]: 0x0
+        ON_Ctest[:]: 0x0
         ON_Ctest[4]: 0x1
-        ON_Ctest[5:]: 0x0
-        disable_pa[0:3]: 0x1
+        disable_pa[:]: 0x1
         disable_pa[4]: 0x0
-        disable_pa[5:]: 0x1
         bit_vth_cor[:]: 0x40
-        ON_discri[0:3]: 0x0
+        ON_discri[:]: 0x0
         ON_discri[4]: 0x1
-        ON_discri[5:]: 0x0
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
         cBit_f_TOA[:]: 0x0        
