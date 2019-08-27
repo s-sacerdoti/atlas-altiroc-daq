@@ -118,6 +118,7 @@ class Top(pr.Root):
         def LiveDisplayReset(arg):    
             print('LiveDisplayReset()')
             self.LiveDisplayRst.set(1)
+            for reset in self.reset_list: reset()
             self.LiveDisplayRst.set(0)
             
         ######################################################################
@@ -129,6 +130,11 @@ class Top(pr.Root):
             timeout  = self._timeout,
         )        
         
+
+    def add_live_display_resets(self, reset_list):
+        self.reset_list = reset_list
+
+
     def start(self,**kwargs):
         super(Top, self).start(**kwargs) 
 
