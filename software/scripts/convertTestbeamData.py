@@ -33,14 +33,6 @@ def convertTBdata(inFiles):
     for inFile in inFiles:
         print("Opening file "+inFile)
 
-        HitDataTOA = []
-        overflowTOA = []
-        HitDataTOTc = []
-        HitDataTOTf = []
-        overflowTOT = []
-        cntTOA = 0
-        cntTOT = 0
-
         # Create the File reader streaming interface
         dataReader = rogue.utilities.fileio.StreamReader()
 
@@ -61,31 +53,37 @@ def convertTBdata(inFiles):
         HitDataTOTf = dataStream.HitDataTOTf_vpa
         overflowTOA = dataStream.TOAOvflow
         overflowTOT = dataStream.TOAOvflow
+        fpga_channel = dataStream.FPGA_channel
 
         cntTOA = len(HitDataTOA)
         cntTOT = len(HitDataTOTc)
 
-        output_text_data = ''
+        number_of_fpgas = 2
+        output_text_data = ['']*number_of_fpgas
 
-        for frame in range( len(HitDataTOA) ):
-            output_text_data += 'frame {}\n'.format(frame)
-            for channel in range( len(HitDataTOA[frame]) ):
-                toa = HitDataTOA[frame][channel]
-                totc = HitDataTOTc[frame][channel]
-                totf = HitDataTOTf[frame][channel]
-                toaOV = overflowTOA[frame][channel]
-                totOV = overflowTOT[frame][channel]
-                output_text_data += '{} {} {} {} {} {}\n'.format(channel,toa,totc,totf,toaOV,totOV)
+        for frame_index in range( len(HitDataTOA) ):
+            fpga_index = fpga_channel[frame_index]
+
+            output_text_data[fpga_index] += 'frame {}\n'.format(frame_index)
+            for channel in range( len(HitDataTOA[frame_index]) ):
+                toa = HitDataTOA[frame_index][channel]
+                totc = HitDataTOTc[frame_index][channel]
+                totf = HitDataTOTf[frame_index][channel]
+                toaOV = overflowTOA[frame_index][channel]
+                totOV = overflowTOT[frame_index][channel]
+                output_text_data[fpga_index] += '{} {} {} {} {} {}\n'.format(channel,toa,totc,totf,toaOV,totOV)
 
         #name output equal to input
-        outFile = inFile[:inFile.find('dat')]+'txt'
-        if os.path.exists(outFile):
-            ts = str(int(time.time()))
-            outFile = outFile[:outFile.find('txt')]+ts+'txt'
-            print('File exists, will be saved as '+outFile)
-        myfile = open(outFile,'w+')
-        myfile.write(output_text_data)
-        myfile.close()
+        for fpga_index in range(number_of_fpgas):
+            outFile_base = inFile[:inFile.find('.dat')]+'_fpga'+str(fpga_index)
+            if os.path.exists(outFile_base+'.txt'):
+                ts = str(int(time.time()))
+                outFile_base += '_' + ts
+                print('File exists, will be saved as '+outFile_base+'.txt')
+            outFile = outFile_base + '.txt'
+            myfile = open(outFile,'w+')
+            myfile.write(output_text_data[fpga_index])
+            myfile.close()
     
 #################################################################
 if __name__ == "__main__":
