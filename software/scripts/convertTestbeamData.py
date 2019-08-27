@@ -53,6 +53,7 @@ def convertTBdata(inFiles):
         HitDataTOTf = dataStream.HitDataTOTf_vpa
         overflowTOA = dataStream.TOAOvflow
         overflowTOT = dataStream.TOAOvflow
+        pixelID = dataStream.pixelId  
         fpga_channel = dataStream.FPGA_channel
         seq_cnt_list = dataStream.SeqCnt
         trig_cnt_list = dataStream.TrigCnt
@@ -75,7 +76,8 @@ def convertTBdata(inFiles):
                 totf = HitDataTOTf[frame_index][channel]
                 toaOV = overflowTOA[frame_index][channel]
                 totOV = overflowTOT[frame_index][channel]
-                output_text_data[fpga_index] += '{} {} {} {} {} {}\n'.format(channel,toa,totc,totf,toaOV,totOV)
+                pixID = pixelID[frame_index][channel]
+                output_text_data[fpga_index] += '{} {} {} {} {} {}\n'.format(pixID,toa,totc,totf,toaOV,totOV)
 
         #name output equal to input
         for fpga_index in range(number_of_fpgas):
