@@ -1,5 +1,5 @@
 Top:
-  Fpga[:]: # "[:]" is a wildcard for a dict search
+  Fpga[1]: # "[:]" is a wildcard for a dict search
     ##########################################################################
     Asic: # Note: Configuration tuned for ASIC Board V2: #6
       ##########################################################################
