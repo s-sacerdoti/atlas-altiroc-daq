@@ -22,6 +22,7 @@ import threading
 
 Keep_display_alive = True
 Live_display_interval = 1
+Resync_interval = 1
 
 #################################################################
 def runLiveDisplay(event_display,fpga_index):
@@ -29,6 +30,16 @@ def runLiveDisplay(event_display,fpga_index):
         if event_display.has_new_data:
             event_display.refreshDisplay()
         time.sleep(Live_display_interval)
+#################################################################
+
+def resync_sequence_counter(top):
+    while(True):
+        readout0 = top.Fpga[0].Asic.Readout
+        readout1 = top.Fpga[1].Asic.Readout
+        if readout0.SeqCnt != readout1.SeqCnt:
+            readout0.SeqCntRst()
+            readout1.SeqCntRst()
+        time.sleep(Resync_interval)
 #################################################################
 
 # Set the argument parser
@@ -110,6 +121,14 @@ parser.add_argument(
     help     = "Displays live plots of pixel information",
 )  
 
+parser.add_argument(
+    "--forceSeqResync", 
+    type     = argBool,
+    required = False,
+    default  = True,
+    help     = "Periodically forces a resync of the sequence counters",
+)  
+
 # Get the arguments
 args = parser.parse_args()
 
@@ -156,6 +175,9 @@ if args.liveDisplay:
         display_thread = threading.Thread( target=runLiveDisplay, args=(event_display,fpga_index,) )
         display_thread.start()
 top.add_live_display_resets(live_display_resets)
+
+if len( args.ip ) == 2 and args.forceSeqResync:
+    resync_thread = threading.Thread( target=resync_sequence_counter, args=(top) )
 
 # Create GUI
 appTop = pr.gui.application(sys.argv)
