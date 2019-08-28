@@ -32,17 +32,25 @@ Top:
       SlowControl:
         ########################
         #general settings
-        EN_ck_SRAM[:]: 0x0
+        EN_ck_SRAM[:]: 0x1
         ON_Ctest[:]: 0x0
-        disable_pa[:]: 0x1
-        ON_discri[:]: 0x0
-        bit_vth_cor[:]: 0x40
+        disable_pa[:]: 0x0
+        ON_discri[:]: 0x1
         
         ###################
-        #turn on a single channel
-        EN_ck_SRAM[14]: 0x1
-        disable_pa[14]: 0x0
-        ON_discri[14]: 0x1
+        #turn off broken channels
+        EN_ck_SRAM[0]: 0x0
+        EN_ck_SRAM[9]: 0x0
+
+        disable_pa[0]: 0x1
+        disable_pa[9]: 0x1
+
+        ON_discri[0]: 0x0
+        ON_discri[9]: 0x0
+        ###################
+
+        bit_vth_cor[:]: 0x40
+        bit_vth_cor[0]: 0x7f #channel broken
         bit_vth_cor[1]: 98
         bit_vth_cor[2]: 33
         bit_vth_cor[3]: 56
@@ -51,13 +59,12 @@ Top:
         bit_vth_cor[6]: 63
         bit_vth_cor[7]: 56
         bit_vth_cor[8]: 63
+        bit_vth_cor[9]: 0x7f  #channel broken
         bit_vth_cor[10]: 48
         bit_vth_cor[11]: 68
         bit_vth_cor[12]: 58
         bit_vth_cor[13]: 78
         bit_vth_cor[14]: 88       
-        ###################
-
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
         cBit_f_TOA[:]: 0x0        
@@ -97,7 +104,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 392 #average DAC for B3
+        DAC10bit: 310 #173 / 183
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -110,7 +117,7 @@ Top:
 
       ##########################################################################
       Readout:
-        StartPix: 14
+        StartPix: 10
         LastPix: 14
         #####################
         RstRamPulseWidth: 0xF

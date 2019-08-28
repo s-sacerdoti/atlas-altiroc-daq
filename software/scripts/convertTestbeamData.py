@@ -31,6 +31,7 @@ def parse_arguments():
 
 def convertTBdata(inFiles):
     outFiles = []
+    auxChList = []
     for inFile in inFiles:
         print("Opening file "+inFile)
 
@@ -58,6 +59,8 @@ def convertTBdata(inFiles):
         fpga_channel = dataStream.FPGA_channel
         seq_cnt_list = dataStream.SeqCnt
         trig_cnt_list = dataStream.TrigCnt
+
+        auxChList.append(pixelID[0])
 
         cntTOA = len(HitDataTOA)
         cntTOT = len(HitDataTOTc)
@@ -111,8 +114,11 @@ def convertTBdata(inFiles):
             myfile.write(output_text_data[fpga_index])
             myfile.close()
 
-        print(' Files created:') 
-        print(output_files) 
+        for i in range(len(output_files)):
+            if os.path.exists(output_files[i]):
+                print(' File created:'+output_files[i])
+                print(' channel list = ' ) 
+                print(auxChList[i]) 
 #################################################################
 if __name__ == "__main__":
     args = parse_arguments()
