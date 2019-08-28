@@ -40,10 +40,12 @@ Top:
         
         ###################
         #turn on a single channel
-        EN_ck_SRAM[10]: 0x1
-        disable_pa[10]: 0x0
-        ON_discri[10]: 0x1
-        bit_vth_cor[10]: 48
+        EN_ck_SRAM[3]: 0x1
+        disable_pa[3]: 0x0
+        ON_discri[3]: 0x1
+        bit_vth_cor[3]: 56
+        #bit_vth_cor[3]: 56
+        #bit_vth_cor[10]: 48
         ###################
 
         EN_hyst[:]: 0x1
@@ -98,8 +100,8 @@ Top:
 
       ##########################################################################
       Readout:
-        StartPix: 10
-        LastPix: 10
+        StartPix: 3
+        LastPix: 3
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
