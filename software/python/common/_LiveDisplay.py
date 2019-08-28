@@ -220,8 +220,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
                     self.toa_array[pixel.PixelIndex][pixel.ToaData] += 1
                     #scale down tot data so we can use 128 bins for tot and toa
                     tot_binning_count = self.tot_xrange[1] / self.toa_xrange[1]
-                    tot_raw = pixel.TotData
-                    HitDataTOTc = (dat.TotData >>  2) & 0x7F
+                    HitDataTOTc = (pixel.TotData >>  2) & 0x7F
                     tot_bin = int(HitDataTOTc/tot_binning_count)
                     self.tot_array[pixel.PixelIndex][tot_bin] += 1
 
