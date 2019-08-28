@@ -85,6 +85,7 @@ def convertTBdata(inFiles):
 
         #name output equal to input
         for fpga_index in range(number_of_fpgas):
+            if len(output_text_data[fpga_index])==0: continue
             outFile_base = inFile[:inFile.find('.dat')]+'_fpga'+str(fpga_index)
             if os.path.exists(outFile_base+'.txt'):
                 ts = str(int(time.time()))
@@ -94,6 +95,7 @@ def convertTBdata(inFiles):
             myfile = open(outFile,'w+')
             myfile.write(output_text_data[fpga_index])
             myfile.close()
+            print('Created files: '+ outFile_base )
     
 #################################################################
 if __name__ == "__main__":
