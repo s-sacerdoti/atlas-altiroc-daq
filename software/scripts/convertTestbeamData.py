@@ -60,7 +60,7 @@ def convertTBdata(inFiles):
         seq_cnt_list = dataStream.SeqCnt
         trig_cnt_list = dataStream.TrigCnt
 
-        auxChList.append(pixelID[0])
+        #auxChList.append(pixelID[0])
 
         cntTOA = len(HitDataTOA)
         cntTOT = len(HitDataTOTc)
@@ -118,7 +118,7 @@ def convertTBdata(inFiles):
             if os.path.exists(output_files[i]):
                 print(' File created:'+output_files[i])
                 print(' channel list = ' ) 
-                print(auxChList[i]) 
+                #print(auxChList[i]) 
 #################################################################
 if __name__ == "__main__":
     args = parse_arguments()
