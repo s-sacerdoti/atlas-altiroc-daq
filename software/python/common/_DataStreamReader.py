@@ -170,8 +170,8 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
                 self.pixelId[-1].append(dat.PixelIndex)
 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
-                    HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
-                    #HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3)
+                    #HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
+                    HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3)
                     HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
                     self.HitDataTOTf_vpa[-1].append(HitDataTOTf_vpa_temp)
                     self.HitDataTOTc_vpa[-1].append(HitDataTOTc_vpa_temp)

@@ -65,7 +65,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
                     instant=True)
     '''
     def __init__(self, plot_title='Live Display', toa_xrange=(0,127), toa_yrange=(0,24), toa_xbins=128, toa_ybins=25, 
-                 tot_xrange=(0,800), tot_yrange=(0,24), tot_xbins=128, tot_ybins=25, 
+                 tot_xrange=(0,128), tot_yrange=(0,24), tot_xbins=128, tot_ybins=25, 
                  xpixels=5, ypixels=5, font_size=6, fig_size=(15,8), submitDir='./', overwrite=False):
         '''
         To initialize:

@@ -65,11 +65,14 @@ def convertTBdata(inFiles):
         output_text_data = ['']*number_of_fpgas
 
         for frame_index in range( len(HitDataTOA) ):
+            if frame_index%100 == 0: 
+                print(" reading out frame "+str(frame_index))
             fpga_index = fpga_channel[frame_index]
             seqcnt = seq_cnt_list[frame_index]
             trigcnt = trig_cnt_list[frame_index]
             
-            output_text_data[fpga_index] += 'frame {} {} {}\n'.format(frame_index, seqcnt, trigcnt)
+            #output_text_data[fpga_index] += 'frame {} {} {}\n'.format(frame_index,seqcnt,trigcnt)
+            output_text_data[fpga_index] += 'frame {} \n'.format(frame_index)
             for channel in range( len(HitDataTOA[frame_index]) ):
                 toa = HitDataTOA[frame_index][channel]
                 totc = HitDataTOTc[frame_index][channel]
@@ -78,6 +81,7 @@ def convertTBdata(inFiles):
                 totOV = overflowTOT[frame_index][channel]
                 pixID = pixelID[frame_index][channel]
                 output_text_data[fpga_index] += '{} {} {} {} {} {}\n'.format(pixID,toa,totc,totf,toaOV,totOV)
+                #print('{} {} {} {} {} {}\n'.format(pixID,toa,totc,totf,toaOV,totOV))
 
         #name output equal to input
         for fpga_index in range(number_of_fpgas):
