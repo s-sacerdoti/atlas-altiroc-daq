@@ -61,7 +61,7 @@ def gui_thread():
 def run_auto_test(top):
     frames_to_record = 10000
     pixel_range = (6,7,8,10,12,13,14)
-    threshold_value_range = range(380,600,50)
+    threshold_value_range = range(380,650,50)
     for pixel_number in pixel_range:
         print('Enabling pixel '+str(pixel_number))
         top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)
