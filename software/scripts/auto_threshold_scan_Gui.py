@@ -43,22 +43,12 @@ def resync_sequence_counter(top):
 #################################################################
 
 
-
-def gui_thread():
-    # Create GUI
-    appTop = pr.gui.application(sys.argv)
-    guiTop = pr.gui.GuiTop()
-    appTop.setStyle('Fusion')
-    guiTop.addTree(top)
-    guiTop.resize(600, 800)
-
-    #Run GUI
-    print("Starting GUI...\n");
-    appTop.exec_()
-#################################################################
-
-
 def run_auto_test(top):
+    print('Auto-testing in 10...')
+    time.sleep(5)
+    print('Auto-testing in 5...')
+    time.sleep(5)
+
     frames_to_record = 10000
     pixel_range = (6,7,8,10,12,13,14)
     threshold_value_range = range(380,650,50)
@@ -222,12 +212,18 @@ if len( args.ip ) == 2 and args.forceSeqResync:
     resync_thread = threading.Thread( target=resync_sequence_counter, args=(top) )
     resync_thread.start()
 
-guithread = threading.Thread( target=gui_thread )
-guithread.start()
+auto_test_thread = threading.Thread( target = run_auto_test, args=(top) ) 
 
-print('Auto-testing in 5...')
-time.sleep(5)
-run_auto_test(top)
+# Create GUI
+appTop = pr.gui.application(sys.argv)
+guiTop = pr.gui.GuiTop()
+appTop.setStyle('Fusion')
+guiTop.addTree(top)
+guiTop.resize(600, 800)
+
+#Run GUI
+print("Starting GUI...\n");
+appTop.exec_()
 
 # Close
 Keep_display_alive = False
