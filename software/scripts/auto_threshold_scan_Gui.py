@@ -218,8 +218,10 @@ top.add_live_display_resets(live_display_resets)
 
 if len( args.ip ) == 2 and args.forceSeqResync:
     resync_thread = threading.Thread( target=resync_sequence_counter, args=(top) )
+    resync_thread.start()
 
-threading.Thread( target=gui_thread )
+guithread = threading.Thread( target=gui_thread )
+guithread.start()
 
 print('Auto-testing in 5...')
 time.sleep(5)
