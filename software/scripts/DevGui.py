@@ -22,13 +22,12 @@ import threading
 
 Keep_display_alive = True
 Live_display_interval = 1
-Resync_interval = 1
+Resync_interval = 0.25
 
 #################################################################
 def runLiveDisplay(event_display,fpga_index):
     while(Keep_display_alive):
-        if event_display.has_new_data:
-            event_display.refreshDisplay()
+        event_display.refreshDisplay()
         time.sleep(Live_display_interval)
 #################################################################
 
@@ -37,6 +36,7 @@ def resync_sequence_counter(top):
         readout0 = top.Fpga[0].Asic.Readout
         readout1 = top.Fpga[1].Asic.Readout
         if readout0.SeqCnt != readout1.SeqCnt:
+            print('Resynced!')
             readout0.SeqCntRst()
             readout1.SeqCntRst()
         time.sleep(Resync_interval)
@@ -162,12 +162,13 @@ if args.liveDisplay:
         # Connect the device reader ---> fifo
         pr.streamTap(top.dataStream[fpga_index], fifo) 
         # Create the pixelreader streaming interface
-        event_display = feb.onlineEventDisplay(
-                plot_title='FPGA ' + str(fpga_index),
-                submitDir='display_snapshots',
-                font_size=4,
-                fig_size=(10,6),
-                overwrite=True  )
+        #event_display = feb.onlineEventDisplay(
+        #        plot_title='FPGA ' + str(fpga_index),
+        #        submitDir='display_snapshots',
+        #        font_size=4,
+        #        fig_size=(10,6),
+        #        overwrite=True  )
+        event_display = feb.beamTestEventDisplay( plot_title='FPGA ' +str(fpga_index), font_size=6, fig_size=(14,7) )
         live_display_resets.append( event_display.reset )
         # Connect the fifo ---> stream reader
         pr.streamConnect(fifo, event_display) 
