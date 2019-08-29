@@ -63,25 +63,30 @@ def run_auto_test(top):
     pixel_range = (6,7,8,10,12,13,14)
     threshold_value_range = range(380,600,50)
     for pixel_number in pixel_range:
+        print('Enabling pixel '+str(pixel_number))
+        top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)
+        top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x0)
+        top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x1)
         for threshold_value in threshold_value_range:
             filename = 'data_thresholdScan_'+str(pixel_number)+'_'+str(threshold_value)+'.dat'
             try: os.remove(filename)
             except OSError: pass
 
-            top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)
-            top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x0)
-            top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x1)
+            print('changing DAC10bit to ' + str(threshold_value))
             top.Fpga[0].Asic.SlowControl.DAC10bit = threshold_value
             top.dataWriter._writer.open(filename)
             top.Fpga[0].Asic.Trig.EnableReadout = 1
 
+            print('File ' + filename + ' open, readout enabled, waiting for frames...')
             while  top.dataWriter.getFrameCount() < frames_to_record: pass
+            print('Frames recieved. Disabling readout and closing file')
 
             top.Fpga[0].Asic.Trig.EnableReadout = 0
             top.dataWriter._writer.close()
-            top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x0)
-            top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x1)
-            top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x0)
+        print('Disabling pixel ' + str(pixel_number))
+        top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x0)
+        top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x1)
+        top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x0)
 #################################################################
 
 
@@ -216,6 +221,8 @@ if len( args.ip ) == 2 and args.forceSeqResync:
 
 threading.Thread( target=gui_thread )
 
+print('Auto-testing in 5...')
+time.sleep(5)
 run_auto_test(top)
 
 # Close
