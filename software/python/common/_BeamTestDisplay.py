@@ -1,22 +1,23 @@
 import datetime
-import rogue
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 matplotlib.use('QT5Agg')
 import os
-import common as feb
+
+#import rogue
+#import common as feb
 
 #for testing
 import time
 import random
 
 
-class beamTestEventDisplay(rogue.interfaces.stream.Slave):
+#class beamTestEventDisplay(rogue.interfaces.stream.Slave):
+class beamTestEventDisplay():
     '''
     Python 3 compatible
-    Requires numpy, matplotlib, datetime, os, shutil packages
     
     onlineEventDisplay is a class deisgned to monitor the online outputs from the HGTD ASIC 
     The class monitors per pixel data from 2 channels; TOA, and TOT
@@ -51,7 +52,7 @@ class beamTestEventDisplay(rogue.interfaces.stream.Slave):
     
     '''
     def __init__(self, plot_title='Beam Test Display', toa_xrange=(0,128), toa_xbins=128, tot_xrange=(0,128), tot_xbins=128,
-                 xpixels=5, ypixels=5, font_size=6, fig_size=(15,8)):
+                 toa_value_max=128, tot_value_max=128, xpixels=5, ypixels=5, font_size=6, fig_size=(15,8)):
         '''
         To initialize:
         myObject = onlineEventDisplay(TOA_range_of_bit_values like (0,127), TOA_range_of_number_of_pixels like (0,24), 
@@ -69,20 +70,22 @@ class beamTestEventDisplay(rogue.interfaces.stream.Slave):
             2. Medium:  Font Size = 6, Figure Size = (15,8)
             3. Small :  Font Size = 4, Figure Size = (10,6)
         '''
-        rogue.interfaces.stream.Slave.__init__(self)
+        #rogue.interfaces.stream.Slave.__init__(self)
+        self.value_maximums = [toa_value_max, tot_value_max]
         self.hist_xranges = [toa_xrange, tot_xrange]
         self.hist_xbins = [toa_xbins, tot_xbins]
         self.xpixels, self.ypixels = xpixels, ypixels
         self.number_of_pixels = self.xpixels * self.ypixels
 
+        self.data_template = [None]*2
+        self.data_template[0] = np.zeros( self.value_maximums[0] )
+        self.data_template[1] = np.zeros( self.value_maximums[1] )
+        for i in range(toa_value_max): self.data_template[0][i] = i
+        for i in range(tot_value_max): self.data_template[1][i] = i
+
         self.data_array_list = [None]*2
-        #self.data_array_list[0] = np.zeros((self.number_of_pixels,toa_xbins), dtype=int)
-        #self.data_array_list[1] = np.zeros((self.number_of_pixels,tot_xbins), dtype=int)
-        self.data_array_list[0] = []
-        self.data_array_list[1] = []
-        for i in range(self.number_of_pixels):
-            self.data_array_list[0].append([])
-            self.data_array_list[1].append([])
+        self.data_array_list[0] = [ np.zeros( self.value_maximums[0] ) for i in range(self.number_of_pixels) ]
+        self.data_array_list[1] = [ np.zeros( self.value_maximums[1] ) for i in range(self.number_of_pixels) ]
             
         self.hits_toa_array = np.zeros((ypixels,xpixels), dtype=int)
         self.hits_tot_array = np.zeros((ypixels,xpixels), dtype=int)
@@ -93,19 +96,12 @@ class beamTestEventDisplay(rogue.interfaces.stream.Slave):
         self.gs = gridspec.GridSpec(6, 16)
         
         self.hist_group_list = []
-        grid_range = (self.gs[:3, :14], self.gs[4:, :14])
-        titles = ('TOA', 'TOT Coarse')
-        xtitles = ('TOA Discrete Units', 'TOTc Discrete Units')
+        grid_range = (self.gs[:3, :14], self.gs[3:, :14])
+        self.titles = ('TOA', 'TOT Coarse')
+        self.xtitles = ('TOA Discrete Units', 'TOTc Discrete Units')
         for hist_index in range(2):
             hist_group = self.fig.add_subplot(grid_range[hist_index])
-            hist_group.set_title(titles[hist_index])
-            hist_group.set_xlabel(xtitles[hist_index])
-            hist_group.set_xlim( self.hist_xranges[hist_index][0], self.hist_xranges[hist_index][1] )
-            for pixel_i in range(self.number_of_pixels):
-                pixel_hist = hist_group.hist( self.data_array_list[hist_index][pixel_i], self.hist_xbins[hist_index], label=str(pixel_i), histtype = 'step' )
-            if hist_index == 0: hist_group.legend(loc=(0.9,.2), ncol=2)
-            hist_group.set_xticks( np.arange(self.hist_xranges[hist_index][0], self.hist_xranges[hist_index][1], 4) )
-            hist_group.tick_params(which="minor", bottom=False, left=False)
+            self.configure_histogram(hist_group, hist_index)
             self.hist_group_list.append(hist_group)
         
         self.ax2 = self.fig.add_subplot(self.gs[4:7, 14:])
@@ -119,8 +115,7 @@ class beamTestEventDisplay(rogue.interfaces.stream.Slave):
         self.ax2.set_yticks(np.arange(self.ypixels))
         self.ax2.set_xticklabels(np.linspace(start=0,stop=self.xpixels-1,num=self.xpixels,dtype=int))
         self.ax2.set_yticklabels(np.linspace(start=0,stop=self.ypixels-1,num=self.ypixels,dtype=int))
-        for edge, spine in self.ax2.spines.items():
-            spine.set_visible(False)
+        for edge, spine in self.ax2.spines.items(): spine.set_visible(False)
         self.ax2.set_xticks(np.arange(self.xpixels+1)-.5, minor=True)
         self.ax2.set_yticks(np.arange(self.ypixels+1)-.5, minor=True)
         self.ax2.grid(which="minor", color="w", linestyle='-', linewidth=3)
@@ -158,37 +153,35 @@ class beamTestEventDisplay(rogue.interfaces.stream.Slave):
             hit_data = np.zeros(self.xpixels*self.ypixels, dtype=int)
             for i in range( len(eventFrame.pixValue) ):
                 pixel = eventFrame.pixValue[i]
-                #if ((pixel.TotData >>  2) & 0x7F) == 127:
-                #   print( pixel.TotData, pixel.ToaOverflow, pixel.TotOverflow)
                 if pixel.Hit and not pixel.ToaOverflow and not pixel.TotOverflow and pixel.ToaData != 0:
-
-                    hit_data[pixel.PixelIndex] = pixel.Hit
-
+                    pix_index = pixel.PixelIndex
                     hit_data_toa = pixel.ToaData
                     hit_data_totc = (pixel.TotData >>  2) & 0x7F
-                    print()
-                    print(self.data_array_list[0][pixel.PixelIndex])
-                    print()
-                    self.data_array_list[0][pixel.PixelIndex].append(hit_data_toa)
-                    self.data_array_list[1][pixel.PixelIndex].append(hit_data_totc)
-                    
 
+                    hit_data[pix_index] = pixel.Hit
+                    self.data_array_list[0][pix_index][hit_data_toa] += 1
+                    self.data_array_list[1][pix_index][hit_data_totc] += 1
+                    
             hits_toa_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
             self.hits_toa_array += hits_toa_data_binary
 
 
+    def configure_histogram(self, hist_group, hist_index):
+        hist_group.set_title(self.titles[hist_index])
+        hist_group.set_xlabel(self.xtitles[hist_index])
+        hist_group.set_xlim( self.hist_xranges[hist_index][0], self.hist_xranges[hist_index][1] )
+        for pixel_i in range(self.number_of_pixels):
+            hist_group.hist( self.data_template[hist_index], self.hist_xbins[hist_index], 
+                    label=str(pixel_i), histtype = 'step', weights = self.data_array_list[hist_index][pixel_i])
+        if hist_index == 0: hist_group.legend(loc=(0.9,.2), ncol=2)
+        hist_group.set_xticks( np.arange(self.hist_xranges[hist_index][0], self.hist_xranges[hist_index][1], 4) )
+        hist_group.tick_params(which="minor", bottom=False, left=False)
+
+
     def refreshDisplay(self):
-        '''
-        This function updates the plot with the new arrays. The comments can be uncommented if
-        one wishes to establish a fixed number of tick marks on the various colorbars in the plot
-        A copy of this function is made private to protect against changes from inheritance 
-        
-        the plt.pause() can be uncommented if one wishes to keep the plot constantly in the foreground
-        '''
-        print(self.data_array_list[0])
         for hist_index, hist_group in enumerate(self.hist_group_list):
-            for pixel_i in range(self.number_of_pixels):
-                pixel_hist = hist_group.hist( self.data_array_list[hist_index][pixel_i], self.hist_xbins[hist_index], label=str(pixel_i), histtype = 'step' )
+            hist_group.cla()
+            self.configure_histogram(hist_group, hist_index)
 
         self.im2.set_data(self.hits_toa_array)
         self.cbar2.mappable.set_clim(vmin=np.amin(self.hits_toa_array),vmax=np.amax(self.hits_toa_array))
@@ -205,13 +198,13 @@ class beamTestEventDisplay(rogue.interfaces.stream.Slave):
             test_pixel = test_data[i]
             pix_index = test_pixel[0]
             if test_pixel[1]:
-                hit_data[pix_index] = test_pixel[1]
 
                 hit_data_toa = test_pixel[2]
                 hit_data_totc = test_pixel[3]
 
-                self.data_array_list[0][pix_index].append(hit_data_toa)
-                self.data_array_list[1][pix_index].append(hit_data_totc)
+                hit_data[pix_index] = test_pixel[1]
+                self.data_array_list[0][pix_index][hit_data_toa] += 1
+                self.data_array_list[1][pix_index][hit_data_totc] += 1
 
         hits_toa_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
         self.hits_toa_array += hits_toa_data_binary
@@ -221,7 +214,7 @@ def test_run():
 
     while(True):
         fake_data = []
-        for fake_pix_i in [3,7,12]: 
+        for fake_pix_i in [1]: 
             fake_hit = random.randint(0,1)
             fake_toa = random.randint(0,127)
             fake_tot = random.randint(0,127)
@@ -230,4 +223,4 @@ def test_run():
         event_display.refreshDisplay()
         time.sleep(1)
 
-#test_run() #uncomment this line and run this file by itself to test
+test_run() #uncomment this line and run this file by itself to test
