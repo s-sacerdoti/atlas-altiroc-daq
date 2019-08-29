@@ -68,7 +68,7 @@ def run_auto_test(top):
         top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x0)
         top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x1)
         for threshold_value in threshold_value_range:
-            filename = 'data_thresholdScan_'+str(pixel_number)+'_'+str(threshold_value)+'.dat'
+            filename = 'ThresholdScanData/data_thresholdScan_'+str(pixel_number)+'_'+str(threshold_value)+'.dat'
             try: os.remove(filename)
             except OSError: pass
 
