@@ -6,16 +6,17 @@ import matplotlib.gridspec as gridspec
 matplotlib.use('QT5Agg')
 import os
 
-#import rogue
-#import common as feb
+#NOTE: comment out for testing
+import rogue
+import common as feb
 
 #for testing
 import time
 import random
 
 
-#class beamTestEventDisplay(rogue.interfaces.stream.Slave):
-class beamTestEventDisplay():
+class beamTestEventDisplay(rogue.interfaces.stream.Slave): #NOTE: comment for testing
+#class beamTestEventDisplay(): #NOTE: uncomment for testing
     '''
     Python 3 compatible
     
@@ -70,7 +71,9 @@ class beamTestEventDisplay():
             2. Medium:  Font Size = 6, Figure Size = (15,8)
             3. Small :  Font Size = 4, Figure Size = (10,6)
         '''
-        #rogue.interfaces.stream.Slave.__init__(self)
+        #NOTE: comment out for testing
+        rogue.interfaces.stream.Slave.__init__(self)
+
         self.value_maximums = [toa_value_max, tot_value_max]
         self.hist_xranges = [toa_xrange, tot_xrange]
         self.hist_xbins = [toa_xbins, tot_xbins]
@@ -131,13 +134,9 @@ class beamTestEventDisplay():
         To reset, or zero out, the stored arrays that integrate the number of hits and TOT/TOA values recorded:
             myObject.reset()
         '''
-        #self.data_array_list[0] = np.zeros((self.number_of_pixels,toa_xbins), dtype=int)
-        #self.data_array_list[1] = np.zeros((self.number_of_pixels,tot_xbins), dtype=int)
-        self.data_array_list[0] = []
-        self.data_array_list[1] = []
-        for i in range(self.number_of_pixels):
-            self.data_array_list[0].append([])
-            self.data_array_list[1].append([])
+        self.data_array_list = [None]*2
+        self.data_array_list[0] = [ np.zeros( self.value_maximums[0] ) for i in range(self.number_of_pixels) ]
+        self.data_array_list[1] = [ np.zeros( self.value_maximums[1] ) for i in range(self.number_of_pixels) ]
 
         self.hits_toa_array = np.zeros((self.ypixels,self.xpixels), dtype=int)
         self.refreshDisplay()
@@ -209,18 +208,19 @@ class beamTestEventDisplay():
         hits_toa_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
         self.hits_toa_array += hits_toa_data_binary
 
-def test_run():
-    event_display = beamTestEventDisplay( plot_title='Test Run', font_size=6, fig_size=(14,7) )
-
-    while(True):
-        fake_data = []
-        for fake_pix_i in [1]: 
-            fake_hit = random.randint(0,1)
-            fake_toa = random.randint(0,127)
-            fake_tot = random.randint(0,127)
-            fake_data.append( (fake_pix_i, fake_hit,fake_toa,fake_tot) )
-        event_display.test_fill(fake_data)
-        event_display.refreshDisplay()
-        time.sleep(1)
-
-test_run() #uncomment this line and run this file by itself to test
+##NOTE: uncomment for testing
+#def test_run():
+#    event_display = beamTestEventDisplay( plot_title='Test Run', font_size=6, fig_size=(14,7) )
+#
+#    while(True):
+#        fake_data = []
+#        for fake_pix_i in [1]: 
+#            fake_hit = random.randint(0,1)
+#            fake_toa = random.randint(0,127)
+#            fake_tot = random.randint(0,127)
+#            fake_data.append( (fake_pix_i, fake_hit,fake_toa,fake_tot) )
+#        event_display.test_fill(fake_data)
+#        event_display.refreshDisplay()
+#        time.sleep(1)
+#
+#test_run()
