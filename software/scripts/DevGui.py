@@ -174,6 +174,7 @@ top.add_live_display_resets(live_display_resets)
 
 if len( args.ip ) == 2 and args.forceSeqResync:
     resync_thread = threading.Thread( target=resync_sequence_counter, args=(top) )
+    resync_thread.start()
 
 # Create GUI
 appTop = pr.gui.application(sys.argv)
