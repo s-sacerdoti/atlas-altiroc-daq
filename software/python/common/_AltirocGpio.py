@@ -102,3 +102,24 @@ class AltirocGpio(pr.Device):
                 # 0x2: 'ExtLemoClk',
             # },
         # ))        
+
+        self.add(pr.RemoteVariable(
+            name         = 'PllLockCnt', 
+            description  = 'Increments every time a PLL locked event detected',
+            offset       = 0x20,
+            bitSize      = 32, 
+            mode         = 'RO',
+            pollInterval = 1,
+        ))   
+
+        self.add(pr.RemoteCommand(   
+            name         = 'CountReset',
+            description  = 'Status counter reset',
+            offset       = 0xFC,
+            bitSize      = 1,
+            function     = pr.BaseCommand.touchOne
+        ))        
+        
+    def countReset(self):
+        self.CountReset()
+        

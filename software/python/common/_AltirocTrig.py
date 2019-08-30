@@ -104,7 +104,16 @@ class AltirocTrig(pr.Device):
             bitSize      = 32, 
             mode         = 'RO',
             pollInterval = 1,
-        ))          
+        ))       
+
+        self.add(pr.RemoteVariable(
+            name         = 'TriggerDropCnt', 
+            description  = 'Increments every time a trigger is dropped',
+            offset       = 0x24,
+            bitSize      = 32, 
+            mode         = 'RO',
+            pollInterval = 1,
+        ))               
         
         self.add(pr.RemoteVariable(
             name         = 'TrigTypeSel', 

@@ -39,6 +39,7 @@ entity AtlasAltirocAsicReadout is
       -- Trigger Interface (clk160MHz domain)
       readoutStart    : in  sl;
       readoutCnt      : in  slv(31 downto 0);
+      dropCnt         : in  slv(31 downto 0);
       readoutBusy     : out sl;
       -- Probe Interface (clk160MHz domain)
       probeValid      : out sl;
@@ -198,7 +199,7 @@ begin
          IB => doutN,
          Q1 => dout);
 
-   comb : process (axilReadMaster, axilWriteMaster, dout, probeBusy,
+   comb : process (axilReadMaster, axilWriteMaster, dout, dropCnt, probeBusy,
                    probeObData, r, readoutCnt, readoutStart, rst160MHz,
                    txSlave) is
       variable v      : RegType;
@@ -610,7 +611,7 @@ begin
             if (v.txMaster.tValid = '0') then
                v.txMaster.tLast              := '1';
                v.txMaster.tValid             := r.tValid;
-               v.txMaster.tData(31 downto 0) := x"DEAD_BEEF";
+               v.txMaster.tData(31 downto 0) := dropCnt;
                -- Next state
                v.state                       := IDLE_S;
             end if;
