@@ -180,6 +180,48 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
 
 #################################################################
 
+# Class for converting raw frame data into human-readable text strings
+class FrameToTextConverter(rogue.interfaces.stream.Slave):
+    def __init__(self, output_files):
+        rogue.interfaces.stream.Slave.__init__(self)
+        self.output_files = output_files
+        self.number_of_fpgas = len(output_files)
+        self.output_text_data = ['']*number_of_fpgas
+        self.frames_since_last_write = 0
+
+    def _acceptFrame(self,frame):
+        # First it is good practice to hold a lock on the frame data.
+        with frame.lock():
+            eventFrame = ParseFrame(frame)
+
+            frame_index = frame.getChannel()
+            seqcnt = eventFrame.SeqCnt
+            trigcnt = eventFrame.TrigCnt
+
+            if frame_index%100 == 0: print(" reading out frame "+str(frame_index))
+            self.output_text_data[fpga_index] += 'frame {} {} {}\n'.format(frame_index,seqcnt,trigcnt)
+
+            for channel in range( len(eventFrame.pixValue) ):
+                dat = eventFrame.pixValue[channel]
+                if (dat.Hit > 0):
+                    toa = dat.ToaData
+                    totc = (dat.TotData >>  2) & 0x7F
+                    totf = ((dat.TotData >>  0) & 0x3)
+                    toaOV = dat.ToaOverflow
+                    totOV = dat.TotOverflow
+                    pixID = dat.PixelIndex
+                    self.output_text_data[fpga_index] += '{} {} {} {} {} {}\n'.format(pixID,toa,totc,totf,toaOV,totOV)
+
+            if self.frames_since_last_write > 20000:
+                for fpga_index in range(self.number_of_fpgas):
+                    myfile = open(output_files[fpga_index],'a')
+                    myfile.write(self.output_text_data[fpga_index])
+                    myfile.close()
+                    self.output_text_data[fpga_index] = ''
+                self.frames_since_last_write = 0
+            else: self.frames_since_last_write += 1
+#################################################################
+
 # Class for Reading the Data from File
 class MyFileReader(rogue.interfaces.stream.Slave):
 
