@@ -18,67 +18,66 @@ import common as feb
 import time
 import threading
 
+#Change the below file to perform a different test.
+#The file must contain a test_loop function which takes 3 args: 
+#   top, pause, and wait_for_pause
+#The wait_for_pause function is used to let you stop the script
+#and investigate the DevGui at your leisure
+from auto_threshold_scan import test_loop
+
 #################################################################
 
-Keep_display_alive = True
-Live_display_interval = 1
-Resync_interval = 0.25
+_frames_to_record = 10000
+_pixel_range = (6,7,8,10,12,13,14)
+_threshold_value_range = range(380,650,50)
 
+_keep_threads_running = True
+_live_display_interval = 1
+_resync_interval = 0.25
 #################################################################
+
 def runLiveDisplay(event_display,fpga_index):
-    while(Keep_display_alive):
+    while _keep_threads_running:
         event_display.refreshDisplay()
-        time.sleep(Live_display_interval)
+        time.sleep(_live_display_interval)
+#################################################################
+
+def wait_for_pause(pause):
+    while _keep_threads_running:
+        input('')
+        if pause[0]: pause[1]()
+        pause[0] = not pause[0]
 #################################################################
 
 def resync_sequence_counter(top):
-    while(True):
+    while _keep_threads_running:
         readout0 = top.Fpga[0].Asic.Readout
         readout1 = top.Fpga[1].Asic.Readout
         if readout0.SeqCnt != readout1.SeqCnt:
             print('Resynced!')
             readout0.SeqCntRst()
             readout1.SeqCntRst()
-        time.sleep(Resync_interval)
+        time.sleep(_resync_interval)
 #################################################################
 
+def run_auto_test(top, pause, pause_function):
+    print('+-----------------------------------+')
+    print('| Testing can be paused at any time |')
+    print('| by pressing Enter in the terminal |')
+    print('+-----------------------------------+')
 
-def run_auto_test(top):
-    print('Auto-testing in 10...')
+    print('Test starting in 10...')
     time.sleep(5)
-    print('Auto-testing in 5...')
+    print('Test starting in 5...')
     time.sleep(5)
+    print('Testing now!')
 
-    frames_to_record = 10000
-    pixel_range = (6,7,8,10,12,13,14)
-    threshold_value_range = range(380,650,50)
-    for pixel_number in pixel_range:
-        print('Enabling pixel '+str(pixel_number))
-        top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)
-        top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x0)
-        top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x1)
-        top.Fpga[0].Asic.Readout.StartPix = pixel_number
-        top.Fpga[0].Asic.Readout.LastPix = pixel_number
-        for threshold_value in threshold_value_range:
-            filename = 'ThresholdScanData/data_thresholdScan_'+str(pixel_number)+'_'+str(threshold_value)+'.dat'
-            try: os.remove(filename)
-            except OSError: pass
+    perform_auto_test(pause, pause_function)
 
-            print('changing DAC10bit to ' + str(threshold_value))
-            top.Fpga[0].Asic.SlowControl.DAC10bit = threshold_value
-            top.dataWriter._writer.open(filename)
-            top.Fpga[0].Asic.Trig.EnableReadout = 1
+    print('Test Complete! You may now close out the program.')
+#################################################################
 
-            print('File ' + filename + ' open, readout enabled, waiting for frames...')
-            while  top.dataWriter.getFrameCount() < frames_to_record: pass
-            print('Frames recieved. Disabling readout and closing file')
-
-            top.Fpga[0].Asic.Trig.EnableReadout = 0
-            top.dataWriter._writer.close()
-        print('Disabling pixel ' + str(pixel_number))
-        top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x0)
-        top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x1)
-        top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x0)
+def allow_to_pause(pause):
 #################################################################
 
 
@@ -208,11 +207,16 @@ if args.liveDisplay:
         display_thread.start()
 top.add_live_display_resets(live_display_resets)
 
+pause_has_been_called = [False]
+pause_thread = threading.Thread( target = wait_for_pause, args=(pause_has_been_called,) )
+pause_thread.start()
+
 if len( args.ip ) == 2 and args.forceSeqResync:
-    resync_thread = threading.Thread( target=resync_sequence_counter, args=(top) )
+    resync_thread = threading.Thread( target = resync_sequence_counter, args=(top,) )
     resync_thread.start()
 
-auto_test_thread = threading.Thread( target = run_auto_test, args=(top) ) 
+auto_test_thread = threading.Thread( target = run_auto_test, args=(top, pause_has_been_called, allow_to_pause,) ) 
+auto_test_thread.start()
 
 # Create GUI
 appTop = pr.gui.application(sys.argv)
@@ -226,6 +230,6 @@ print("Starting GUI...\n");
 appTop.exec_()
 
 # Close
-Keep_display_alive = False
+_keep_threads_running = False
 top.stop()
 exit()   
