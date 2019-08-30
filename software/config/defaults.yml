@@ -15,9 +15,6 @@ Top:
 # DlyCalPulseReset: 0xfff # Falling edge of EXT_TRIG
         DlyCalPulseReset: 0xfff # Falling edge of EXT_TRIG
         ###########################################
-        # Asic.Gpio.RefClkSel is now configured by 
-        # common/top.py via RefClkSel argument
-        ###########################################
       ##########################################################################
       TdcClk:
         Tdc40MHzClkSel: Pll

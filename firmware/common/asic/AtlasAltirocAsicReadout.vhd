@@ -79,6 +79,8 @@ architecture rtl of AtlasAltirocAsicReadout is
       FOOTER_S);
 
    type RegType is record
+      probeDigOutDisc    : sl;
+      enProbeDig         : slv(5 downto 0);
       hitDetected        : sl;
       onlySendFirstHit   : sl;
       cntRst             : sl;
@@ -122,6 +124,8 @@ architecture rtl of AtlasAltirocAsicReadout is
       state              : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      probeDigOutDisc    => '1',
+      enProbeDig         => "100000",
       hitDetected        => '0',
       onlySendFirstHit   => '1',
       cntRst             => '0',
@@ -235,6 +239,8 @@ begin
       -- axiSlaveRegister (axilEp, x"3C", 1, v.invertRck);
       -- axiSlaveRegister (axilEp, x"40", 0, v.txDataBitReverse);
       axiSlaveRegister (axilEp, x"44", 0, v.onlySendFirstHit);
+      axiSlaveRegister (axilEp, x"48", 0, v.probeDigOutDisc);
+      axiSlaveRegister (axilEp, x"4C", 0, v.enProbeDig);
 
       axiSlaveRegister (axilEp, x"F8", 0, v.forceStart);
       axiSlaveRegister (axilEp, x"FC", 0, v.cntRst);
@@ -246,7 +252,7 @@ begin
       -- State Machine      
       case (r.state) is
          ----------------------------------------------------------------------      
-         when IDLE_S =>         
+         when IDLE_S =>
             -- Cache the current probe value
             v.probeCache := probeObData;
 
@@ -300,7 +306,7 @@ begin
                -- Check the counter size
                if (r.cnt = (HDR_SIZE_C-1)) then
                   -- Reset the counter
-                  v.cnt := (others => '0');
+                  v.cnt   := (others => '0');
                   -- Next state
                   v.state := PROBE_CONFIG_S;
                end if;
@@ -322,33 +328,38 @@ begin
 
                   -- Check the pixel range
                   if (r.pixIndex < 5) then  -- Check for PIX[4:0] range
-                     -- EN_dout<0:4> = 0x1 and en_probe_dig<0:4> = EN_dout<0:4>
+                     -- EN_dout<0:4> = 0x1 
                      v.probeIbData(15 downto 11) := "00001";
-                     v.probeIbData(10 downto 6)  := "00001";
 
                   elsif (r.pixIndex < 10) then  -- Check for PIX[9:5] range
-                     -- EN_dout<0:4> = 0x2 and en_probe_dig<0:4> = EN_dout<0:4>
+                     -- EN_dout<0:4> = 0x2 
                      v.probeIbData(15 downto 11) := "00010";
-                     v.probeIbData(10 downto 6)  := "00010";
 
                   elsif (r.pixIndex < 15) then  -- Check for PIX[14:10] range
-                     -- EN_dout<0:4> = 0x4 and en_probe_dig<0:4> = EN_dout<0:4>
+                     -- EN_dout<0:4> = 0x4 
                      v.probeIbData(15 downto 11) := "00100";
-                     v.probeIbData(10 downto 6)  := "00100";
 
                   elsif (r.pixIndex < 20) then  -- Check for PIX[19:15] range
-                     -- EN_dout<0:4> = 0x8 and en_probe_dig<0:4> = EN_dout<0:4>
+                     -- EN_dout<0:4> = 0x8 
                      v.probeIbData(15 downto 11) := "01000";
-                     v.probeIbData(10 downto 6)  := "01000";
 
                   else                  -- Check for PIX[24:20] range
-                     -- EN_dout<0:4> = 0x10 and en_probe_dig<0:4> = EN_dout<0:4>
+                     -- EN_dout<0:4> = 0x10
                      v.probeIbData(15 downto 11) := "10000";
-                     v.probeIbData(10 downto 6)  := "10000";
+                  end if;
+
+                  -- Check if en_probe_dig<0:4> = EN_dout<0:4>
+                  if r.enProbeDig(5) = '1' then
+                     v.probeIbData(10 downto 6) := v.probeIbData(15 downto 11);
+
+                  -- Else controlled by software
+                  else
+                     v.probeIbData(10 downto 6) := v.enProbeDig(4 downto 0);
+
                   end if;
 
                   -- Set probe_dig_out_disc[pixIndex] = 0x1
-                  v.probeIbData(18+(29*conv_integer(r.pixIndex))) := '1';
+                  v.probeIbData(18+(29*conv_integer(r.pixIndex))) := r.probeDigOutDisc;
 
                   -- Set toa_busy[pixIndex] = 0x1
                   v.probeIbData(40+(29*conv_integer(r.pixIndex))) := '1';
@@ -515,7 +526,7 @@ begin
                      v.probeValid  := r.restoreProbeConfig;
                      v.probeIbData := r.probeCache;
                      -- Assert the flag
-                     v.rstbRam := '0';                     
+                     v.rstbRam     := '0';
                      -- Next state
                      v.state       := RST_RAM_S;
                   else
@@ -532,20 +543,20 @@ begin
          ----------------------------------------------------------------------      
          when RST_RAM_S =>
             -- Increment the counter
-            v.cnt     := r.cnt + 1;
+            v.cnt := r.cnt + 1;
             -- Check the counter size
             if (r.cnt = r.rstRamPulseWidth) then
                -- Reset the counter
-               v.cnt   := (others => '0');
+               v.cnt     := (others => '0');
                -- Deassert the flag
-               v.rstbRam := '1';                  
+               v.rstbRam := '1';
                -- Reset the flag
-               v.renable := '0';               
+               v.renable := '0';
                -- Next state
-               v.state := FOOTER_S;
-            end if;                
+               v.state   := FOOTER_S;
+            end if;
          ----------------------------------------------------------------------      
-         when FOOTER_S =>         
+         when FOOTER_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                v.txMaster.tLast              := '1';
@@ -577,20 +588,18 @@ begin
          -- Don't touch register configurations
          v.startPix           := r.startPix;
          v.stopPix            := r.stopPix;
-         v.rdSize             := r.rdSize;
+         v.rstRamPulseWidth   := r.rstRamPulseWidth;
          v.probeToRstDly      := r.probeToRstDly;
          v.rstReadPulseWidth  := r.rstReadPulseWidth;
          v.rstToReadDly       := r.rstToReadDly;
          v.rckHighWidth       := r.rckHighWidth;
          v.rckLowWidth        := r.rckLowWidth;
          v.restoreProbeConfig := r.restoreProbeConfig;
-         v.bitSize            := r.bitSize;
-         v.bitSizeFirst       := r.bitSizeFirst;
-         v.testPattern        := r.testPattern;
          v.sendData           := r.sendData;
          v.enProbeWrite       := r.enProbeWrite;
-         v.invertDout         := r.invertDout;
-         v.invertRck          := r.invertRck;
+         v.onlySendFirstHit   := r.onlySendFirstHit;
+         v.probeDigOutDisc    := r.probeDigOutDisc;
+         v.enProbeDig         := r.enProbeDig;
       end if;
 
       -- Register the variable for next clock cycle

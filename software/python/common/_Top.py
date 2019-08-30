@@ -43,14 +43,12 @@ class Top(pr.Root):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000045
+        self.minFpgaVersion = 0x20000046
         
         # Enable Init after config
         self.InitAfterConfig._default = True        
         
         # Cache the parameters
-        self.refClkSel   = refClkSel
-        self.pllConfig   = pllConfig
         self.advanceUser = advanceUser
         self.configProm  = configProm
         self.ip          = ip
@@ -61,6 +59,20 @@ class Top(pr.Root):
         self.loadYaml    = loadYaml
         self.userYaml    = userYaml
         self.defaultFile = defaultFile
+        
+        # Set the path of the PLL configuration file
+        if (refClkSel=='IntClk'):
+            self.pllConfig = 'config/pll-config/Si5345-RevD-Registers-IntClk.csv'
+        elif (refClkSel=='ExtSmaClk'):
+            self.pllConfig = 'config/pll-config/Si5345-RevD-Registers-ExtSmaClk.csv'
+        elif (refClkSel=='ExtLemoClk'):
+            self.pllConfig = 'config/pll-config/Si5345-RevD-Registers-ExtLemoClk.csv'            
+        else:
+            errMsg = f"""
+                refClkSel argument must be either [IntClk,ExtSmaClk,ExtLemoClk]
+                """
+            click.secho(errMsg, bg='red')
+            raise ValueError(errMsg)        
         
         # File writer
         self.dataWriter = pr.utilities.fileio.StreamWriter()
@@ -167,10 +179,7 @@ class Top(pr.Root):
                     
                 if (self.advanceUser):
                     # Prevent FEB from thermal shutdown until FPGA Tj = 100 degC (max. operating temp)  
-                    self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95)    
-         
-                # Set the PLL reference
-                self.Fpga[i].Asic.Gpio.RefClkSel.setDisp(self.refClkSel[i])
+                    self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95)
                      
                 # Load the PLL configurations
                 self.Fpga[i].Pll.CsvFilePath.set(self.pllConfig)

@@ -258,6 +258,32 @@ class AltirocReadout(pr.Device):
             mode         = 'RW',
         ))         
         
+        self.add(pr.RemoteVariable(
+            name         = 'EnProbeDigOutDisc', 
+            description  = '1: enables the probe_dig_out_disc during the readout FSM',
+            offset       = 0x48,
+            bitSize      = 1, 
+            mode         = 'RW',
+        ))    
+
+        self.add(pr.RemoteVariable(
+            name         = 'EnProbeDigSelect', 
+            description  = '1: selects en_probe_dig=EN_dout, 0: select this to be software control',
+            offset       = 0x4C,
+            bitSize      = 1, 
+            bitOffset    = 5, 
+            mode         = 'RW',
+        ))   
+
+        self.add(pr.RemoteVariable(
+            name         = 'EnProbeDig', 
+            description  = 'software control of en_probe_dig. Requires EnProbeDigSelect to be zero to take affect',
+            offset       = 0x4C,
+            bitSize      = 5, 
+            bitOffset    = 0, 
+            mode         = 'RW',
+        ))           
+        
         self.add(pr.RemoteCommand(   
             name         = 'ForceStart',
             description  = 'Force a start of readout cycle',
