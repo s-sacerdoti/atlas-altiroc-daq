@@ -59,6 +59,7 @@ def convertTBdata(inFiles):
         fpga_channel = dataStream.FPGA_channel
         seq_cnt_list = dataStream.SeqCnt
         trig_cnt_list = dataStream.TrigCnt
+        drop_cnt_list = dataStream.TrigCnt
 
         #auxChList.append(pixelID[0])
 
@@ -86,8 +87,9 @@ def convertTBdata(inFiles):
             fpga_index = fpga_channel[frame_index]
             seqcnt = seq_cnt_list[frame_index]
             trigcnt = trig_cnt_list[frame_index]
+            dropcnt = drop_cnt_list[frame_index]
             
-            output_text_data[fpga_index] += 'frame {} {} {}\n'.format(frame_index,seqcnt,trigcnt)
+            output_text_data[fpga_index] += 'frame {} {} {} {}\n'.format(frame_index,seqcnt,trigcnt,dropcnt)
             for channel in range( len(HitDataTOA[frame_index]) ):
                 toa = HitDataTOA[frame_index][channel]
                 totc = HitDataTOTc[frame_index][channel]

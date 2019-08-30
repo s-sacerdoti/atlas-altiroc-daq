@@ -146,6 +146,7 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
         self.TrigCnt = []
         self.FPGA_channel = []
         self.pixelId = []
+        self.DropCnt = []
 
     def _acceptFrame(self,frame):
         # First it is good practice to hold a lock on the frame data.
@@ -155,6 +156,7 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
             self.FPGA_channel.append( frame.getChannel() )
             self.SeqCnt.append( eventFrame.SeqCnt )
             self.TrigCnt.append( eventFrame.TrigCnt)
+            self.DropCnt.append( eventFrame.footer )
 
             self.pixelId.append([])
             self.HitDataTOA.append([])
