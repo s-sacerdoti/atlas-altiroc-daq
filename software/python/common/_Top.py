@@ -34,7 +34,7 @@ class Top(pr.Root):
             initRead    = True,
             configProm  = False,
             advanceUser = False,
-            refClkSel   = 'IntClk',
+            refClkSel   = ['IntClk','IntClk'],
             pllConfig   = 'config/pll-config/Si5345-RevD-Registers.csv',
             loadYaml    = True,
             userYaml    = [''],
@@ -170,7 +170,7 @@ class Top(pr.Root):
                     self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95)    
          
                 # Set the PLL reference
-                self.Fpga[i].Asic.Gpio.RefClkSel.setDisp(self.refClkSel)
+                self.Fpga[i].Asic.Gpio.RefClkSel.setDisp(self.refClkSel[i])
                      
                 # Load the PLL configurations
                 self.Fpga[i].Pll.CsvFilePath.set(self.pllConfig)
