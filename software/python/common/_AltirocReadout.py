@@ -286,7 +286,7 @@ class AltirocReadout(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'EnProbePa', 
-            description  = '1: enables the probe_dig_out_disc during the readout FSM (1-bit per pixel)',
+            description  = '1: enables the probe_pa during the readout FSM (1-bit per pixel)',
             offset       = 0x50,
             bitSize      = 25,
             mode         = 'RW',
