@@ -155,7 +155,7 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
 
             self.FPGA_channel.append( frame.getChannel() )
             self.SeqCnt.append( eventFrame.SeqCnt )
-            self.TrigCnt.append( eventFrame.TrigCnt)
+            self.TrigCnt.append( eventFrame.TrigCnt )
             self.DropCnt.append( eventFrame.footer )
 
             self.pixelId.append([])

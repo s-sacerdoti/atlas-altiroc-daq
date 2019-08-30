@@ -59,7 +59,7 @@ def convertTBdata(inFiles):
         fpga_channel = dataStream.FPGA_channel
         seq_cnt_list = dataStream.SeqCnt
         trig_cnt_list = dataStream.TrigCnt
-        drop_cnt_list = dataStream.TrigCnt
+        drop_cnt_list = dataStream.DropCnt
 
         #auxChList.append(pixelID[0])
 
