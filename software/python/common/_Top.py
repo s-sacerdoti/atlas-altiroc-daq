@@ -43,7 +43,7 @@ class Top(pr.Root):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000046
+        self.minFpgaVersion = 0x20000047
         
         # Enable Init after config
         self.InitAfterConfig._default = True        
