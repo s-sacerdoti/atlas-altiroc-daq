@@ -30,8 +30,7 @@ class EventValue(object):
   def __init__(self):
      self.FormatVersion     = None
      self.PixReadIteration  = None
-     self.StartPix          = None
-     self.StopPix           = None
+     self.ReadoutSize       = None
      self.SeqCnt            = None
      self.TrigCnt           = None
      self.pixValue          = None
@@ -68,11 +67,10 @@ def ParseFrame(frame):
     eventFrame = EventValue()
     eventFrame.FormatVersion     = (wrdData[0] >>  0) & 0xFFF
     eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
-    eventFrame.StartPix          = (wrdData[0] >> 22) & 0x1F
-    eventFrame.StopPix           = (wrdData[0] >> 27) & 0x1F
+    eventFrame.ReadoutSize       = (wrdData[0] >> 27) & 0x1F
     eventFrame.SeqCnt            = wrdData[1]
     eventFrame.TrigCnt           = wrdData[2]
-    numPixValues = (eventFrame.StopPix-eventFrame.StartPix+1)*(eventFrame.PixReadIteration+1)
+    numPixValues = (eventFrame.ReadoutSize+1)*(eventFrame.PixReadIteration+1)
     eventFrame.pixValue  = [None for i in range(numPixValues)]
     for i in range(numPixValues):
         eventFrame.pixValue[i] = ParseDataWord(wrdData[3+i])
@@ -108,8 +106,7 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                               ', payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
                               ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
                               ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
-                              ', StartPix {:#}'.format(eventFrame.StartPix) +
-                              ', StopPix {:#}'.format(eventFrame.StopPix) + 
+                              ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
                               ', footer 0x{:X}'.format(eventFrame.footer) + 
                               ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
                         print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
