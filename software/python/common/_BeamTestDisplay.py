@@ -1,14 +1,12 @@
 import datetime
+import rogue #NOTE: comment out for testing
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 matplotlib.use('QT5Agg')
 import os
-
-#NOTE: comment out for testing
-import rogue
-import common as feb
+import common as feb #NOTE: comment out for testing
 
 #for testing
 import time
