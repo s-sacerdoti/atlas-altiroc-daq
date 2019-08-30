@@ -25,23 +25,23 @@ class AltirocReadout(pr.Device):
             description = description,
             **kwargs)
             
-        self.add(pr.RemoteVariable(
-            name         = 'StartPix', 
-            description  = 'Starting pixel for readout sequence',
-            offset       = 0x00,
-            bitSize      = 5, 
-            mode         = 'RW',
-            disp         = '{:d}',
-        ))
+        # self.add(pr.RemoteVariable(
+            # name         = 'StartPix', 
+            # description  = 'Starting pixel for readout sequence',
+            # offset       = 0x00,
+            # bitSize      = 5, 
+            # mode         = 'RW',
+            # disp         = '{:d}',
+        # ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'LastPix', 
-            description  = 'Last pixel for readout sequence',
-            offset       = 0x04,
-            bitSize      = 5, 
-            mode         = 'RW',
-            disp         = '{:d}',
-        ))   
+        # self.add(pr.RemoteVariable(
+            # name         = 'LastPix', 
+            # description  = 'Last pixel for readout sequence',
+            # offset       = 0x04,
+            # bitSize      = 5, 
+            # mode         = 'RW',
+            # disp         = '{:d}',
+        # ))   
 
         self.add(pr.RemoteVariable(
             name         = 'RstRamPulseWidth', 
@@ -282,7 +282,37 @@ class AltirocReadout(pr.Device):
             bitSize      = 5, 
             bitOffset    = 0, 
             mode         = 'RW',
-        ))           
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'EnProbePa', 
+            description  = '1: enables the probe_pa during the readout FSM (1-bit per pixel)',
+            offset       = 0x50,
+            bitSize      = 25,
+            mode         = 'RW',
+        ))          
+        
+        for i in range(5):
+            for j in range(5):
+                pixel = 5*i+j
+                self.add(pr.RemoteVariable(
+                    name         = f'RdIndexLut[{pixel}]', 
+                    description  = 'Pixel Readout Index Lookup Table',
+                    offset       = 0xE0 + 4*i,
+                    bitSize      = 5, 
+                    bitOffset    = 5*j, 
+                    mode         = 'RW',
+                    disp         = '{:d}',
+                ))         
+                
+        self.add(pr.RemoteVariable(
+            name         = 'ReadoutSize', 
+            description  = 'Number of pixels to readout (zero inclusive)',
+            offset       = 0xF4,
+            bitSize      = 5, 
+            mode         = 'RW',
+            disp         = '{:d}',
+        ))   
         
         self.add(pr.RemoteCommand(   
             name         = 'ForceStart',

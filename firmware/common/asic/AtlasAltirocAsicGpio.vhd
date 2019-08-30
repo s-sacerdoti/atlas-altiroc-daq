@@ -25,6 +25,7 @@ entity AtlasAltirocAsicGpio is
    generic (
       TPD_G : time := 1 ns);
    port (
+      rst160MHz       : in  sl;
       -- GPIO Ports
       rstbRam         : out sl;               -- RSTB_RAM
       rstCounter      : out sl;               -- RST_COUNTER
@@ -45,37 +46,66 @@ end AtlasAltirocAsicGpio;
 architecture mapping of AtlasAltirocAsicGpio is
 
    type RegType is record
+      cntRst         : sl;
       rstbRam        : sl;
       rstCounter     : sl;
       rstbTdc        : sl;
       rstbDll        : sl;
       dlyCal         : Slv12Array(1 downto 0);
       pllClkSel      : slv(1 downto 0);
+      pllLockCnt     : slv(31 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
    end record;
 
    constant REG_INIT_C : RegType := (
+      cntRst         => '0',
       rstbRam        => '1',
       rstCounter     => '0',
       rstbTdc        => '1',
       rstbDll        => '1',
-      dlyCal         => (0 => (others => '0'), 1 => toSlv(2500,12)),
+      dlyCal         => (0 => (others => '0'), 1 => toSlv(2500, 12)),
       pllClkSel      => (others => '0'),
+      pllLockCnt     => (others => '0'),
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal pllLockDet : sl;
+
 begin
 
-   comb : process (axilReadMaster, axilRst, axilWriteMaster, digProbe, r) is
+   U_strb40MHz : entity work.SynchronizerOneShot
+      generic map (
+         TPD_G         => TPD_G,
+         BYPASS_SYNC_G => true)
+      port map (
+         clk     => axilClk,
+         dataIn  => rst160MHz,
+         dataOut => pllLockDet);
+
+   comb : process (axilReadMaster, axilRst, axilWriteMaster, digProbe,
+                   pllLockDet, r) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
       -- Latch the current value
       v := r;
+
+      -- Reset strobes
+      v.cntRst := '0';
+
+      -- Check for counter reset
+      if r.cntRst = '1' then
+         v.pllLockCnt := (others => '0');
+      end if;
+
+      -- Check for locked event
+      if pllLockDet = '1' then
+         v.pllLockCnt := r.pllLockCnt + 1;
+      end if;
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
@@ -88,6 +118,9 @@ begin
       axiSlaveRegister (axilEp, x"14", 0, v.dlyCal(0));
       axiSlaveRegister (axilEp, x"18", 0, v.dlyCal(1));
       axiSlaveRegister (axilEp, x"1C", 0, v.pllClkSel);
+      axiSlaveRegisterR(axilEp, x"20", 0, r.pllLockCnt);
+
+      axiSlaveRegister (axilEp, x"FC", 0, v.cntRst);
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);

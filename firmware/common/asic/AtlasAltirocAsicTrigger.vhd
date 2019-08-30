@@ -38,6 +38,7 @@ entity AtlasAltirocAsicTrigger is
       -- Readout Interface
       readoutStart    : out sl;
       readoutCnt      : out slv(31 downto 0);
+      dropCnt         : out slv(31 downto 0);
       readoutBusy     : in  sl;
       probeBusy       : in  sl;
       -- Reference Clock/Reset Interface
@@ -86,6 +87,7 @@ architecture rtl of AtlasAltirocAsicTrigger is
       -- Trigger Monitoring
       readoutCnt          : slv(31 downto 0);
       triggerCnt          : slv(31 downto 0);
+      dropCnt             : slv(31 downto 0);
       dropTrigCnt         : Slv32Array(3 downto 0);
       trigCnt             : Slv32Array(3 downto 0);
       -- AXI Lite
@@ -124,6 +126,7 @@ architecture rtl of AtlasAltirocAsicTrigger is
       -- Trigger Monitoring
       readoutCnt          => (others => '0'),
       triggerCnt          => (others => '0'),
+      dropCnt             => (others => '0'),
       dropTrigCnt         => (others => (others => '0')),
       trigCnt             => (others => (others => '0')),
       -- AXI Lite
@@ -279,6 +282,7 @@ begin
          v.trigCnt      := (others => (others => '0'));
          v.trigPauseCnt := (others => '0');
          v.triggerCnt   := (others => '0');
+         v.dropCnt      := (others => '0');
       end if;
 
       -- Update the trigger/readout busy
@@ -305,7 +309,7 @@ begin
       axiSlaveRegisterR(axilEp, x"18", 0, r.trigCnt(2));
       axiSlaveRegisterR(axilEp, x"1C", 0, r.trigCnt(3));
       axiSlaveRegisterR(axilEp, x"20", 0, r.triggerCnt);
-
+      axiSlaveRegisterR(axilEp, x"24", 0, r.dropCnt);
 
       axiSlaveRegister (axilEp, x"40", 0, v.trigMaster);
 
@@ -348,6 +352,7 @@ begin
          if (r.state /= IDLE_S) then
             -- Increment the counter
             v.dropTrigCnt(0) := r.dropTrigCnt(0) + 1;
+            v.dropCnt        := r.dropCnt + 1;
          else
             -- Set the flag
             trigger      := '1';
@@ -362,6 +367,7 @@ begin
          if (r.state /= IDLE_S) then
             -- Increment the counter
             v.dropTrigCnt(1) := r.dropTrigCnt(1) + 1;
+            v.dropCnt        := r.dropCnt + 1;
          else
             -- Set the flag
             trigger      := '1';
@@ -379,6 +385,7 @@ begin
             if (r.state /= IDLE_S) then
                -- Increment the counter
                v.dropTrigCnt(2) := r.dropTrigCnt(2) + 1;
+               v.dropCnt        := r.dropCnt + 1;
             else
                -- Set the flag
                trigger      := '1';
@@ -396,6 +403,7 @@ begin
             if (r.state /= IDLE_S) then
                -- Increment the counter
                v.dropTrigCnt(3) := r.dropTrigCnt(3) + 1;
+               v.dropCnt        := r.dropCnt + 1;
             else
                -- Set the flag
                trigger      := '1';
@@ -512,6 +520,7 @@ begin
       axilReadSlave  <= r.axilReadSlave;
       readoutStart   <= r.readoutStart;
       readoutCnt     <= r.readoutCnt;
+      dropCnt        <= r.dropCnt;
 
       -- Reset
       if (rst160MHz = '1') then

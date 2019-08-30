@@ -87,7 +87,7 @@ Top:
           en_read: 0x1
       ##########################################################################
       Readout:
-        StartPix: 3 # pix=3
-        LastPix: 3 # pix=3
+        ReadoutSize: 1
+        RdIndexLut[0]: 3 # pix=3
         OnlySendFirstHit: 0x1 # Only send the first hit per pixel
       ##########################################################################
