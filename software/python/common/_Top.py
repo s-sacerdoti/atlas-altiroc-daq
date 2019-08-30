@@ -155,6 +155,9 @@ class Top(pr.Root):
             # Loop through FPGA devices
             for i in range(self.numEthDev):
             
+                # Disable auto-polling during PLL config
+                self.Fpga[i].Asic.enable.set(False)
+                
                 # Check for min. FW version
                 fwVersion = self.Fpga[i].AxiVersion.FpgaVersion.get()
                 if (fwVersion < self.minFpgaVersion):
@@ -183,14 +186,12 @@ class Top(pr.Root):
                      
                 # Load the PLL configurations
                 self.Fpga[i].Pll.CsvFilePath.set(self.pllConfig)
+                self.Fpga[i].Pll.LoadCsvFile()
+                self.Fpga[i].Pll.Locked.get()
                 
-                # Check if not locked
-                if (not self.Fpga[i].Pll.Locked.get()):
-                    self.Fpga[i].Pll.LoadCsvFile()
-                                        
             # Wait for the SiLab PLL to lock
             print ('Waiting for SiLab PLLs to lock')
-            time.sleep(1.0)
+            time.sleep(10.0)
             
             # Loop through the devices
             for i in range(self.numEthDev):             
@@ -201,7 +202,7 @@ class Top(pr.Root):
                     else:
                         retry = retry + 1
                         self.Fpga[i].Pll.LoadCsvFile() 
-                        time.sleep(5.0)          
+                        time.sleep(10.0)          
                         
                 # Print the results
                 if (retry<2):
@@ -230,6 +231,9 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.Trig.enable.hidden     = False
                 self.Fpga[i].Asic.Probe.enable.hidden    = False
                 self.Fpga[i].Asic.Readout.enable.hidden  = False
+                
+                # Disable auto-polling during PLL config
+                self.Fpga[i].Asic.enable.set(True)                
                 
             # Check if we are loading YAML files
             if self.loadYaml:
