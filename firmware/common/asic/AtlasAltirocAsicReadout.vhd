@@ -79,6 +79,7 @@ architecture rtl of AtlasAltirocAsicReadout is
       FOOTER_S);
 
    type RegType is record
+      probePa            : slv(31 downto 0);
       probeDigOutDisc    : sl;
       enProbeDig         : slv(5 downto 0);
       hitDetected        : sl;
@@ -124,6 +125,7 @@ architecture rtl of AtlasAltirocAsicReadout is
       state              : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      probePa            => (others => '0'),
       probeDigOutDisc    => '1',
       enProbeDig         => "100000",
       hitDetected        => '0',
@@ -193,12 +195,14 @@ begin
       variable v       : RegType;
       variable axilEp  : AxiLiteEndPointType;
       variable stopPix : slv(4 downto 0);
+      variable pixIdx  : natural;
    begin
       -- Latch the current value
       v := r;
 
       -- Update local variables (in used in cased changed during readout)
       stopPix := r.header(0)(31 downto 27);
+      pixIdx  := conv_integer(r.pixIndex);
 
       -- Reset strobes
       v.probeValid := '0';
@@ -241,6 +245,7 @@ begin
       axiSlaveRegister (axilEp, x"44", 0, v.onlySendFirstHit);
       axiSlaveRegister (axilEp, x"48", 0, v.probeDigOutDisc);
       axiSlaveRegister (axilEp, x"4C", 0, v.enProbeDig);
+      axiSlaveRegister (axilEp, x"50", 0, v.probePa);
 
       axiSlaveRegister (axilEp, x"F8", 0, v.forceStart);
       axiSlaveRegister (axilEp, x"FC", 0, v.cntRst);
@@ -348,24 +353,30 @@ begin
                      v.probeIbData(15 downto 11) := "10000";
                   end if;
 
-                  -- Check if en_probe_dig<0:4> = EN_dout<0:4>
-                  if r.enProbeDig(5) = '1' then
+                  -- Check the mode
+                  if r.enProbeDig(5) = '1' then  -- controlled by firmware
+
+                     -- en_probe_dig<0:4> = EN_dout<0:4>
                      v.probeIbData(10 downto 6) := v.probeIbData(15 downto 11);
 
-                  -- Else controlled by software
-                  else
-                     v.probeIbData(10 downto 6) := v.enProbeDig(4 downto 0);
+                  else                  -- controlled by Software
+
+                     -- en_probe_dig<0:4> = software value
+                     v.probeIbData(10 downto 6) := r.enProbeDig(4 downto 0);
 
                   end if;
 
-                  -- Set probe_dig_out_disc[pixIndex] = 0x1
-                  v.probeIbData(18+(29*conv_integer(r.pixIndex))) := r.probeDigOutDisc;
+                  -- Set probe_pa[pixIndex] = probePa(pixIdx) register
+                  v.probeIbData(16+(29*pixIdx)) := r.probePa(pixIdx);
+
+                  -- Set probe_dig_out_disc[pixIndex] = probeDigOutDisc register
+                  v.probeIbData(18+(29*pixIdx)) := r.probeDigOutDisc;
 
                   -- Set toa_busy[pixIndex] = 0x1
-                  v.probeIbData(40+(29*conv_integer(r.pixIndex))) := '1';
+                  v.probeIbData(40+(29*pixIdx)) := '1';
 
                   -- Set en_read[pixIndex] = 0x1
-                  v.probeIbData(44+(29*conv_integer(r.pixIndex))) := '1';
+                  v.probeIbData(44+(29*pixIdx)) := '1';
 
                   -- Increment the counter
                   v.cnt := r.cnt + 1;
@@ -600,6 +611,7 @@ begin
          v.onlySendFirstHit   := r.onlySendFirstHit;
          v.probeDigOutDisc    := r.probeDigOutDisc;
          v.enProbeDig         := r.enProbeDig;
+         v.probePa            := r.probePa;
       end if;
 
       -- Register the variable for next clock cycle
