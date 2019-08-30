@@ -34,7 +34,7 @@ class Top(pr.Root):
             initRead    = True,
             configProm  = False,
             advanceUser = False,
-            refClkSel   = ['IntClk','IntClk'],
+            refClkSel   = 'IntClk',
             pllConfig   = 'config/pll-config/Si5345-RevD-Registers.csv',
             loadYaml    = True,
             userYaml    = [''],
