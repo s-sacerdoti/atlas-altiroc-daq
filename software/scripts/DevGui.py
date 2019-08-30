@@ -99,9 +99,8 @@ parser.add_argument(
 parser.add_argument(
     "--refClkSel",
     type     = str,
-    nargs     = '+',
     required = False,
-    default  = ['IntClk','IntClk'],
+    default  = 'IntClk',
     help     = "Selects the reference input clock for the jitter cleaner \
                 PLL: IntClk = on-board OSC, ExtSmaClk = 50 Ohm SMA Clock, ExtLemoClk = 100Ohm diff pair Clock",
 )
