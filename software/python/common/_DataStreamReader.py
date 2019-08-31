@@ -63,6 +63,7 @@ def ParseFrame(frame):
     # Fill an array of 32-bit formatted word
     wrdData = [None for i in range(3+512*32+1)]
     wrdData = np.frombuffer(fullData, dtype='uint32', count=(size>>2))
+    print(wrdData)
     
     # Parse the data and data to data frame
     eventFrame = EventValue()
@@ -149,6 +150,11 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
 
     def _acceptFrame(self,frame):
         # First it is good practice to hold a lock on the frame data.
+        print()
+        print('+-------------------------------------------------+')
+        print('|                  NEW FRAME                      |')
+        print('+-------------------------------------------------+')
+        print()
         with frame.lock():
             eventFrame = ParseFrame(frame)
 
@@ -176,38 +182,6 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
                     HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
                     self.HitDataTOTf_vpa[-1].append(HitDataTOTf_vpa_temp)
                     self.HitDataTOTc_vpa[-1].append(HitDataTOTc_vpa_temp)
-
-            #frame debugging
-            print()
-            print('+-------------------------------------------------+')
-            print('|                  NEW FRAME                      |')
-            print('+-------------------------------------------------+')
-            print()
-            size = frame.getPayload()
-            fullData = bytearray(size)
-            frame.read(fullData,0)
-            wrdData = [None for i in range(3+512*32+1)]
-            wrdData = np.frombuffer(fullData, dtype='uint32', count=(size>>2))
-            print(wrdData)
-            FormatVersion     = (wrdData[0] >>  0) & 0xFFF
-            PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
-            StartPix          = (wrdData[0] >> 22) & 0x1F
-            StopPix           = (wrdData[0] >> 27) & 0x1F
-            SeqCnt            = wrdData[1]
-            TrigCnt           = wrdData[2]
-
-            numPixValues = (StopPix-StartPix+1)*(PixReadIteration+1)
-            for i in range(numPixValues):
-                dataWord = wrdData[3+i]
-                PixelIndex  = (dataWord >> 24) & 0x1F
-                TotOverflow = (dataWord >> 20) & 0x1
-                TotData     = (dataWord >> 11) & 0x1FF
-                ToaOverflow = (dataWord >> 10) & 0x1
-                ToaData     = (dataWord >>  3) & 0x7F
-                Hit         = (dataWord >>  2) & 0x1
-                Sof         = (dataWord >>  0) & 0x3
-            eventFrame.footer = wrdData[numPixValues+3]
-
 
 #################################################################
 
