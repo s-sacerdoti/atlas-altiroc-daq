@@ -9,13 +9,13 @@ Top:
         DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
         DlyCalPulseReset: 0 # Falling edge of EXT_TRIG
       Trig:
-        TrigTypeSel: Master
+        TrigTypeSel: Slave        
         CalStrobeAlign: 0x3      # Same as calibration pulse testing
         TrigStrobeAlign: 0x3     # Sets 6.25 ns trigger window w.r.t to 40 MHz clock  (might need tuning for the real system)
         EnCalPulseTrig: 0x0      # Disable calibration pulse
         EnBncExtTrig: 0x0        # Disable BNC external trigger
         EnPcieLocalTrig: 0x1     # Enable the local TOA_BUSY trigger
-        EnLemoRemoteTrig: 0x0    # Enable the remote TOA_BUSY trigger   
+        EnLemoRemoteTrig: 0x1    # Enable the remote TOA_BUSY trigger   
         MasterModeSel: OR        # Either OR or AND the TOA_BUSY triggers together (inverted to active HIGH logic in FW)
         ReadoutStartDly: 128     # Units of 6.4ns (might need tuning for the real system)
         TrigSizeBeforePause: 0x0 # number of triggers before o-scope deadtime (zero bypass deadtime
@@ -31,39 +31,20 @@ Top:
       ##########################################################################
       SlowControl:
         ########################
-        #general settings -> all on
-        EN_ck_SRAM[:]: 0x1
+        #general settings ->all ch off
+        EN_ck_SRAM[:]: 0x0
         ON_Ctest[:]: 0x0
-        disable_pa[:]: 0x0
-        ON_discri[:]: 0x1
+        disable_pa[:]: 0x1
+        ON_discri[:]: 0x0
+        
+        ###################
+        #turn on single ch
+        EN_ck_SRAM[8]: 0x0
+        disable_pa[8]: 0x1
+        ON_discri[8]: 0x0
+        ###################
+
         bit_vth_cor[:]: 0x40
-       
-        ###################
-        #turn off broken channels
-        EN_ck_SRAM[0:5]: 0x0 
-        EN_ck_SRAM[9]: 0x0 
-        EN_ck_SRAM[11]: 0x0 
-
-        disable_pa[0:5]: 0x1 
-        disable_pa[9]: 0x1 
-        disable_pa[11]: 0x1 
-
-        ON_discri[0:5]: 0x0 
-        ON_discri[9]: 0x0 
-        ON_discri[11]: 0x0 
-        ###################
-        ##set correct vth correction
-        bit_vth_cor[5]: 45
-        bit_vth_cor[6]: 45
-        bit_vth_cor[7]: 75
-        bit_vth_cor[8]: 90
-        bit_vth_cor[10]: 35
-        bit_vth_cor[12]: 85
-        bit_vth_cor[13]: 75
-        bit_vth_cor[14]: 65
-
-        ###################
-
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
         cBit_f_TOA[:]: 0x0        
@@ -103,7 +84,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 485 #average
+        DAC10bit: 520 #for ch8
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -116,17 +97,8 @@ Top:
 
       ##########################################################################
       Readout:
-        ReadoutSize: 8
-        RdIndexLut[0]: 5
-        RdIndexLut[1]: 6
-        RdIndexLut[2]: 7
-        RdIndexLut[3]: 8
-        RdIndexLut[4]: 10
-        RdIndexLut[5]: 12
-        RdIndexLut[6]: 13
-        RdIndexLut[7]: 14
-
-
+        StartPix: 8
+        LastPix: 8
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
