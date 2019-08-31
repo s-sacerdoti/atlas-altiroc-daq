@@ -40,9 +40,9 @@ Top:
         
         ###################
         #turn on one channel
-        EN_ck_SRAM[8]: 0x0
-        disable_pa[8]: 0x1
-        ON_discri[8]: 0x0
+        EN_ck_SRAM[8]: 0x1
+        disable_pa[8]: 0x0
+        ON_discri[8]: 0x1
         ###################
 
         EN_hyst[:]: 0x1

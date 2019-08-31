@@ -23,6 +23,8 @@ def parse_arguments():
     argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
     
     parser.add_argument("--infile", nargs ='+',required = True, help = "input files")
+    parser.add_argument("--boards", nargs ='+', required = True, help = "Which ASIC Board(s) was used in this test")
+    parser.add_argument("--suffix",default=None, required = False, help = "additional suffix to be added to file name")
 
     # Get the arguments
     args = parser.parse_args()
@@ -34,6 +36,17 @@ def convertTBdata(inFiles):
     auxChList = []
     for inFile in inFiles:
         print("Opening file "+inFile)
+        number_of_fpgas = len(args.boards)
+
+        #name output equal to input
+        output_files = []
+        for fpga_index in range(number_of_fpgas):
+            inFile_base = inFile[:inFile.find('.dat')]
+            outFile_base = inFile_base+'_asicB'+str(args.boards[fpga_index])
+            if args.suffix != None: outFile_base += '_'+args.suffix
+            outFile_base += '.txt'
+            output_files.append(outFile_base)
+
 
         # Create the File reader streaming interface
         dataReader = rogue.utilities.fileio.StreamReader()
@@ -67,17 +80,6 @@ def convertTBdata(inFiles):
         cntTOT = len(HitDataTOTc)
 
         number_of_fpgas = 2
-
-        #name output equal to input
-        output_files = []
-        for fpga_index in range(number_of_fpgas):
-            outFile_base = inFile[:inFile.find('.dat')]+'_fpga'+str(fpga_index)
-            if os.path.exists(outFile_base+'.txt'):
-                ts = str(int(time.time()))
-                outFile_base += '_' + ts
-                print('File exists, will be saved as '+outFile_base+'.txt')
-            outFile = outFile_base + '.txt'
-            output_files.append(outFile)
 
         frames_since_last_write = 0
         output_text_data = ['']*number_of_fpgas
