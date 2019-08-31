@@ -31,7 +31,7 @@ def runLiveDisplay(event_display,fpga_index):
         time.sleep(Live_display_interval)
 #################################################################
 
-def resync_sequence_counter(top):
+def poke_top(top):
     while(True):
         readout0 = top.Fpga[0].Asic.Readout
         readout1 = top.Fpga[1].Asic.Readout
@@ -178,7 +178,8 @@ if args.liveDisplay:
 top.add_live_display_resets(live_display_resets)
 
 if len( args.ip ) == 2 and args.forceSeqResync:
-    resync_thread = threading.Thread( target=resync_sequence_counter, args=(top) )
+    poke_thread = threading.Thread( target=poke_top, args=(top) )
+
 
 # Create GUI
 appTop = pr.gui.application(sys.argv)

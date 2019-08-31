@@ -154,6 +154,7 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
             self.SeqCnt.append( eventFrame.SeqCnt )
             self.TrigCnt.append( eventFrame.TrigCnt )
             self.DropCnt.append( eventFrame.footer )
+            #print( eventFrame.footer )
 
             self.pixelId.append([])
             self.HitDataTOA.append([])
@@ -164,6 +165,27 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
 
             for channel in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[channel]
+                if frame.getChannel() == 1 and dat.PixelIndex == 8 and dat.Hit == 0: 
+                    print('FPGA {:#}'.format( frame.getChannel() ) +
+                          ', payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
+                          ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
+                          ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
+                          ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
+                          ', footer 0x{:X}'.format(eventFrame.footer) + 
+                          ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
+                    print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof | TotData_c | TotData_f') 
+                    print(' {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}| {:>#9}| {:>#9}'.format(
+                        dat.PixelIndex,
+                        dat.TotOverflow,
+                        dat.TotData,
+                        dat.ToaOverflow,
+                        dat.ToaData,
+                        dat.Hit,
+                        dat.Sof,
+                        (dat.TotData >>  2) & 0x7F,
+                        (dat.TotData & 0x3)) 
+                    )
+
                 if (dat.Hit > 0):
                     self.TOAOvflow[-1].append(dat.ToaOverflow)
                     self.TOTOvflow[-1].append(dat.TotOverflow)
