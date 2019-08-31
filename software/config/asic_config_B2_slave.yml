@@ -31,11 +31,11 @@ Top:
       ##########################################################################
       SlowControl:
         ########################
-        #general settings
-        EN_ck_SRAM[:]: 0x1
+        #general settings ->all off for trigger test
+        EN_ck_SRAM[:]: 0x0
         ON_Ctest[:]: 0x0
-        disable_pa[:]: 0x0
-        ON_discri[:]: 0x1
+        disable_pa[:]: 0x1
+        ON_discri[:]: 0x0
         
         ###################
         #turn off broken channels
