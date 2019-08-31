@@ -93,7 +93,7 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
             self.file   = [None for i in range(2)]
             self.writer = [None for i in range(2)]
             for i in range(2):
-                self.file[i]   = open(f'fpag{i}.csv', 'w', newline='') 
+                self.file[i]   = open(f'fpga{i}.csv', 'w', newline='') 
                 self.writer[i] = csv.writer(self.file[i])
                 self.writer[i].writerow([
                     'SeqCnt',       # 0 = SeqCnt

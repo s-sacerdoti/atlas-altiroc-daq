@@ -12,6 +12,7 @@
 import pyrogue as pr
 
 import common
+import click
 
 class AltirocReadout(pr.Device):
     def __init__(   
@@ -323,10 +324,16 @@ class AltirocReadout(pr.Device):
         ))
         
         self.add(pr.RemoteCommand(   
-            name         = 'SeqCntRst',
+            name         = 'SeqCntReset',
             description  = 'Resets the sequence counter',
             offset       = 0xFC,
             bitSize      = 1,
-            function     = pr.BaseCommand.touchOne
+            function     = pr.BaseCommand.touchOne,
+            hidden       = True,
         ))        
+        
+        @self.command()
+        def SeqCntRst():   
+            click.secho(f'{self.path}.SeqCntRst()', bg='cyan')
+            self.SeqCntReset()
         

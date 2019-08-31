@@ -43,7 +43,7 @@ class Top(pr.Root):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000048
+        self.minFpgaVersion = 0x20000049
         
         # Enable Init after config
         self.InitAfterConfig._default = True        
@@ -131,6 +131,39 @@ class Top(pr.Root):
             print('LiveDisplayReset()')
             self.LiveDisplayRst.set(1)
             self.LiveDisplayRst.set(0)
+        
+        @self.command(description='This command is intended to be executed before self.dataWriter is closed')
+        def StopRun(arg):  
+            click.secho('StopRun()', bg='yellow')
+
+            # Stop the Master First
+            for i in range(self.numEthDev):
+                if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Master':
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x0)
+                    
+            # Stop the Slave after the Master
+            for i in range(self.numEthDev):
+                if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Slave':
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x0)  
+
+        @self.command(description='This command is intended to be executed after self.dataWriter is opened')
+        def StartRun(arg):  
+            click.secho('StartRun()', bg='blue')
+            
+            # Reset the sequence and trigger counters
+            for i in range(self.numEthDev):
+                self.Fpga[i].Asic.Trig.countReset()
+                self.Fpga[i].Asic.Readout.SeqCntRst()                    
+            
+            # Start the Slave First
+            for i in range(self.numEthDev):
+                if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Slave':
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)
+                    
+            # Start the Master after the Slave
+            for i in range(self.numEthDev):
+                if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Master':
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)        
             
         ######################################################################
         
@@ -272,6 +305,5 @@ class Top(pr.Root):
             self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x1)
             
             # Reset the sequence and trigger counters
-            self.Fpga[i].Asic.Trig.CountReset()
+            self.Fpga[i].Asic.Trig.countReset()
             self.Fpga[i].Asic.Readout.SeqCntRst()
-            

@@ -12,6 +12,7 @@
 import pyrogue as pr
 
 import common
+import click
 
 class AltirocTrig(pr.Device):
     def __init__(   
@@ -319,7 +320,8 @@ class AltirocTrig(pr.Device):
             bitSize      = 1,
             function     = pr.BaseCommand.touchOne
         ))        
-        
+    
     def countReset(self):
+        click.secho(f'{self.path}.countReset()', bg='cyan')
         self.CountReset()
         
