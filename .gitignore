@@ -18,6 +18,7 @@
 *.save
 data*
 *.dat
+*.csv
 
 # OS files
 .DS_Store

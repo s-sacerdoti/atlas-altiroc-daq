@@ -13,6 +13,8 @@ import rogue.utilities.fileio
 import statistics
 import math
 import matplotlib.pyplot as plt
+import csv
+import click
 
 #################################################################
 
@@ -34,7 +36,7 @@ class EventValue(object):
      self.SeqCnt            = None
      self.TrigCnt           = None
      self.pixValue          = None
-     self.footer            = None
+     self.dropTrigCnt       = None
 
 def ParseDataWord(dataWord):
     #Parse the 32-bit word
@@ -74,7 +76,7 @@ def ParseFrame(frame):
     eventFrame.pixValue  = [None for i in range(numPixValues)]
     for i in range(numPixValues):
         eventFrame.pixValue[i] = ParseDataWord(wrdData[3+i])
-    eventFrame.footer = wrdData[numPixValues+3]
+    eventFrame.dropTrigCnt = wrdData[numPixValues+3]
 
     return eventFrame
 
@@ -83,10 +85,29 @@ def ParseFrame(frame):
 # Class for printing out events
 class PrintEventReader(rogue.interfaces.stream.Slave):
     # Init method must call the parent class init
-    def __init__(self):
+    def __init__(self, cvsDump=False):
         super().__init__()
-        self.count = 0
-
+        self.count   = 0
+        self.cvsDump = cvsDump
+        if cvsDump:
+            self.file   = [None for i in range(2)]
+            self.writer = [None for i in range(2)]
+            for i in range(2):
+                self.file[i]   = open(f'fpag{i}.csv', 'w', newline='') 
+                self.writer[i] = csv.writer(self.file[i])
+                self.writer[i].writerow([
+                    'SeqCnt',       # 0 = SeqCnt
+                    'TrigCnt',      # 1 = TrigCnt
+                    'DropTrigCnt',  # 2 = DropTrigCnt
+                    'pixIndex',     # 3 = pixIndex
+                    'TotOverflow',  # 4 = TotOverflow
+                    'TotData',      # 5 = TotData
+                    'ToaOverflow',  # 6 = ToaOverflow
+                    'ToaData',      # 7 = ToaData
+                    'Hit',          # 8 = Hit
+                    'Sof',          # 9 = Sof
+                ])
+                
     # Method which is called when a frame is received
     def _acceptFrame(self,frame):
 
@@ -99,6 +120,7 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
             for i in range( len(eventFrame.pixValue) ):
                 pixel = eventFrame.pixValue[i]
                 pixIndex = pixel.PixelIndex
+                
                 #if pixel.ToaOverflow != 1: #make sure this pixel is worth printing
                 if (pixel.Hit != 0) and (pixel.ToaData != 0x7F): #make sure this pixel is worth printing
                     if header_still_needs_to_be_printed: #print the header only once per pixel
@@ -107,7 +129,7 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                               ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
                               ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
                               ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
-                              ', footer 0x{:X}'.format(eventFrame.footer) + 
+                              ', DropTrigCnt 0x{:X}'.format(eventFrame.dropTrigCnt) + 
                               ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
                         print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
                         header_still_needs_to_be_printed = False
@@ -121,6 +143,22 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                         pixel.Hit,
                         pixel.Sof)
                     )
+                    
+                # Check if dumping to .CVS file
+                if self.cvsDump:
+                    self.writer[frame.getChannel()].writerow([
+                        eventFrame.SeqCnt,     # 0 = SeqCnt
+                        eventFrame.TrigCnt,    # 1 = TrigCnt
+                        eventFrame.dropTrigCnt,# 2 = DropTrigCnt
+                        pixIndex,           # 3 = pixIndex
+                        pixel.TotOverflow,  # 4 = TotOverflow
+                        pixel.TotData,      # 5 = TotData
+                        pixel.ToaOverflow,  # 6 = ToaOverflow
+                        pixel.ToaData,      # 7 = ToaData
+                        pixel.Hit,          # 8 = Hit
+                        pixel.Sof,          # 9 = Sof
+                    ])                
+                        
             self.count += 1
 #################################################################
 
