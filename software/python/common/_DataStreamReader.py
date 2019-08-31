@@ -32,6 +32,8 @@ class EventValue(object):
     def __init__(self):
         self.FormatVersion     = None
         self.PixReadIteration  = None
+        self.StartPix          = None
+        self.StopPix           = None
         self.ReadoutSize       = None
         self.SeqCnt            = None
         self.TrigCnt           = None
@@ -54,10 +56,25 @@ def ParseDataWord(dataWord):
     return PixValue(PixelIndex, TotOverflow, TotData, ToaOverflow, ToaData, Hit, Sof)
 
 def ParsePayloadFormatV1(eventFrame, wrdData):
-    eventFrame.FormatVersion     = (wrdData[0] >>  0) & 0xFFF
     eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
     eventFrame.StartPix          = (wrdData[0] >> 22) & 0x1F
     eventFrame.StopPix           = (wrdData[0] >> 27) & 0x1F
+    eventFrame.ReadoutSize       = -1
+    eventFrame.SeqCnt            = wrdData[1]
+    eventFrame.TrigCnt           = -1
+    eventFrame.Timestamp         = -1
+    numPixValues = (eventFrame.StopPix-eventFrame.StartPix+1)*(eventFrame.PixReadIteration+1)
+    eventFrame.pixValue  = [None for i in range(numPixValues)]
+    for i in range(numPixValues):
+        eventFrame.pixValue[i] = ParseDataWord(wrdData[2+i])
+    eventFrame.dropTrigCnt = -1
+    eventFrame.footer = wrdData[numPixValues+2]
+
+def ParsePayloadFormatV2(eventFrame, wrdData):
+    eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
+    eventFrame.StartPix          = (wrdData[0] >> 22) & 0x1F
+    eventFrame.StopPix           = (wrdData[0] >> 27) & 0x1F
+    eventFrame.ReadoutSize       = -1
     eventFrame.SeqCnt            = wrdData[1]
     eventFrame.TrigCnt           = wrdData[2]
     eventFrame.Timestamp         = -1
@@ -68,9 +85,10 @@ def ParsePayloadFormatV1(eventFrame, wrdData):
     eventFrame.dropTrigCnt = -1
     eventFrame.footer = wrdData[numPixValues+3]
 
-def ParsePayloadFormatV2(eventFrame, wrdData):
-    eventFrame.FormatVersion     = (wrdData[0] >>  0) & 0xFFF
+def ParsePayloadFormatV3(eventFrame, wrdData):
     eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
+    eventFrame.StartPix          = -1
+    eventFrame.StopPix           = -1
     eventFrame.ReadoutSize       = (wrdData[0] >> 27) & 0x1F
     eventFrame.SeqCnt            = wrdData[1]
     eventFrame.TrigCnt           = wrdData[2]
@@ -82,8 +100,10 @@ def ParsePayloadFormatV2(eventFrame, wrdData):
     eventFrame.dropTrigCnt = wrdData[numPixValues+3]
     eventFrame.footer = -1
 
-def ParsePayloadFormatV3(eventFrame, wrdData):
+def ParsePayloadFormatV4(eventFrame, wrdData):
     eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
+    eventFrame.StartPix          = -1
+    eventFrame.StopPix           = -1
     eventFrame.ReadoutSize       = (wrdData[0] >> 27) & 0x1F
     eventFrame.SeqCnt            = wrdData[1]
     eventFrame.TrigCnt           = wrdData[2]
@@ -116,6 +136,7 @@ def ParseFrame(frame):
     if eventFrame.FormatVersion = 1: ParsePayloadFormatV1(eventFrame, wrdData)
     elif eventFrame.FormatVersion = 2: ParsePayloadFormatV2(eventFrame, wrdData)
     elif eventFrame.FormatVersion = 3: ParsePayloadFormatV3(eventFrame, wrdData)
+    elif eventFrame.FormatVersion = 4: ParsePayloadFormatV4(eventFrame, wrdData)
     else:
         print('Unsupported Frame Payload Format Version. Aborting!')
         exit(1)
