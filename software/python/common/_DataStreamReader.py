@@ -13,7 +13,6 @@ import rogue.utilities.fileio
 import statistics
 import math
 import matplotlib.pyplot as plt
-
 #################################################################
 
 class PixValue(object):
