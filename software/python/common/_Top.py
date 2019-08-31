@@ -140,11 +140,13 @@ class Top(pr.Root):
             for i in range(self.numEthDev):
                 if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Master':
                     self.Fpga[i].Asic.Trig.EnableReadout.set(0x0)
+                    click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x0)', bg='bright_magenta')
                     
             # Stop the Slave after the Master
             for i in range(self.numEthDev):
                 if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Slave':
-                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x0)  
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x0)
+                    click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x0)', bg='magenta')
 
         @self.command(description='This command is intended to be executed after self.dataWriter is opened')
         def StartRun(arg):  
@@ -159,11 +161,13 @@ class Top(pr.Root):
             for i in range(self.numEthDev):
                 if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Slave':
                     self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)
+                    click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x1)', bg='magenta')
                     
             # Start the Master after the Slave
             for i in range(self.numEthDev):
                 if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Master':
-                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)        
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)
+                    click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x1)', bg='bright_magenta')
             
         ######################################################################
         

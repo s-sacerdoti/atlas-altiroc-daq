@@ -73,7 +73,7 @@ def ParseFrame(frame):
     eventFrame.ReadoutSize       = (wrdData[0] >> 27) & 0x1F
     eventFrame.SeqCnt            = wrdData[1]
     eventFrame.TrigCnt           = wrdData[2]
-    eventFrame.Timestamp         = (np.uint64(wrdData[4]) << 32) | (np.uint64(wrdData[3]) << 0)
+    eventFrame.Timestamp         = (wrdData[4] << 32) | (wrdData[3] << 0)
     numPixValues = (eventFrame.ReadoutSize+1)*(eventFrame.PixReadIteration+1)
     eventFrame.pixValue  = [None for i in range(numPixValues)]
     for i in range(numPixValues):
@@ -133,7 +133,8 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                               ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
                               ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
                               ', DropTrigCnt 0x{:X}'.format(eventFrame.dropTrigCnt) + 
-                              ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
+                              ', SeqCnt {:#}'.format(eventFrame.SeqCnt) +
+                              ', Timestamp {:#}'.format( eventFrame.Timestamp ) )
                         print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
                         header_still_needs_to_be_printed = False
 
@@ -150,7 +151,7 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                 # Check if dumping to .CVS file
                 if self.cvsDump:
                     self.writer[frame.getChannel()].writerow([
-                        '{:#}'.format(eventFrame.Timestamp),  # 0 = Timestamp
+                        '0x%016X'%eventFrame.Timestamp,  # 0 = Timestamp
                         eventFrame.SeqCnt,     # 1 = SeqCnt
                         eventFrame.TrigCnt,    # 2 = TrigCnt
                         eventFrame.dropTrigCnt,# 3 = DropTrigCnt
