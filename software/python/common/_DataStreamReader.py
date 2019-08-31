@@ -190,8 +190,8 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
             self.FPGA_channel.append( frame.getChannel() )
             self.SeqCnt.append( eventFrame.SeqCnt )
             self.TrigCnt.append( eventFrame.TrigCnt )
-            self.DropCnt.append( eventFrame.footer )
-            #print( eventFrame.footer )
+            self.DropCnt.append( eventFrame.dropTrigCnt)
+            #print( eventFrame.dropTrigCnt )
 
             self.pixelId.append([])
             self.HitDataTOA.append([])
@@ -208,7 +208,7 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
                           ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
                           ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
                           ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
-                          ', footer 0x{:X}'.format(eventFrame.footer) + 
+                          ', dropTrigCnt 0x{:X}'.format(eventFrame.dropTrigCnt) + 
                           ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
                     print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof | TotData_c | TotData_f') 
                     print(' {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}| {:>#9}| {:>#9}'.format(
