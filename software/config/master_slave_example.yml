@@ -1,0 +1,31 @@
+Top:
+  ##########################################################################
+  Fpga[:]: # Common configurations for both master/slave FPGAs
+  ##########################################################################
+    Asic:
+      Trig:
+
+        CalStrobeAlign: 0x3      # Same as calibration pulse testing
+        TrigStrobeAlign: 0x3     # Sets 6.25 ns trigger window w.r.t to 40 MHz clock  (might need tuning for the real system)
+        EnCalPulseTrig: 0x0      # Disable calibration pulse
+        EnBncExtTrig: 0x0        # Disable BNC external trigger
+        EnPcieLocalTrig: 0x1     # Enable the local TOA_BUSY trigger
+        EnLemoRemoteTrig: 0x1    # Enable the remote TOA_BUSY trigger   
+        MasterModeSel: OR        # Either OR or AND the TOA_BUSY triggers together (inverted to active HIGH logic in FW)
+        ReadoutStartDly: 128     # Units of 6.4ns (might need tuning for the real system)
+        TrigSizeBeforePause: 0x0 # number of triggers before o-scope deadtime (zero bypass deadtime
+        DeadtimeDuration: 0x0    # number of seconds to hold off readout until o-scope recovers
+        EnableReadout: 0x0       # prevents either o-scope or dataStream from receiving data until enabled
+  ##########################################################################
+  Fpga[0]: # Set FPGA[0] has the trigger Master
+  ##########################################################################
+    Asic:
+      Trig:
+        TrigTypeSel: Master
+  ##########################################################################
+  Fpga[1]: # Set FPGA[1] has the trigger Slave
+  ##########################################################################
+    Asic:
+      Trig:
+        TrigTypeSel: Slave        
+  ##########################################################################

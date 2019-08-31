@@ -1,0 +1,5 @@
+Top:
+  Fpga[:]:
+    Asic:
+      Trig:
+        EnableReadout: 0x0 #enable readout for all FPGAs at the same time

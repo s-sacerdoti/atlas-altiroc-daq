@@ -122,7 +122,8 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                 pixIndex = pixel.PixelIndex
                 
                 #if pixel.ToaOverflow != 1: #make sure this pixel is worth printing
-                if (pixel.Hit != 0) and (pixel.ToaData != 0x7F): #make sure this pixel is worth printing
+                #if (pixel.Hit != 0) and (pixel.ToaData != 0x7F) : #make sure this pixel is worth printing
+                if (pixel.Hit != 0) and ((pixel.ToaData != 0x7F) or (pixel.TotData !=0)): #make sure this pixel is worth printing
                     if header_still_needs_to_be_printed: #print the header only once per pixel
                         print('FPGA {:#}'.format( frame.getChannel() ) +
                               ', payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
@@ -131,17 +132,19 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                               ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
                               ', DropTrigCnt 0x{:X}'.format(eventFrame.dropTrigCnt) + 
                               ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
-                        print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
+                        print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof | TotData_c | TotData_f') 
                         header_still_needs_to_be_printed = False
 
-                    print('    {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}'.format(
+                    print(' {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}| {:>#9}| {:>#9}'.format(
                         pixIndex,
                         pixel.TotOverflow,
                         pixel.TotData,
                         pixel.ToaOverflow,
                         pixel.ToaData,
                         pixel.Hit,
-                        pixel.Sof)
+                        pixel.Sof,
+                        (pixel.TotData >>  2) & 0x7F,
+                        (pixel.TotData & 0x3)) 
                     )
                     
                 # Check if dumping to .CVS file
@@ -163,11 +166,86 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
 #################################################################
 
 # Class for Reading the Data from File
+class BeamTestFileReader(rogue.interfaces.stream.Slave):
+    _num_channels = 25
+
+    def __init__(self):
+        rogue.interfaces.stream.Slave.__init__(self)
+        self.HitDataTOA = []
+        self.HitDataTOTf_vpa = []
+        self.HitDataTOTc_vpa = []
+        self.TOAOvflow = []
+        self.TOTOvflow = []
+        self.SeqCnt = []
+        self.TrigCnt = []
+        self.FPGA_channel = []
+        self.pixelId = []
+        self.DropCnt = []
+
+    def _acceptFrame(self,frame):
+        # First it is good practice to hold a lock on the frame data.
+        with frame.lock():
+            eventFrame = ParseFrame(frame)
+
+            self.FPGA_channel.append( frame.getChannel() )
+            self.SeqCnt.append( eventFrame.SeqCnt )
+            self.TrigCnt.append( eventFrame.TrigCnt )
+            self.DropCnt.append( eventFrame.footer )
+            #print( eventFrame.footer )
+
+            self.pixelId.append([])
+            self.HitDataTOA.append([])
+            self.HitDataTOTf_vpa.append([])
+            self.HitDataTOTc_vpa.append([])
+            self.TOAOvflow.append([])
+            self.TOTOvflow.append([])
+
+            for channel in range( len(eventFrame.pixValue) ):
+                dat = eventFrame.pixValue[channel]
+                if frame.getChannel() == 1 and dat.PixelIndex == 8 and dat.Hit == 0: 
+                    print('FPGA {:#}'.format( frame.getChannel() ) +
+                          ', payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
+                          ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
+                          ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
+                          ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
+                          ', footer 0x{:X}'.format(eventFrame.footer) + 
+                          ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
+                    print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof | TotData_c | TotData_f') 
+                    print(' {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}| {:>#9}| {:>#9}'.format(
+                        dat.PixelIndex,
+                        dat.TotOverflow,
+                        dat.TotData,
+                        dat.ToaOverflow,
+                        dat.ToaData,
+                        dat.Hit,
+                        dat.Sof,
+                        (dat.TotData >>  2) & 0x7F,
+                        (dat.TotData & 0x3)) 
+                    )
+
+                if (dat.Hit > 0):
+                    self.TOAOvflow[-1].append(dat.ToaOverflow)
+                    self.TOTOvflow[-1].append(dat.TotOverflow)
+                    self.pixelId[-1].append(dat.PixelIndex)
+                    self.HitDataTOA[-1].append(dat.ToaData)
+
+                    #HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
+                    HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3)
+                    HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
+                    self.HitDataTOTf_vpa[-1].append(HitDataTOTf_vpa_temp)
+                    self.HitDataTOTc_vpa[-1].append(HitDataTOTc_vpa_temp)
+
+
+#################################################################
+
+# Class for Reading the Data from File
 class MyFileReader(rogue.interfaces.stream.Slave):
 
     def __init__(self):
         rogue.interfaces.stream.Slave.__init__(self)
         self.HitData = []
+        self.PixelData = []
+        self.HitDataTOT = []
         self.HitDataTOTf_vpa = []
         self.HitDataTOTf_tz = []
         self.HitDataTOTc_vpa = []
@@ -185,14 +263,18 @@ class MyFileReader(rogue.interfaces.stream.Slave):
         # First it is good practice to hold a lock on the frame data.
         with frame.lock():
             eventFrame = ParseFrame(frame)
+            pixData = [None]*25
             for i in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[i]
+                pixData[dat.PixelIndex] = dat
 
                 if (dat.Hit > 0) and (dat.ToaOverflow == 0):
                     self.HitData.append(dat.ToaData)
                 
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
                     self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
+                    self.HitDataTOT.append(dat.TotData)
+                    #self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3)
                     self.HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
                     self.HitDataTOTc_int1_vpa_temp = (((dat.TotData >>  2) + 1) >> 1) & 0x3F
                     self.HitDataTOTf_vpa.append(self.HitDataTOTf_vpa_temp)
@@ -206,21 +288,42 @@ class MyFileReader(rogue.interfaces.stream.Slave):
                     self.HitDataTOTf_tz.append(self.HitDataTOTf_tz_temp)                    
                     self.HitDataTOTc_tz.append(self.HitDataTOTc_tz_temp)
                     self.HitDataTOTc_int1_tz.append(self.HitDataTOTc_int1_tz_temp)
+            PixelData.append(pixData)
 
 #################################################################
 
 # Class for Reading Data output by pixels
-class MyPixelReader(rogue.interfaces.stream.Slave):
+class PixelReader(rogue.interfaces.stream.Slave):
 
     def __init__(self):
         rogue.interfaces.stream.Slave.__init__(self)
+        self.count = 0
         self.HitData = []
+        self.HitDataTOT = []
         self.HitDataTOTf_vpa = []
         self.HitDataTOTf_tz = []
         self.HitDataTOTc_vpa = []
         self.HitDataTOTc_tz = []
         self.HitDataTOTc_int1_vpa = []
         self.HitDataTOTc_int1_tz = []
+        self.HitDataTOTf_vpa_temp = 0
+        self.HitDataTOTc_vpa_temp = 0
+        self.HitDataTOTf_tz_temp = 0
+        self.HitDataTOTc_tz_temp = 0
+        self.HitDataTOTc_int1_vpa_temp = 0
+        self.HitDataTOTc_int1_tz_temp = 0
+        self.checkTOAOverflow=True #Nikola
+
+    def clear(self):
+        self.count = 0
+        self.HitData.clear()
+        self.HitDataTOT.clear()
+        self.HitDataTOTf_vpa.clear()
+        self.HitDataTOTf_tz.clear()
+        self.HitDataTOTc_vpa.clear()
+        self.HitDataTOTc_tz.clear()
+        self.HitDataTOTc_int1_vpa.clear()
+        self.HitDataTOTc_int1_tz.clear()
         self.HitDataTOTf_vpa_temp = 0
         self.HitDataTOTc_vpa_temp = 0
         self.HitDataTOTf_tz_temp = 0
@@ -236,11 +339,17 @@ class MyPixelReader(rogue.interfaces.stream.Slave):
             for i in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[i]
 
-                if (dat.Hit > 0) and (dat.ToaOverflow == 0):
-                    self.HitData.append(dat.ToaData)
-                
+                #:odified by Nikola 21/08/2019
+                if self.checkTOAOverflow:
+                    if (dat.Hit > 0) and dat.ToaOverflow == 0:
+                        self.HitData.append(dat.ToaData)
+                else:
+                    if (dat.Hit > 0):
+                        self.HitData.append(dat.ToaData) 
+
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc):
-                    self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*math.pow(2,2)
+                    self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*(2**2)
+                    self.HitDataTOT.append(dat.TotData)
                     self.HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
                     self.HitDataTOTc_int1_vpa_temp = (((dat.TotData >>  2) + 1) >> 1) & 0x3F
                     self.HitDataTOTf_vpa.append(self.HitDataTOTf_vpa_temp)
@@ -248,11 +357,11 @@ class MyPixelReader(rogue.interfaces.stream.Slave):
                     self.HitDataTOTc_int1_vpa.append(self.HitDataTOTc_int1_vpa_temp)
 
                 if (dat.Hit > 0) and (dat.TotData != 0x1f8):
-                    self.HitDataTOTf_tz_temp = ((dat.TotData >>  0) & 0x7) + dat.TotOverflow*math.pow(2,3)
+                    self.HitDataTOTf_tz_temp = ((dat.TotData >>  0) & 0x7) + dat.TotOverflow*(2**3)
                     self.HitDataTOTc_tz_temp = (dat.TotData >>  3) & 0x3F
                     self.HitDataTOTc_int1_tz_temp = (((dat.TotData >>  3) + 1) >> 1) & 0x1F
                     self.HitDataTOTf_tz.append(self.HitDataTOTf_tz_temp)                    
                     self.HitDataTOTc_tz.append(self.HitDataTOTc_tz_temp)
                     self.HitDataTOTc_int1_tz.append(self.HitDataTOTc_int1_tz_temp)
-
+            self.count += 1
 #################################################################

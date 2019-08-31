@@ -9,8 +9,11 @@
 ##############################################################################
 
 ## Activate Rogue conda Environment
+export alias fpga_aa=192.168.1.192
+export alias fpga_ab=192.168.1.193
+export alias fpga_ad=192.168.1.195
 source /home/hgtd-lal/Documents/anaconda3/etc/profile.d/conda.sh
-conda activate rogue_V2
+conda activate rogue_V3
 
 # Python Package directories
 export SURF_DIR=${PWD}/../firmware/submodules/surf/python

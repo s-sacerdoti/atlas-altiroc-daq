@@ -21,6 +21,7 @@ from common._DataStreamReader   import *
 from common._Fpga               import *
 from common._Top                import *
 from common._LiveDisplay        import *
+from common._BeamTestDisplay        import *
 
 def getNsValue(var):
     return ( var.dependencies[0].value() + 1 )*6.25 

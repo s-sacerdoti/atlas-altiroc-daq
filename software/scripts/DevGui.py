@@ -22,13 +22,24 @@ import threading
 
 Keep_display_alive = True
 Live_display_interval = 1
+Resync_interval = 0.25
 
 #################################################################
 def runLiveDisplay(event_display,fpga_index):
     while(Keep_display_alive):
-        if event_display.has_new_data:
-            event_display.refreshDisplay()
+        event_display.refreshDisplay()
         time.sleep(Live_display_interval)
+#################################################################
+
+def poke_top(top):
+    while(True):
+        readout0 = top.Fpga[0].Asic.Readout
+        readout1 = top.Fpga[1].Asic.Readout
+        if readout0.SeqCnt != readout1.SeqCnt:
+            print('Resynced!')
+            readout0.SeqCntRst()
+            readout1.SeqCntRst()
+        time.sleep(Resync_interval)
 #################################################################
 
 # Set the argument parser
@@ -86,7 +97,7 @@ parser.add_argument(
 )  
 
 parser.add_argument(
-    "--refClkSel", 
+    "--refClkSel",
     type     = str,
     required = False,
     default  = 'IntClk',
@@ -108,6 +119,14 @@ parser.add_argument(
     required = False,
     default  = False,
     help     = "Displays live plots of pixel information",
+)  
+
+parser.add_argument(
+    "--forceSeqResync", 
+    type     = argBool,
+    required = False,
+    default  = True,
+    help     = "Periodically forces a resync of the sequence counters",
 )  
 
 # Get the arguments
@@ -135,7 +154,7 @@ if (args.printEvents):
     pr.streamTap(top.dataStream[0], eventReader) 
 
 # Create Live Display
-live_display_reset = []
+live_display_resets = []
 if args.liveDisplay:
     for fpga_index in range( top.numEthDev ):
         # Create the fifo to ensure there is no back-pressure
@@ -149,12 +168,18 @@ if args.liveDisplay:
                 font_size=4,
                 fig_size=(10,6),
                 overwrite=True  )
-        live_display_reset.append( event_display.reset )
+        #event_display = feb.beamTestEventDisplay( plot_title='FPGA ' +str(fpga_index), font_size=6, fig_size=(14,7) )
+        live_display_resets.append( event_display.reset )
         # Connect the fifo ---> stream reader
         pr.streamConnect(fifo, event_display) 
         # Retrieve pixel data streaming object
         display_thread = threading.Thread( target=runLiveDisplay, args=(event_display,fpga_index,) )
         display_thread.start()
+top.add_live_display_resets(live_display_resets)
+
+if len( args.ip ) == 2 and args.forceSeqResync:
+    poke_thread = threading.Thread( target=poke_top, args=(top) )
+
 
 # Create GUI
 appTop = pr.gui.application(sys.argv)

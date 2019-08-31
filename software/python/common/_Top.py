@@ -130,6 +130,7 @@ class Top(pr.Root):
         def LiveDisplayReset(arg):    
             print('LiveDisplayReset()')
             self.LiveDisplayRst.set(1)
+            for reset in self.reset_list: reset()
             self.LiveDisplayRst.set(0)
         
         @self.command(description='This command is intended to be executed before self.dataWriter is closed')
@@ -174,6 +175,11 @@ class Top(pr.Root):
             timeout  = self._timeout,
         )        
         
+
+    def add_live_display_resets(self, reset_list):
+        self.reset_list = reset_list
+
+
     def start(self,**kwargs):
         super(Top, self).start(**kwargs) 
 
@@ -207,12 +213,6 @@ class Top(pr.Root):
                     click.secho(errMsg, bg='red')
                     raise ValueError(errMsg)
                     
-                # Check if the list of user YAML file les than number of FPGAs
-                if (len(self.userYaml) < self.numEthDev):
-                    errMsg = 'There are less User YAML files than the number of FPGAs to load'
-                    click.secho(errMsg, bg='red')
-                    raise ValueError(errMsg)                    
-                
                 if (self.advanceUser):
                     # Prevent FEB from thermal shutdown until FPGA Tj = 100 degC (max. operating temp)  
                     self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95)
@@ -280,6 +280,9 @@ class Top(pr.Root):
                     for i in range(len(self.userYaml)):
                         print(f'Loading path={self.userYaml[i]} User Configuration File...')
                         self.LoadConfig(self.userYaml[i])
+
+                
+                    
                 
         else:
             # Hide all the "enable" variables

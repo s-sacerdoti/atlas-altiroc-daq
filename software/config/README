@@ -1,0 +1,45 @@
+There are way too many configs, so here is a description of them all:
+#####################################################################
+defaults.yml: Should be loaded everytime a new test is run. Loading this config is effectively like performing a power-cycle on the board, without having to actually power-cycle the board. It sets every single register on the board to the default value (the "default value" being the value that register takes when the board is first powered on)
+
+testBojanV1.yml: ?
+
+testBojanV2.yml: The de-facto configuration file, primarily used by test_Bojan.py. When in doubt, refer to this
+
+testBojanV2_twoPixReadout.yml: A copy of testBonanV2.yml, meant to test
+
+disable_readout.yml
+enable_readout.yml: Exists only to either enable or disable the "EnableReadout" bit on every board at the same time
+
+master_slave_example.yml: basic example of how to setup a master and slave testbeam configuration
+
+asic_config_B2.yml
+asic_config_B3.yml
+asic_config_B6.yml
+asic_config_B7.yml
+asic_config_B8.yml: basic configurations of the appropriate board, which sets board specific thresholds for general calibration pulse testing
+
+asic_config_B2_slave.yml
+asic_config_B3_master.yml
+asic_config_B7_slave.yml
+asic_config_B8_master.yml: slave-master configurations for use in the testbeam
+
+asic_config_B2_slave_calibPulse.yml
+asic_config_B3_master_calibPulse.yml: like the above, but these configs are set to allow calibration pulses, with only one channel reading out
+
+asic_config_B2_TBalone.yml
+asic_config_B3_TBalone.yml
+asic_config_B6_TBalone.yml
+asic_config_B7_TBalone.yml: similar to the slave-master pairs, but meant to be run in the testbeam by themselves (they're all master)
+
+asic_vthcorr_B2B3.yml: loads threshold corrections for boards 2 and 3
+
+config_v2B6_noPAprobe.yml: ?
+
+config_v2B6_probe.yml: ?
+
+config_v2B7_scurve.yml: ?
+
+pll-config: ?
+
+testbeam_config.yml: ?
