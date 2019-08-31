@@ -73,6 +73,7 @@ def convertTBdata(inFiles):
         seq_cnt_list = dataStream.SeqCnt
         trig_cnt_list = dataStream.TrigCnt
         drop_cnt_list = dataStream.DropCnt
+        time_stamp_list = dataStream.TimeStamp
 
         #auxChList.append(pixelID[0])
 
@@ -90,8 +91,9 @@ def convertTBdata(inFiles):
             seqcnt = seq_cnt_list[frame_index]
             trigcnt = trig_cnt_list[frame_index]
             dropcnt = drop_cnt_list[frame_index]
+            time_stamp = time_stamp_list[frame_index]
             
-            output_text_data[fpga_index] += 'frame {} {} {} {}\n'.format(frame_index,seqcnt,trigcnt,dropcnt)
+            output_text_data[fpga_index] += 'frame {} {} {} {} {}\n'.format(frame_index,seqcnt,trigcnt,dropcnt,time_stamp)
             for channel in range( len(HitDataTOA[frame_index]) ):
                 toa = HitDataTOA[frame_index][channel]
                 totc = HitDataTOTc[frame_index][channel]

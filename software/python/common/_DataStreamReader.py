@@ -38,6 +38,7 @@ class EventValue(object):
         self.pixValue          = None
         self.dropTrigCnt       = None
         self.Timestamp         = None
+        self.footer            = None
 
 def ParseDataWord(dataWord):
     #Parse the 32-bit word
@@ -52,9 +53,36 @@ def ParseDataWord(dataWord):
     #print( "{:028b}".format(dataWord) )
     return PixValue(PixelIndex, TotOverflow, TotData, ToaOverflow, ToaData, Hit, Sof)
 
-def ParsePayloadFormatV1(): print('Unimplemented')
-def ParsePayloadFormatV2(): print('Unimplemented')
-def ParsePayloadFormatV3():
+def ParsePayloadFormatV1(eventFrame, wrdData):
+    eventFrame.FormatVersion     = (wrdData[0] >>  0) & 0xFFF
+    eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
+    eventFrame.StartPix          = (wrdData[0] >> 22) & 0x1F
+    eventFrame.StopPix           = (wrdData[0] >> 27) & 0x1F
+    eventFrame.SeqCnt            = wrdData[1]
+    eventFrame.TrigCnt           = wrdData[2]
+    eventFrame.Timestamp         = -1
+    numPixValues = (eventFrame.StopPix-eventFrame.StartPix+1)*(eventFrame.PixReadIteration+1)
+    eventFrame.pixValue  = [None for i in range(numPixValues)]
+    for i in range(numPixValues):
+        eventFrame.pixValue[i] = ParseDataWord(wrdData[3+i])
+    eventFrame.dropTrigCnt = -1
+    eventFrame.footer = wrdData[numPixValues+3]
+
+def ParsePayloadFormatV2(eventFrame, wrdData):
+    eventFrame.FormatVersion     = (wrdData[0] >>  0) & 0xFFF
+    eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
+    eventFrame.ReadoutSize       = (wrdData[0] >> 27) & 0x1F
+    eventFrame.SeqCnt            = wrdData[1]
+    eventFrame.TrigCnt           = wrdData[2]
+    eventFrame.Timestamp         = -1
+    numPixValues = (eventFrame.ReadoutSize+1)*(eventFrame.PixReadIteration+1)
+    eventFrame.pixValue  = [None for i in range(numPixValues)]
+    for i in range(numPixValues):
+        eventFrame.pixValue[i] = ParseDataWord(wrdData[3+i])
+    eventFrame.dropTrigCnt = wrdData[numPixValues+3]
+    eventFrame.footer = -1
+
+def ParsePayloadFormatV3(eventFrame, wrdData):
     eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
     eventFrame.ReadoutSize       = (wrdData[0] >> 27) & 0x1F
     eventFrame.SeqCnt            = wrdData[1]
@@ -65,6 +93,7 @@ def ParsePayloadFormatV3():
     for i in range(numPixValues):
         eventFrame.pixValue[i] = ParseDataWord(wrdData[5+i])
     eventFrame.dropTrigCnt = wrdData[numPixValues+5]
+    eventFrame.footer = -1
 
 
 def ParseFrame(frame):
@@ -128,10 +157,6 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
         # First it is good practice to hold a lock on the frame data.
         with frame.lock():
             eventFrame = ParseFrame(frame)
-            if eventFrame.FormatVersion >= 3:
-                timestamp = eventFrame.Timestamp
-            else:
-                timestamp = -1
                 
             # Print out the event
             header_still_needs_to_be_printed = True
@@ -150,7 +175,7 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                               ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
                               ', DropTrigCnt 0x{:X}'.format(eventFrame.dropTrigCnt) + 
                               ', SeqCnt {:#}'.format(eventFrame.SeqCnt) +
-                              ', Timestamp {:#}'.format(timestamp) )
+                              ', Timestamp {:#}'.format(eventFrame.Timestamp) )
                         print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
                         header_still_needs_to_be_printed = False
 
@@ -212,10 +237,7 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
             self.SeqCnt.append( eventFrame.SeqCnt )
             self.TrigCnt.append( eventFrame.TrigCnt )
             self.DropCnt.append( eventFrame.dropTrigCnt)
-            if eventFrame.FormatVersion >= 3:
-                self.TimeStamp.append( eventFrame.Timestamp )
-            else:
-                self.TimeStamp.append( -1 )
+            self.TimeStamp.append( eventFrame.Timestamp )
 
             self.pixelId.append([])
             self.HitDataTOA.append([])
@@ -226,27 +248,6 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
 
             for channel in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[channel]
-                if frame.getChannel() == 1 and dat.PixelIndex == 8 and dat.Hit == 0: 
-                    print('FPGA {:#}'.format( frame.getChannel() ) +
-                          ', payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
-                          ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
-                          ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
-                          ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
-                          ', dropTrigCnt 0x{:X}'.format(eventFrame.dropTrigCnt) + 
-                          ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
-                    print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof | TotData_c | TotData_f') 
-                    print(' {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}| {:>#9}| {:>#9}'.format(
-                        dat.PixelIndex,
-                        dat.TotOverflow,
-                        dat.TotData,
-                        dat.ToaOverflow,
-                        dat.ToaData,
-                        dat.Hit,
-                        dat.Sof,
-                        (dat.TotData >>  2) & 0x7F,
-                        (dat.TotData & 0x3)) 
-                    )
-
                 if (dat.Hit > 0):
                     self.TOAOvflow[-1].append(dat.ToaOverflow)
                     self.TOTOvflow[-1].append(dat.TotOverflow)
