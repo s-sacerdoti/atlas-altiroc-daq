@@ -133,6 +133,7 @@ architecture mapping of AtlasAltirocAsic is
    signal readoutStart : sl;
    signal readoutCnt   : slv(31 downto 0);
    signal dropCnt      : slv(31 downto 0);
+   signal timeStamp    : slv(63 downto 0);
    signal readoutBusy  : sl;
    signal startReadout : sl;
    signal probeValid   : sl;
@@ -302,6 +303,7 @@ begin
          readoutStart    => readoutStart,
          readoutCnt      => readoutCnt,
          dropCnt         => dropCnt,
+         timeStamp       => timeStamp,
          readoutBusy     => readoutBusy,
          probeBusy       => probeBusy,
          -- Reference Clock/Reset Interface
@@ -426,6 +428,7 @@ begin
          readoutStart    => readoutStart,
          readoutCnt      => readoutCnt,
          dropCnt         => dropCnt,
+         timeStamp       => timeStamp,
          readoutBusy     => readoutBusy,
          -- Probe Interface (clk160MHz domain)
          probeValid      => probeValid,

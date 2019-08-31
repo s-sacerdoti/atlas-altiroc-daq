@@ -40,6 +40,7 @@ entity AtlasAltirocAsicReadout is
       readoutStart    : in  sl;
       readoutCnt      : in  slv(31 downto 0);
       dropCnt         : in  slv(31 downto 0);
+      timeStamp       : in  slv(63 downto 0);
       readoutBusy     : out sl;
       -- Probe Interface (clk160MHz domain)
       probeValid      : out sl;
@@ -62,7 +63,7 @@ end AtlasAltirocAsicReadout;
 
 architecture rtl of AtlasAltirocAsicReadout is
 
-   constant HDR_SIZE_C : positive := 3;
+   constant HDR_SIZE_C : positive := 5;
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- 32-bit AXI stream interface
 
@@ -201,7 +202,7 @@ begin
 
    comb : process (axilReadMaster, axilWriteMaster, dout, dropCnt, probeBusy,
                    probeObData, r, readoutCnt, readoutStart, rst160MHz,
-                   txSlave) is
+                   timeStamp, txSlave) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
       variable pixIdx : natural;
@@ -308,7 +309,7 @@ begin
                --                   Generate the header                    --
                --------------------------------------------------------------               
                -- HDR[0]: Format Version, start and stop
-               v.header(0)(11 downto 0) := x"003";  -- Version = 0x3
+               v.header(0)(11 downto 0) := x"004";  -- Version = 0x4
 
                -- Check if only sending 1st hit per pixel
                if (r.onlySendFirstHit = '1') then
@@ -323,6 +324,9 @@ begin
                v.header(1)               := r.seqCnt;
                -- HDR[2]: Trigger Sequence counter
                v.header(2)               := readoutCnt;
+               -- HDR[4:3]: Time Stamp
+               v.header(3)               := timeStamp(31 downto 0);
+               v.header(4)               := timeStamp(63 downto 32);
                --------------------------------------------------------------               
 
                -- Set the flag

@@ -114,7 +114,17 @@ class AltirocTrig(pr.Device):
             bitSize      = 32, 
             mode         = 'RO',
             pollInterval = 1,
-        ))               
+        ))   
+
+        self.add(pr.RemoteVariable(
+            name         = 'TimeCounter', 
+            description  = 'Increments every 160 MHz clock cycle and reset to zero when PLL is not locked',
+            offset       = 0x28,
+            bitSize      = 64, 
+            mode         = 'RO',
+            units        = '1/160MHz',
+            pollInterval = 1,
+        ))           
         
         self.add(pr.RemoteVariable(
             name         = 'TrigTypeSel', 
