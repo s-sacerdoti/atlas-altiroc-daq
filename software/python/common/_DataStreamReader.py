@@ -138,8 +138,8 @@ def ParseFrame(frame):
     elif eventFrame.FormatVersion = 3: ParsePayloadFormatV3(eventFrame, wrdData)
     elif eventFrame.FormatVersion = 4: ParsePayloadFormatV4(eventFrame, wrdData)
     else:
-        print('Unsupported Frame Payload Format Version. Aborting!')
-        exit(1)
+        raise Exception('Frame payload format version <'
+            +str(eventFrame.FormatVersion)+'> is not supported')
 
     return eventFrame
 
