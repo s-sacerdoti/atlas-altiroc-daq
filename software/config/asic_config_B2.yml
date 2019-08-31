@@ -31,35 +31,37 @@ Top:
       ##########################################################################
       SlowControl:
         ########################
-        #turn off all pixels
-        EN_ck_SRAM[:]: 0x0
+        #general settings -> all on
+        EN_ck_SRAM[:]: 0x1
         ON_Ctest[:]: 0x0
-        disable_pa[:]: 0x1
-        ON_discri[:]: 0x0
+        disable_pa[:]: 0x0
+        ON_discri[:]: 0x1
         bit_vth_cor[:]: 0x40
-        
+       
         ###################
-        #turn on a single channel
-        EN_ck_SRAM[12]: 0x1
-        disable_pa[12]: 0x0
-        ON_discri[12]: 0x1
-        #turn on a single channel
-        EN_ck_SRAM[13]: 0x1
-        disable_pa[13]: 0x0
-        ON_discri[13]: 0x1
-        #bit_vth_cor[1]: 30
-        #bit_vth_cor[2]: 95
-        #bit_vth_cor[3]: 73
-        #bit_vth_cor[4]: 80
-        #bit_vth_cor[5]: 55
-        #bit_vth_cor[6]: 65
-        #bit_vth_cor[7]: 73
-        #bit_vth_cor[8]: 65
-        #bit_vth_cor[10]: 80
-        #bit_vth_cor[11]: 60
-        bit_vth_cor[12]: 77
-        bit_vth_cor[13]: 52
-        #bit_vth_cor[14]: 40       
+        #turn off broken channels
+        EN_ck_SRAM[0:5]: 0x0 
+        EN_ck_SRAM[9]: 0x0 
+        EN_ck_SRAM[11]: 0x0 
+
+        disable_pa[0:5]: 0x1 
+        disable_pa[9]: 0x1 
+        disable_pa[11]: 0x1 
+
+        ON_discri[0:5]: 0x0 
+        ON_discri[9]: 0x0 
+        ON_discri[11]: 0x0 
+        ###################
+        ##set correct vth correction
+        bit_vth_cor[5]: 45
+        bit_vth_cor[6]: 45
+        bit_vth_cor[7]: 75
+        bit_vth_cor[8]: 90
+        bit_vth_cor[10]: 35
+        bit_vth_cor[12]: 85
+        bit_vth_cor[13]: 75
+        bit_vth_cor[14]: 65
+
         ###################
 
         EN_hyst[:]: 0x1
@@ -101,7 +103,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 445 #average DAC for B3
+        DAC10bit: 485 #average
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -114,8 +116,16 @@ Top:
 
       ##########################################################################
       Readout:
-        StartPix: 12
-        LastPix: 13
+        ReadoutSize: 1
+        RdIndexLut[0]: 5
+        RdIndexLut[1]: 6
+        RdIndexLut[2]: 7
+        RdIndexLut[3]: 8
+        RdIndexLut[4]: 10
+        RdIndexLut[5]: 12
+        RdIndexLut[6]: 13
+        RdIndexLut[7]: 14
+
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
