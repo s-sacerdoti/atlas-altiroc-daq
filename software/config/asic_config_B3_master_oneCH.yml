@@ -97,7 +97,7 @@ Top:
 
       ##########################################################################
       Readout:
-        ReadoutSize: 1
+        ReadoutSize: 0 #0 = 1 channel
         RdIndexLut[0]: 8
         #####################
         RstRamPulseWidth: 0xF

@@ -84,7 +84,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 440 #173 / 183
+        DAC10bit: 440 #for ch 8
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -97,7 +97,7 @@ Top:
 
       ##########################################################################
       Readout:
-        ReadoutSize: 1
+        ReadoutSize: 0 #0=one channel
         RdIndexLut[0]: 8
         #####################
         RstRamPulseWidth: 0xF
