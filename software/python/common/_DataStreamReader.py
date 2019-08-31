@@ -29,15 +29,18 @@ class PixValue(object):
      self.Sof         = Sof
 
 class EventValue(object):
-  def __init__(self):
-     self.FormatVersion     = None
-     self.PixReadIteration  = None
-     self.ReadoutSize       = None
-     self.SeqCnt            = None
-     self.TrigCnt           = None
-     self.pixValue          = None
-     self.dropTrigCnt       = None
-     self.Timestamp         = None
+    def __init__(self):
+        self.FormatVersion     = None
+        self.PixReadIteration  = None
+        self.StartPix          = None
+        self.StopPix           = None
+        self.ReadoutSize       = None
+        self.SeqCnt            = None
+        self.TrigCnt           = None
+        self.pixValue          = None
+        self.dropTrigCnt       = None
+        self.Timestamp         = None
+        self.footer            = None
 
 def ParseDataWord(dataWord):
     #Parse the 32-bit word
@@ -51,6 +54,66 @@ def ParseDataWord(dataWord):
 
     #print( "{:028b}".format(dataWord) )
     return PixValue(PixelIndex, TotOverflow, TotData, ToaOverflow, ToaData, Hit, Sof)
+
+def ParsePayloadFormatV1(eventFrame, wrdData):
+    eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
+    eventFrame.StartPix          = (wrdData[0] >> 22) & 0x1F
+    eventFrame.StopPix           = (wrdData[0] >> 27) & 0x1F
+    eventFrame.ReadoutSize       = -1
+    eventFrame.SeqCnt            = wrdData[1]
+    eventFrame.TrigCnt           = -1
+    eventFrame.Timestamp         = -1
+    numPixValues = (eventFrame.StopPix-eventFrame.StartPix+1)*(eventFrame.PixReadIteration+1)
+    eventFrame.pixValue  = [None for i in range(numPixValues)]
+    for i in range(numPixValues):
+        eventFrame.pixValue[i] = ParseDataWord(wrdData[2+i])
+    eventFrame.dropTrigCnt = -1
+    eventFrame.footer = wrdData[numPixValues+2]
+
+def ParsePayloadFormatV2(eventFrame, wrdData):
+    eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
+    eventFrame.StartPix          = (wrdData[0] >> 22) & 0x1F
+    eventFrame.StopPix           = (wrdData[0] >> 27) & 0x1F
+    eventFrame.ReadoutSize       = -1
+    eventFrame.SeqCnt            = wrdData[1]
+    eventFrame.TrigCnt           = wrdData[2]
+    eventFrame.Timestamp         = -1
+    numPixValues = (eventFrame.StopPix-eventFrame.StartPix+1)*(eventFrame.PixReadIteration+1)
+    eventFrame.pixValue  = [None for i in range(numPixValues)]
+    for i in range(numPixValues):
+        eventFrame.pixValue[i] = ParseDataWord(wrdData[3+i])
+    eventFrame.dropTrigCnt = -1
+    eventFrame.footer = wrdData[numPixValues+3]
+
+def ParsePayloadFormatV3(eventFrame, wrdData):
+    eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
+    eventFrame.StartPix          = -1
+    eventFrame.StopPix           = -1
+    eventFrame.ReadoutSize       = (wrdData[0] >> 27) & 0x1F
+    eventFrame.SeqCnt            = wrdData[1]
+    eventFrame.TrigCnt           = wrdData[2]
+    eventFrame.Timestamp         = -1
+    numPixValues = (eventFrame.ReadoutSize+1)*(eventFrame.PixReadIteration+1)
+    eventFrame.pixValue  = [None for i in range(numPixValues)]
+    for i in range(numPixValues):
+        eventFrame.pixValue[i] = ParseDataWord(wrdData[3+i])
+    eventFrame.dropTrigCnt = wrdData[numPixValues+3]
+    eventFrame.footer = -1
+
+def ParsePayloadFormatV4(eventFrame, wrdData):
+    eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
+    eventFrame.StartPix          = -1
+    eventFrame.StopPix           = -1
+    eventFrame.ReadoutSize       = (wrdData[0] >> 27) & 0x1F
+    eventFrame.SeqCnt            = wrdData[1]
+    eventFrame.TrigCnt           = wrdData[2]
+    eventFrame.Timestamp         = (wrdData[4] << 32) | (wrdData[3] << 0)
+    numPixValues = (eventFrame.ReadoutSize+1)*(eventFrame.PixReadIteration+1)
+    eventFrame.pixValue  = [None for i in range(numPixValues)]
+    for i in range(numPixValues):
+        eventFrame.pixValue[i] = ParseDataWord(wrdData[5+i])
+    eventFrame.dropTrigCnt = wrdData[numPixValues+5]
+    eventFrame.footer = -1
 
 def ParseFrame(frame):
     # Next we can get the size of the frame payload
@@ -69,16 +132,13 @@ def ParseFrame(frame):
     # Parse the data and data to data frame
     eventFrame = EventValue()
     eventFrame.FormatVersion     = (wrdData[0] >>  0) & 0xFFF
-    eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
-    eventFrame.ReadoutSize       = (wrdData[0] >> 27) & 0x1F
-    eventFrame.SeqCnt            = wrdData[1]
-    eventFrame.TrigCnt           = wrdData[2]
-    eventFrame.Timestamp         = (wrdData[4] << 32) | (wrdData[3] << 0)
-    numPixValues = (eventFrame.ReadoutSize+1)*(eventFrame.PixReadIteration+1)
-    eventFrame.pixValue  = [None for i in range(numPixValues)]
-    for i in range(numPixValues):
-        eventFrame.pixValue[i] = ParseDataWord(wrdData[5+i])
-    eventFrame.dropTrigCnt = wrdData[numPixValues+5]
+    if eventFrame.FormatVersion = 1: ParsePayloadFormatV1(eventFrame, wrdData)
+    elif eventFrame.FormatVersion = 2: ParsePayloadFormatV2(eventFrame, wrdData)
+    elif eventFrame.FormatVersion = 3: ParsePayloadFormatV3(eventFrame, wrdData)
+    elif eventFrame.FormatVersion = 4: ParsePayloadFormatV4(eventFrame, wrdData)
+    else: 
+        raise Exception('Frame payload format version <'
+            +str(eventFrame.FormatVersion)+'> is not supported')
 
     return eventFrame
 
