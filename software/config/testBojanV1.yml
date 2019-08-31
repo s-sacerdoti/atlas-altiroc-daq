@@ -87,7 +87,7 @@ Top:
           en_read: 0x1
       ##########################################################################
       Readout:
-        ReadoutSize: # 0 pixel readout (zero inclusive)
+        ReadoutSize: 0 # 0 pixel readout (zero inclusive)
         RdIndexLut[0]: 3 # pix=3
         OnlySendFirstHit: 0x1 # Only send the first hit per pixel
       ##########################################################################

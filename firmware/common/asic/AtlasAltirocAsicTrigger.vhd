@@ -39,6 +39,7 @@ entity AtlasAltirocAsicTrigger is
       readoutStart    : out sl;
       readoutCnt      : out slv(31 downto 0);
       dropCnt         : out slv(31 downto 0);
+      timeStamp       : out slv(63 downto 0);
       readoutBusy     : in  sl;
       probeBusy       : in  sl;
       -- Reference Clock/Reset Interface
@@ -63,6 +64,8 @@ architecture rtl of AtlasAltirocAsicTrigger is
       OSCOPE_DEADTIME_S);
 
    type RegType is record
+      timeCnt             : slv(63 downto 0);
+      timeStamp           : slv(63 downto 0);
       cntRst              : sl;
       enableReadout       : sl;
       -- Oscilloscope Deadtime
@@ -102,6 +105,8 @@ architecture rtl of AtlasAltirocAsicTrigger is
       state               : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      timeCnt             => (others => '0'),
+      timeStamp           => (others => '0'),
       cntRst              => '0',
       enableReadout       => '0',
       -- Oscilloscope Deadtime
@@ -310,6 +315,7 @@ begin
       axiSlaveRegisterR(axilEp, x"1C", 0, r.trigCnt(3));
       axiSlaveRegisterR(axilEp, x"20", 0, r.triggerCnt);
       axiSlaveRegisterR(axilEp, x"24", 0, r.dropCnt);
+      axiSlaveRegisterR(axilEp, x"28", 0, r.timeCnt);  -- 0x28:0x2F
 
       axiSlaveRegister (axilEp, x"40", 0, v.trigMaster);
 
@@ -424,6 +430,9 @@ begin
 
       end if;
 
+      -- Increment the counter
+      v.timeCnt := r.timeCnt + 1;
+
       ----------------------------------------------------------------------      
       --                         State Machine      
       ----------------------------------------------------------------------      
@@ -435,8 +444,9 @@ begin
             if (trigger = '1') and (r.enableReadout = '1') then
                -- Increment the counter
                v.trigPauseCnt := r.trigPauseCnt + 1;
-               -- Latch the triggerCnt
+               -- Latch the values
                v.readoutCnt   := r.triggerCnt;
+               v.timeStamp    := r.timeCnt;
                -- Next state
                v.state        := READ_DLY_S;
             end if;
@@ -526,6 +536,7 @@ begin
       readoutStart   <= r.readoutStart;
       readoutCnt     <= r.readoutCnt;
       dropCnt        <= r.dropCnt;
+      timeStamp      <= r.timeStamp;
 
       -- Reset
       if (rst160MHz = '1') then

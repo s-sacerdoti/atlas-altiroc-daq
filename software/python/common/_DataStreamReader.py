@@ -19,24 +19,25 @@ import click
 #################################################################
 
 class PixValue(object):
-  def __init__(self, PixelIndex, TotOverflow, TotData, ToaOverflow, ToaData, Hit, Sof):
-     self.PixelIndex  = PixelIndex
-     self.TotOverflow = TotOverflow
-     self.TotData     = TotData
-     self.ToaOverflow = ToaOverflow
-     self.ToaData     = ToaData
-     self.Hit         = Hit
-     self.Sof         = Sof
+    def __init__(self, PixelIndex, TotOverflow, TotData, ToaOverflow, ToaData, Hit, Sof):
+        self.PixelIndex  = PixelIndex
+        self.TotOverflow = TotOverflow
+        self.TotData     = TotData
+        self.ToaOverflow = ToaOverflow
+        self.ToaData     = ToaData
+        self.Hit         = Hit
+        self.Sof         = Sof
 
 class EventValue(object):
-  def __init__(self):
-     self.FormatVersion     = None
-     self.PixReadIteration  = None
-     self.ReadoutSize       = None
-     self.SeqCnt            = None
-     self.TrigCnt           = None
-     self.pixValue          = None
-     self.dropTrigCnt       = None
+    def __init__(self):
+        self.FormatVersion     = None
+        self.PixReadIteration  = None
+        self.ReadoutSize       = None
+        self.SeqCnt            = None
+        self.TrigCnt           = None
+        self.pixValue          = None
+        self.dropTrigCnt       = None
+        self.Timestamp         = None
 
 def ParseDataWord(dataWord):
     #Parse the 32-bit word
@@ -51,6 +52,21 @@ def ParseDataWord(dataWord):
     #print( "{:028b}".format(dataWord) )
     return PixValue(PixelIndex, TotOverflow, TotData, ToaOverflow, ToaData, Hit, Sof)
 
+def ParsePayloadFormatV1(): print('Unimplemented')
+def ParsePayloadFormatV2(): print('Unimplemented')
+def ParsePayloadFormatV3():
+    eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
+    eventFrame.ReadoutSize       = (wrdData[0] >> 27) & 0x1F
+    eventFrame.SeqCnt            = wrdData[1]
+    eventFrame.TrigCnt           = wrdData[2]
+    eventFrame.Timestamp         = (wrdData[4] << 32) | (wrdData[3] << 0)
+    numPixValues = (eventFrame.ReadoutSize+1)*(eventFrame.PixReadIteration+1)
+    eventFrame.pixValue  = [None for i in range(numPixValues)]
+    for i in range(numPixValues):
+        eventFrame.pixValue[i] = ParseDataWord(wrdData[5+i])
+    eventFrame.dropTrigCnt = wrdData[numPixValues+5]
+
+
 def ParseFrame(frame):
     # Next we can get the size of the frame payload
     size = frame.getPayload()
@@ -62,21 +78,18 @@ def ParseFrame(frame):
     frame.read(fullData,0)
 
     # Fill an array of 32-bit formatted word
-    wrdData = [None for i in range(3+512*32+1)]
+    wrdData = [None for i in range(5+512*32+1)]
     wrdData = np.frombuffer(fullData, dtype='uint32', count=(size>>2))
     
     # Parse the data and data to data frame
     eventFrame = EventValue()
-    eventFrame.FormatVersion     = (wrdData[0] >>  0) & 0xFFF
-    eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
-    eventFrame.ReadoutSize       = (wrdData[0] >> 27) & 0x1F
-    eventFrame.SeqCnt            = wrdData[1]
-    eventFrame.TrigCnt           = wrdData[2]
-    numPixValues = (eventFrame.ReadoutSize+1)*(eventFrame.PixReadIteration+1)
-    eventFrame.pixValue  = [None for i in range(numPixValues)]
-    for i in range(numPixValues):
-        eventFrame.pixValue[i] = ParseDataWord(wrdData[3+i])
-    eventFrame.dropTrigCnt = wrdData[numPixValues+3]
+    eventFrame.FormatVersion = (wrdData[0] >>  0) & 0xFFF
+    if eventFrame.FormatVersion = 1: ParsePayloadFormatV1(eventFrame, wrdData)
+    elif eventFrame.FormatVersion = 2: ParsePayloadFormatV2(eventFrame, wrdData)
+    elif eventFrame.FormatVersion = 3: ParsePayloadFormatV3(eventFrame, wrdData)
+    else:
+        print('Unsupported Frame Payload Format Version. Aborting!')
+        exit(1)
 
     return eventFrame
 
@@ -96,16 +109,17 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                 self.file[i]   = open(f'fpga{i}.csv', 'w', newline='') 
                 self.writer[i] = csv.writer(self.file[i])
                 self.writer[i].writerow([
-                    'SeqCnt',       # 0 = SeqCnt
-                    'TrigCnt',      # 1 = TrigCnt
-                    'DropTrigCnt',  # 2 = DropTrigCnt
-                    'pixIndex',     # 3 = pixIndex
-                    'TotOverflow',  # 4 = TotOverflow
-                    'TotData',      # 5 = TotData
-                    'ToaOverflow',  # 6 = ToaOverflow
-                    'ToaData',      # 7 = ToaData
-                    'Hit',          # 8 = Hit
-                    'Sof',          # 9 = Sof
+                    'Timestamp',    # 0 = Timestamp
+                    'SeqCnt',       # 1 = SeqCnt
+                    'TrigCnt',      # 2 = TrigCnt
+                    'DropTrigCnt',  # 3 = DropTrigCnt
+                    'pixIndex',     # 4 = pixIndex
+                    'TotOverflow',  # 5 = TotOverflow
+                    'TotData',      # 6 = TotData
+                    'ToaOverflow',  # 7 = ToaOverflow
+                    'ToaData',      # 8 = ToaData
+                    'Hit',          # 9 = Hit
+                    'Sof',          # 10 = Sof
                 ])
                 
     # Method which is called when a frame is received
@@ -114,6 +128,10 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
         # First it is good practice to hold a lock on the frame data.
         with frame.lock():
             eventFrame = ParseFrame(frame)
+            if eventFrame.FormatVersion >= 3:
+                timestamp = eventFrame.Timestamp
+            else:
+                timestamp = -1
                 
             # Print out the event
             header_still_needs_to_be_printed = True
@@ -131,8 +149,9 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                               ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
                               ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
                               ', DropTrigCnt 0x{:X}'.format(eventFrame.dropTrigCnt) + 
-                              ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
-                        print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof | TotData_c | TotData_f') 
+                              ', SeqCnt {:#}'.format(eventFrame.SeqCnt) +
+                              ', Timestamp {:#}'.format(timestamp) )
+                        print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
                         header_still_needs_to_be_printed = False
 
                     print(' {:>#5} | {:>#11} | {:>#7} | {:>#11} | {:>#7} | {:>#3} | {:>#3}| {:>#9}| {:>#9}'.format(
@@ -150,16 +169,17 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                 # Check if dumping to .CVS file
                 if self.cvsDump:
                     self.writer[frame.getChannel()].writerow([
-                        eventFrame.SeqCnt,     # 0 = SeqCnt
-                        eventFrame.TrigCnt,    # 1 = TrigCnt
-                        eventFrame.dropTrigCnt,# 2 = DropTrigCnt
-                        pixIndex,           # 3 = pixIndex
-                        pixel.TotOverflow,  # 4 = TotOverflow
-                        pixel.TotData,      # 5 = TotData
-                        pixel.ToaOverflow,  # 6 = ToaOverflow
-                        pixel.ToaData,      # 7 = ToaData
-                        pixel.Hit,          # 8 = Hit
-                        pixel.Sof,          # 9 = Sof
+                        '0x%016X'%eventFrame.Timestamp,  # 0 = Timestamp
+                        eventFrame.SeqCnt,     # 1 = SeqCnt
+                        eventFrame.TrigCnt,    # 2 = TrigCnt
+                        eventFrame.dropTrigCnt,# 3 = DropTrigCnt
+                        pixIndex,           # 4 = pixIndex
+                        pixel.TotOverflow,  # 5 = TotOverflow
+                        pixel.TotData,      # 6 = TotData
+                        pixel.ToaOverflow,  # 7 = ToaOverflow
+                        pixel.ToaData,      # 8 = ToaData
+                        pixel.Hit,          # 9 = Hit
+                        pixel.Sof,          # 10 = Sof
                     ])                
                         
             self.count += 1
@@ -181,6 +201,7 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
         self.FPGA_channel = []
         self.pixelId = []
         self.DropCnt = []
+        self.TimeStamp = []
 
     def _acceptFrame(self,frame):
         # First it is good practice to hold a lock on the frame data.
@@ -191,7 +212,10 @@ class BeamTestFileReader(rogue.interfaces.stream.Slave):
             self.SeqCnt.append( eventFrame.SeqCnt )
             self.TrigCnt.append( eventFrame.TrigCnt )
             self.DropCnt.append( eventFrame.dropTrigCnt)
-            #print( eventFrame.dropTrigCnt )
+            if eventFrame.FormatVersion >= 3:
+                self.TimeStamp.append( eventFrame.Timestamp )
+            else:
+                self.TimeStamp.append( -1 )
 
             self.pixelId.append([])
             self.HitDataTOA.append([])
