@@ -38,7 +38,7 @@ Top:
         ReadoutStartDly: 128 # Units of 6.4ns
         TrigSizeBeforePause: 0x0      
         DeadtimeDuration: 0x0
-        EnableReadout: 0x1
+        EnableReadout: 0x0 # Disable triggers
       ##########################################################################
       SlowControl:
         dac: 0x0

@@ -103,7 +103,7 @@ architecture rtl of AtlasAltirocAsicTrigger is
    end record RegType;
    constant REG_INIT_C : RegType := (
       cntRst              => '0',
-      enableReadout       => '1',
+      enableReadout       => '0',
       -- Oscilloscope Deadtime
       trigPauseCnt        => (others => '0'),
       trigSizeBeforePause => (others => '0'),
@@ -346,77 +346,82 @@ begin
       --                      Trigger logic
       ---------------------------------------------------------------------- 
 
-      -- Check for CMD_PULSE trigger
-      if (softTrig = '1') then
-         -- Check if dropping trigger
-         if (r.state /= IDLE_S) then
-            -- Increment the counter
-            v.dropTrigCnt(0) := r.dropTrigCnt(0) + 1;
-            v.dropCnt        := r.dropCnt + 1;
-         else
-            -- Set the flag
-            trigger      := '1';
-            -- Increment the counter
-            v.trigCnt(0) := r.trigCnt(0) + 1;
-         end if;
-      end if;
+      -- Check if readout enabled
+      if (r.enableReadout = '1') then
 
-      -- Check for BNC rising edge trigger
-      if (bncTrig = '1') then
-         -- Check if dropping trigger
-         if (r.state /= IDLE_S) then
-            -- Increment the counter
-            v.dropTrigCnt(1) := r.dropTrigCnt(1) + 1;
-            v.dropCnt        := r.dropCnt + 1;
-         else
-            -- Set the flag
-            trigger      := '1';
-            -- Increment the counter
-            v.trigCnt(1) := r.trigCnt(1) + 1;
-         end if;
-      end if;
-
-      -- Check for trigger master trigger
-      v.orTrigDly  := orTrig;
-      v.andTrigDly := andTrig;
-      if (r.trigMaster = '1') then
-         if (orTrig = '1' and r.orTrigDly = '0') or (andTrig = '1' and r.andTrigDly = '0') then
+         -- Check for CMD_PULSE trigger
+         if (softTrig = '1') then
             -- Check if dropping trigger
             if (r.state /= IDLE_S) then
                -- Increment the counter
-               v.dropTrigCnt(2) := r.dropTrigCnt(2) + 1;
+               v.dropTrigCnt(0) := r.dropTrigCnt(0) + 1;
                v.dropCnt        := r.dropCnt + 1;
             else
                -- Set the flag
                trigger      := '1';
                -- Increment the counter
-               v.trigCnt(2) := r.trigCnt(2) + 1;
+               v.trigCnt(0) := r.trigCnt(0) + 1;
             end if;
          end if;
-      end if;
 
-      -- Check for trigger slave trigger
-      v.remoteTrigDly := remoteTrig;
-      if (r.trigMaster = '0') then
-         if (remoteTrig = '1') and (r.remoteTrigDly = '0') then
+         -- Check for BNC rising edge trigger
+         if (bncTrig = '1') then
             -- Check if dropping trigger
             if (r.state /= IDLE_S) then
                -- Increment the counter
-               v.dropTrigCnt(3) := r.dropTrigCnt(3) + 1;
+               v.dropTrigCnt(1) := r.dropTrigCnt(1) + 1;
                v.dropCnt        := r.dropCnt + 1;
             else
                -- Set the flag
                trigger      := '1';
                -- Increment the counter
-               v.trigCnt(3) := r.trigCnt(3) + 1;
+               v.trigCnt(1) := r.trigCnt(1) + 1;
             end if;
          end if;
-      end if;
 
-      -- Check for trigger
-      if (trigger = '1') then
-         -- Increment the counter
-         v.triggerCnt := r.triggerCnt + 1;
+         -- Check for trigger master trigger
+         v.orTrigDly  := orTrig;
+         v.andTrigDly := andTrig;
+         if (r.trigMaster = '1') then
+            if (orTrig = '1' and r.orTrigDly = '0') or (andTrig = '1' and r.andTrigDly = '0') then
+               -- Check if dropping trigger
+               if (r.state /= IDLE_S) then
+                  -- Increment the counter
+                  v.dropTrigCnt(2) := r.dropTrigCnt(2) + 1;
+                  v.dropCnt        := r.dropCnt + 1;
+               else
+                  -- Set the flag
+                  trigger      := '1';
+                  -- Increment the counter
+                  v.trigCnt(2) := r.trigCnt(2) + 1;
+               end if;
+            end if;
+         end if;
+
+         -- Check for trigger slave trigger
+         v.remoteTrigDly := remoteTrig;
+         if (r.trigMaster = '0') then
+            if (remoteTrig = '1') and (r.remoteTrigDly = '0') then
+               -- Check if dropping trigger
+               if (r.state /= IDLE_S) then
+                  -- Increment the counter
+                  v.dropTrigCnt(3) := r.dropTrigCnt(3) + 1;
+                  v.dropCnt        := r.dropCnt + 1;
+               else
+                  -- Set the flag
+                  trigger      := '1';
+                  -- Increment the counter
+                  v.trigCnt(3) := r.trigCnt(3) + 1;
+               end if;
+            end if;
+         end if;
+
+         -- Check for trigger
+         if (trigger = '1') then
+            -- Increment the counter
+            v.triggerCnt := r.triggerCnt + 1;
+         end if;
+
       end if;
 
       ----------------------------------------------------------------------      
