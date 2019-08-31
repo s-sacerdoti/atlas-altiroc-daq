@@ -97,7 +97,7 @@ Top:
         RckHighWidth: 0x3
         RckLowWidth: 0x3
         RstToReadDly: 0xF
-        ReadoutSize: 1
+        ReadoutSize: # 0 pixel readout (zero inclusive)
         RdIndexLut[0]: 4 # pix=4
         OnlySendFirstHit: 0x1 # Only send the first hit per pixel
       ##########################################################################
