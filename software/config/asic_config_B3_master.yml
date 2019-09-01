@@ -36,6 +36,14 @@ Top:
         ON_Ctest[:]: 0x0
         disable_pa[:]: 0x0
         ON_discri[:]: 0x1
+        bit_vth_cor[:]: 0x40
+        EN_hyst[:]: 0x1
+        EN_trig_ext[:]: 0x0
+        cBit_f_TOA[:]: 0x0        
+        cBit_s_TOA[:]: 0x0
+        cBit_f_TOT[:]: 0x0
+        cBit_s_TOT[:]: 0x0
+        cBit_c_TOT[:]: 0x0
         
         ###################
         #turn off broken channels
@@ -49,14 +57,19 @@ Top:
         ON_discri[9]: 0x0
         ###################
 
-        bit_vth_cor[:]: 0x40
-        EN_hyst[:]: 0x1
-        EN_trig_ext[:]: 0x0
-        cBit_f_TOA[:]: 0x0        
-        cBit_s_TOA[:]: 0x0
-        cBit_f_TOT[:]: 0x0
-        cBit_s_TOT[:]: 0x0
-        cBit_c_TOT[:]: 0x0
+        bit_vth_cor[1]: 30
+        bit_vth_cor[2]: 85
+        bit_vth_cor[3]: 45
+        bit_vth_cor[4]: 50
+        bit_vth_cor[5]: 70
+        bit_vth_cor[6]: 75
+        bit_vth_cor[7]: 85
+        bit_vth_cor[8]: 60
+        bit_vth_cor[10]: 75
+        bit_vth_cor[11]: 0x40
+        bit_vth_cor[12]: 0x40
+        bit_vth_cor[13]: 0x40
+        bit_vth_cor[14]: 0x40
         
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
@@ -89,7 +102,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 310 #173 / 183
+        DAC10bit: 472 #173 / 183
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -102,6 +115,20 @@ Top:
 
       ##########################################################################
       Readout:
+        ReadoutSize: 12                                                                                                                                                                                      
+        RdIndexLut[0]: 1   
+        RdIndexLut[1]: 2   
+        RdIndexLut[2]: 3   
+        RdIndexLut[3]: 4   
+        RdIndexLut[4]: 5   
+        RdIndexLut[5]: 6   
+        RdIndexLut[6]: 7   
+        RdIndexLut[7]: 8   
+        RdIndexLut[8]: 10   
+        RdIndexLut[9]: 11   
+        RdIndexLut[10]: 12   
+        RdIndexLut[11]: 13   
+        RdIndexLut[12]: 14   
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
@@ -114,4 +141,9 @@ Top:
         EnProbeWrite: 0x1
         OnlySendFirstHit: 0x1
         #####################
+        #Probe cofiguration
+        EnProbeDigOutDisc: 0x0
+        EnProbeDigSelect: 0x0
+        EnProbeDig: 0x0
+        EnProbePa: 0x0
 
