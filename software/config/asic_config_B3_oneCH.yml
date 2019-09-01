@@ -40,9 +40,9 @@ Top:
         
         ###################
         #turn on a single channel
-        EN_ck_SRAM[8]: 0x1
-        disable_pa[8]: 0x0
-        ON_discri[8]: 0x1
+        EN_ck_SRAM[11]: 0x1
+        disable_pa[11]: 0x0
+        ON_discri[11]: 0x1
         ###################
 
         EN_hyst[:]: 0x1
@@ -98,7 +98,7 @@ Top:
       ##########################################################################
       Readout:
         ReadoutSize: 0
-        RdIndexLut[0]: 8
+        RdIndexLut[0]: 11
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
