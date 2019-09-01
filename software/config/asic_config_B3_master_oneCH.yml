@@ -97,7 +97,7 @@ Top:
 
       ##########################################################################
       Readout:
-        ReadoutSize: 1
+        ReadoutSize: 0
         RdIndexLut[0]: 8
         #####################
         RstRamPulseWidth: 0xF
@@ -111,4 +111,9 @@ Top:
         EnProbeWrite: 0x1
         OnlySendFirstHit: 0x1
         #####################
+        #Probe cofiguration
+        EnProbeDigOutDisc: 0x0
+        EnProbeDigSelect: 0x0
+        EnProbeDig: 0x0
+        EnProbePa: 0x0
 

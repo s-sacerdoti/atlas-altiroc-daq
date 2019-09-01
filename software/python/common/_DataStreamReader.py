@@ -148,7 +148,7 @@ def ParseFrame(frame):
 # Class for printing out events
 class PrintEventReader(rogue.interfaces.stream.Slave):
     # Init method must call the parent class init
-    def __init__(self, cvsDump=False):
+    def __init__(self, cvsDump=False,fileList=[]):
         super().__init__()
         self.count   = 0
         self.cvsDump = cvsDump
@@ -156,7 +156,10 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
             self.file   = [None for i in range(2)]
             self.writer = [None for i in range(2)]
             for i in range(2):
-                self.file[i]   = open(f'fpga{i}.csv', 'w', newline='') 
+                if len(fileList)==2:
+                   self.file[i]   = open(fileList[i], 'w', newline='') 
+                else:
+                   self.file[i]   = open(f'fpga{i}.csv', 'w', newline='') 
                 self.writer[i] = csv.writer(self.file[i])
                 self.writer[i].writerow([
                     'Timestamp',    # 0 = Timestamp

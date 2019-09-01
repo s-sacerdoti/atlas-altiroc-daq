@@ -13,24 +13,20 @@ enable_readout.yml: Exists only to either enable or disable the "EnableReadout" 
 
 master_slave_example.yml: basic example of how to setup a master and slave testbeam configuration
 
-asic_config_B2.yml
-asic_config_B3.yml
+asic_config_B2.yml ->to be used to run B2 alone, all channels on, probes off, sets corrects vth corr.
+asic_config_B3.yml ->to be used to run B3 alone, all channels on, probes off, sets corrects vth corr.
 asic_config_B6.yml
 asic_config_B7.yml
 asic_config_B8.yml: basic configurations of the appropriate board, which sets board specific thresholds for general calibration pulse testing
 
 asic_config_B2_slave.yml
-asic_config_B3_master.yml
-asic_config_B7_slave.yml
-asic_config_B8_master.yml: slave-master configurations for use in the testbeam
+asic_config_B3_master.yml -> slave-master configurations for use in the testbeam -> updated with latest vth_corr, all channels on (good channels), must be used toghether
 
 asic_config_B2_slave_calibPulse.yml
 asic_config_B3_master_calibPulse.yml: like the above, but these configs are set to allow calibration pulses, with only one channel reading out
 
-asic_config_B2_TBalone.yml
+asic_config_B2_TBalone.yml: similar to the slave-master pairs, but meant to be run in the testbeam by themselves (they're all master)
 asic_config_B3_TBalone.yml
-asic_config_B6_TBalone.yml
-asic_config_B7_TBalone.yml: similar to the slave-master pairs, but meant to be run in the testbeam by themselves (they're all master)
 
 asic_vthcorr_B2B3.yml: loads threshold corrections for boards 2 and 3
 
@@ -38,8 +34,8 @@ config_v2B6_noPAprobe.yml: ?
 
 config_v2B6_probe.yml: ?
 
-config_v2B7_scurve.yml: ?
+config_v2B7_scurve.yml: 
 
-pll-config: ?
+pll-config: contains pll configurations
 
 testbeam_config.yml: ?

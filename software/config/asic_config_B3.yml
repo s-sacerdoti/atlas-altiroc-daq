@@ -34,6 +34,35 @@ Top:
         cBit_s_TOT[:]: 0x0
         cBit_c_TOT[:]: 0x0
         
+        ###################
+        #turn off broken channels
+        EN_ck_SRAM[0]: 0x0
+        EN_ck_SRAM[9]: 0x0
+        EN_ck_SRAM[14]: 0x0
+
+        disable_pa[0]: 0x1
+        disable_pa[9]: 0x1
+        disable_pa[14]: 0x1
+
+        ON_discri[0]: 0x0
+        ON_discri[9]: 0x0
+        ON_discri[14]: 0x0
+        ###################
+       
+        bit_vth_cor[1]: 34
+        bit_vth_cor[2]: 91
+        bit_vth_cor[3]: 52
+        bit_vth_cor[4]: 57
+        bit_vth_cor[5]: 74
+        bit_vth_cor[6]: 82
+        bit_vth_cor[7]: 89
+        bit_vth_cor[8]: 64
+        bit_vth_cor[10]: 82
+        bit_vth_cor[11]: 57
+        bit_vth_cor[12]: 68
+        bit_vth_cor[13]: 68
+        bit_vth_cor[14]: 29
+  
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
         
@@ -78,6 +107,20 @@ Top:
 
       ##########################################################################
       Readout:
+        ReadoutSize: 11                                                                                                                                                                                      
+        RdIndexLut[0]: 1   
+        RdIndexLut[1]: 2   
+        RdIndexLut[2]: 3   
+        RdIndexLut[3]: 4   
+        RdIndexLut[4]: 5   
+        RdIndexLut[5]: 6   
+        RdIndexLut[6]: 7   
+        RdIndexLut[7]: 8   
+        RdIndexLut[8]: 10   
+        RdIndexLut[9]: 11   
+        RdIndexLut[10]: 12   
+        RdIndexLut[11]: 13   
+
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
@@ -90,4 +133,9 @@ Top:
         EnProbeWrite: 0x1
         OnlySendFirstHit: 0x1
         #####################
+        #Probe cofiguration
+        EnProbeDigOutDisc: 0x0
+        EnProbeDigSelect: 0x0
+        EnProbeDig: 0x0
+        EnProbePa: 0x0
 

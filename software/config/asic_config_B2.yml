@@ -37,7 +37,14 @@ Top:
         disable_pa[:]: 0x0
         ON_discri[:]: 0x1
         bit_vth_cor[:]: 0x40
-       
+        EN_hyst[:]: 0x1
+        EN_trig_ext[:]: 0x0
+        cBit_f_TOA[:]: 0x0        
+        cBit_s_TOA[:]: 0x0
+        cBit_f_TOT[:]: 0x0
+        cBit_s_TOT[:]: 0x0
+        cBit_c_TOT[:]: 0x0
+ 
         ###################
         #turn off broken channels
         EN_ck_SRAM[0:5]: 0x0 
@@ -54,24 +61,17 @@ Top:
         ###################
         ##set correct vth correction
         bit_vth_cor[5]: 45
-        bit_vth_cor[6]: 45
+        bit_vth_cor[6]: 47
         bit_vth_cor[7]: 75
         bit_vth_cor[8]: 90
         bit_vth_cor[10]: 35
-        bit_vth_cor[12]: 85
+        bit_vth_cor[12]: 87
         bit_vth_cor[13]: 75
         bit_vth_cor[14]: 65
 
         ###################
 
-        EN_hyst[:]: 0x1
-        EN_trig_ext[:]: 0x0
-        cBit_f_TOA[:]: 0x0        
-        cBit_s_TOA[:]: 0x0
-        cBit_f_TOT[:]: 0x0
-        cBit_s_TOT[:]: 0x0
-        cBit_c_TOT[:]: 0x0
-        
+                
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
         
@@ -103,7 +103,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 485 #average
+        DAC10bit: 451 #average
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -116,7 +116,7 @@ Top:
 
       ##########################################################################
       Readout:
-        ReadoutSize: 8
+        ReadoutSize: 7
         RdIndexLut[0]: 5
         RdIndexLut[1]: 6
         RdIndexLut[2]: 7
@@ -125,8 +125,6 @@ Top:
         RdIndexLut[5]: 12
         RdIndexLut[6]: 13
         RdIndexLut[7]: 14
-
-
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
@@ -139,4 +137,9 @@ Top:
         EnProbeWrite: 0x1
         OnlySendFirstHit: 0x1
         #####################
+        #Probe cofiguration
+        EnProbeDigOutDisc: 0x0
+        EnProbeDigSelect: 0x0
+        EnProbeDig: 0x0
+        EnProbePa: 0x0
 
