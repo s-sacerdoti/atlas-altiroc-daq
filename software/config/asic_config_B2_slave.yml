@@ -43,6 +43,13 @@ Top:
         EN_ck_SRAM[0:5]: 0x0
         EN_ck_SRAM[9]: 0x0
         EN_ck_SRAM[11]: 0x0
+        EN_hyst[:]: 0x1
+        EN_trig_ext[:]: 0x0
+        cBit_f_TOA[:]: 0x0        
+        cBit_s_TOA[:]: 0x0
+        cBit_f_TOT[:]: 0x0
+        cBit_s_TOT[:]: 0x0
+        cBit_c_TOT[:]: 0x0
 
         disable_pa[0:5]: 0x1
         disable_pa[9]: 0x1
@@ -54,20 +61,13 @@ Top:
         ###################
 
         bit_vth_cor[5]: 45
-        bit_vth_cor[6]: 45
+        bit_vth_cor[6]: 47
         bit_vth_cor[7]: 75
         bit_vth_cor[8]: 90
         bit_vth_cor[10]: 35
-        bit_vth_cor[12]: 85
+        bit_vth_cor[12]: 87
         bit_vth_cor[13]: 75
         bit_vth_cor[14]: 65
-        EN_hyst[:]: 0x1
-        EN_trig_ext[:]: 0x0
-        cBit_f_TOA[:]: 0x0        
-        cBit_s_TOA[:]: 0x0
-        cBit_f_TOT[:]: 0x0
-        cBit_s_TOT[:]: 0x0
-        cBit_c_TOT[:]: 0x0
         
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
@@ -113,12 +113,12 @@ Top:
 
       ##########################################################################
       Readout:
-        ReadoutSize: 7                                                                                                                                                                                      
-        RdIndexLut[0]: 5   
-        RdIndexLut[1]: 6   
-        RdIndexLut[2]: 7   
-        RdIndexLut[3]: 8   
-        RdIndexLut[4]: 10   
+        ReadoutSize: 4 
+        RdIndexLut[0]: 7   
+        RdIndexLut[1]: 8   
+        RdIndexLut[2]: 10   
+        RdIndexLut[3]: 12   
+        RdIndexLut[4]: 13   
         RdIndexLut[5]: 12   
         RdIndexLut[6]: 13   
         RdIndexLut[7]: 14   
