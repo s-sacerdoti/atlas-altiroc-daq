@@ -37,14 +37,6 @@ Top:
         disable_pa[:]: 0x1
         ON_discri[:]: 0x0
         bit_vth_cor[:]: 0x40
-        
-        ###################
-        #turn on a single channel
-        EN_ck_SRAM[11]: 0x1
-        disable_pa[11]: 0x0
-        ON_discri[11]: 0x1
-        ###################
-
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
         cBit_f_TOA[:]: 0x0        
@@ -52,7 +44,14 @@ Top:
         cBit_f_TOT[:]: 0x0
         cBit_s_TOT[:]: 0x0
         cBit_c_TOT[:]: 0x0
-        
+
+        ###################
+        #turn on a single channel
+        EN_ck_SRAM[11]: 0x1
+        disable_pa[11]: 0x0
+        ON_discri[11]: 0x1
+        ###################
+
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
         

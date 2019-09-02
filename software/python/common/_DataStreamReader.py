@@ -133,10 +133,10 @@ def ParseFrame(frame):
     # Parse the data and data to data frame
     eventFrame = EventValue()
     eventFrame.FormatVersion = (wrdData[0] >>  0) & 0xFFF
-    if eventFrame.FormatVersion = 1: ParsePayloadFormatV1(eventFrame, wrdData)
-    elif eventFrame.FormatVersion = 2: ParsePayloadFormatV2(eventFrame, wrdData)
-    elif eventFrame.FormatVersion = 3: ParsePayloadFormatV3(eventFrame, wrdData)
-    elif eventFrame.FormatVersion = 4: ParsePayloadFormatV4(eventFrame, wrdData)
+    if   eventFrame.FormatVersion == 1: ParsePayloadFormatV1(eventFrame, wrdData)
+    elif eventFrame.FormatVersion == 2: ParsePayloadFormatV2(eventFrame, wrdData)
+    elif eventFrame.FormatVersion == 3: ParsePayloadFormatV3(eventFrame, wrdData)
+    elif eventFrame.FormatVersion == 4: ParsePayloadFormatV4(eventFrame, wrdData)
     else:
         raise Exception('Frame payload format version <'
             +str(eventFrame.FormatVersion)+'> is not supported')

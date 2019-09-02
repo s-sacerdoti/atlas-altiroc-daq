@@ -9,7 +9,7 @@ Top:
         DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
         DlyCalPulseReset: 0 # Falling edge of EXT_TRIG
       Trig:
-        TrigTypeSel: Slave        
+        TrigTypeSel: Master        
         CalStrobeAlign: 0x3      # Same as calibration pulse testing
         TrigStrobeAlign: 0x3     # Sets 6.25 ns trigger window w.r.t to 40 MHz clock  (might need tuning for the real system)
         EnCalPulseTrig: 0x0      # Disable calibration pulse
@@ -36,14 +36,6 @@ Top:
         ON_Ctest[:]: 0x0
         disable_pa[:]: 0x1
         ON_discri[:]: 0x0
-        
-        ###################
-        #turn on single ch
-        EN_ck_SRAM[8]: 0x0
-        disable_pa[8]: 0x1
-        ON_discri[8]: 0x0
-        ###################
-
         bit_vth_cor[:]: 0x40
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
@@ -52,7 +44,14 @@ Top:
         cBit_f_TOT[:]: 0x0
         cBit_s_TOT[:]: 0x0
         cBit_c_TOT[:]: 0x0
-        
+
+        ###################
+        #turn on single ch
+        EN_ck_SRAM[8]: 0x1
+        disable_pa[8]: 0x0
+        ON_discri[8]: 0x1
+        ###################
+
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
         
@@ -84,7 +83,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 520 #for ch8
+        DAC10bit: 340 #for ch8
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -97,8 +96,8 @@ Top:
 
       ##########################################################################
       Readout:
-        StartPix: 8
-        LastPix: 8
+        ReadoutSize: 0
+        RdIndexLut[0]: 8
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
@@ -111,4 +110,9 @@ Top:
         EnProbeWrite: 0x1
         OnlySendFirstHit: 0x1
         #####################
+        #Probe cofiguration
+        EnProbeDigOutDisc: 0x0
+        EnProbeDigSelect: 0x0
+        EnProbeDig: 0x0
+        EnProbePa: 0x0
 
