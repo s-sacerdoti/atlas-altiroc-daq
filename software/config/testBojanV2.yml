@@ -39,9 +39,9 @@ Top:
         DLL_ALockR_en: 0x1
         CP_b: 0x7 #5
         
-        ext_Vcrtlf_en: 0x0 #need to fix value externally
+        ext_Vcrtlf_en: 0x1 #0
         ext_Vcrtls_en: 0x1 #need to fix value externally
-        ext_Vcrtlc_en: 0x0 #0
+        ext_Vcrtlc_en: 0x1 #0
 
         totf_satovfw: 0x1
         totc_satovfw: 0x1

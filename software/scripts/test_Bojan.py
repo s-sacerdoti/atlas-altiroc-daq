@@ -23,7 +23,7 @@ else:
 
 pixel_number = 3 # <= Pixel to be Tested
 
-DataAcqusitionTOA = 0   # <= Enable TOA Data Acquisition (Delay Sweep)
+DataAcqusitionTOA = 1   # <= Enable TOA Data Acquisition (Delay Sweep)
 #DelayRange = 251        # <= Range of Programmable Delay Sweep 
 DelayRange_low = 1950     # <= low end of Programmable Delay Sweep
 DelayRange_high = 2300     # <= high end of Programmable Delay Sweep
@@ -31,7 +31,7 @@ DelayRange_step = 1     # <= step size Programmable Delay Sweep
 #DelayRange = 11        # <= Range of Programmable Delay Sweep 
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 
-DataAcqusitionTOT = 1   # <= Enable TOT Data Acquisition
+DataAcqusitionTOT = 0   # <= Enable TOT Data Acquisition
 TOT_RisingEdgeSweep = 0
 TOT_DelayRangeL = 850        # <= Low Value of Delay Sweep Range    #850
 TOT_DelayRangeH = 3000       # <= High Value of Delay Sweep Range   #3000
@@ -39,7 +39,7 @@ TOT_DelayRangeStep = 1     # <= Step Size of Delay Sweep Range
 NofIterationsTOT = 16   # <= Number of Iterations for each Delay Value
 DelayValueTOT = 3200       # <= Value of Programmable Delay for TOT Pulser Sweep  #3200 / 800
 
-nTOA_TOT_Processing = 1 # <= Selects the Data to be Processed and Plotted (0 = TOA, 1 = TOT) 
+nTOA_TOT_Processing = 0 # <= Selects the Data to be Processed and Plotted (0 = TOA, 1 = TOT) 
 
 TOT_f_Calibration_En = 1                                       	   # <= Enables Calculation of TOT Fine-Interpolation Calibration Data and Saves them
 #TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_nocalibration.txt'
