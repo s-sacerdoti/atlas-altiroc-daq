@@ -90,15 +90,36 @@ class AltirocGpio(pr.Device):
             disp         = '{:d}',
         ))        
         
+        # self.add(pr.RemoteVariable(
+            # name         = 'RefClkSel', 
+            # description  = 'Reference Clock Select: Si5345.IN_SEL_REGCTRL must be 0x0 for CLKIN controlled by this else Si5345.IN_SEL controls the CLKIN MUXing',
+            # offset       = 0x1C,
+            # bitSize      = 2, 
+            # mode         = 'RW',
+            # enum         = {
+                # 0x0: 'IntClk', 
+                # 0x1: 'ExtSmaClk', 
+                # 0x2: 'ExtLemoClk',
+            # },
+        # ))        
+
         self.add(pr.RemoteVariable(
-            name         = 'RefClkSel', 
-            description  = 'Reference Clock Select: Si5345.IN_SEL_REGCTRL must be 0x0 for CLKIN controlled by this else Si5345.IN_SEL controls the CLKIN MUXing',
-            offset       = 0x1C,
-            bitSize      = 2, 
-            mode         = 'RW',
-            enum         = {
-                0x0: 'IntClk', 
-                0x1: 'ExtSmaClk', 
-                0x2: 'ExtLemoClk',
-            },
+            name         = 'PllLockCnt', 
+            description  = 'Increments every time a PLL locked event detected',
+            offset       = 0x20,
+            bitSize      = 32, 
+            mode         = 'RO',
+            pollInterval = 1,
+        ))   
+
+        self.add(pr.RemoteCommand(   
+            name         = 'CountReset',
+            description  = 'Status counter reset',
+            offset       = 0xFC,
+            bitSize      = 1,
+            function     = pr.BaseCommand.touchOne
         ))        
+        
+    def countReset(self):
+        self.CountReset()
+        

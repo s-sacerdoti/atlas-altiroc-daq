@@ -22,39 +22,42 @@ Top:
         cBit_f_TOT[:]: 0x0
         cBit_s_TOT[:]: 0x0
         cBit_c_TOT[:]: 0x0
-        ########################
-        EN_ck_SRAM[4]: 0x1
-        ON_Ctest[4]: 0x1
-        disable_pa[4]: 0x0
-        bit_vth_cor[4]: 0x40
-        ON_discri[4]: 0x0
-        EN_hyst[4]: 0x1
-        EN_trig_ext[4]: 0x1
-        cBit_f_TOA[4]: 0x0 #0
-        cBit_s_TOA[4]: 0x0 #0
-        cBit_f_TOT[4]: 0x0 #f
-        cBit_s_TOT[4]: 0x0 #0
-        cBit_c_TOT[4]: 0x0 #f
+        ##################################################################
+        # [3:5]: # Set channel3 through less channel 5 (not including 5) #
+        ##################################################################
+        EN_ck_SRAM[3:5]: 0x1
+        ON_Ctest[3:5]: 0x1
+        disable_pa[3:5]: 0x0
+        bit_vth_cor[3]: 0x20 # diff VTH
+        bit_vth_cor[4]: 0x40 # diff VTH
+        ON_discri[3:5]: 0x1
+        EN_hyst[3:5]: 0x1
+        EN_trig_ext[3:5]: 0x0
+        cBit_f_TOA[3:5]: 0x0 #0
+        cBit_s_TOA[3:5]: 0x0 #0
+        cBit_f_TOT[3:5]: 0xf #f
+        cBit_s_TOT[3:5]: 0x0 #0
+        cBit_c_TOT[3:5]: 0xf #f
         ########################     
         
         DLL_ALockR_en: 0x1
         CP_b: 0x7 #5
         
-        ext_Vcrtlf_en: 0x1 #0
+        ext_Vcrtlf_en: 0x0 #need to fix value externally
         ext_Vcrtls_en: 0x1 #need to fix value externally
-        ext_Vcrtlc_en: 0x1 #0
+        ext_Vcrtlc_en: 0x0 #0
 
         totf_satovfw: 0x1
         totc_satovfw: 0x1
         toa_satovfw: 0x1      
       
-        SatFVa: 0x3 #3
+        SatFVa: 0x4 #3
         IntFVa: 0x0 #1
         SatFTz: 0x4 #4
         IntFTz: 0x1 #1  
       
         cBitf: 0x0 #0
-        cBits: 0x6 #f
+        cBits: 0x0 #f
         cBitc: 0x0 #f      
       
         Rin_Vpa: 0x0 #0
@@ -77,9 +80,9 @@ Top:
       ##########################################################################
       Probe:
         EN_dout: 0x1
-        en_probe_pa: 0x1
-        en_probe_dig: 0x1 # pix=4
-        pix[4]:
+        en_probe_pa: 0x0
+        en_probe_dig: 0x0
+        pix[3:5]: # Set channel3 through less channel 5 (not including 5)
           probe_pa: 0x1
           probe_vthc: 0x0
           probe_dig_out_disc: 0x1
@@ -97,7 +100,8 @@ Top:
         RckHighWidth: 0x3
         RckLowWidth: 0x3
         RstToReadDly: 0xF
-        ReadoutSize: 0 # 0 pixel readout (zero inclusive)
-        RdIndexLut[0]: 4 # pix=4
+        ReadoutSize: 1 # 2 pixel readout (zero inclusive)
+        RdIndexLut[0]: 3 # pix=3
+        RdIndexLut[1]: 4 # pix=4
         OnlySendFirstHit: 0x1 # Only send the first hit per pixel
       ##########################################################################

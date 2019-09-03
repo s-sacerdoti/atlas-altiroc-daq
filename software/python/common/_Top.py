@@ -43,11 +43,12 @@ class Top(pr.Root):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000040
+        self.minFpgaVersion = 0x20000050
+        
+        # Enable Init after config
+        self.InitAfterConfig._default = True        
         
         # Cache the parameters
-        self.refClkSel   = refClkSel
-        self.pllConfig   = pllConfig
         self.advanceUser = advanceUser
         self.configProm  = configProm
         self.ip          = ip
@@ -58,6 +59,20 @@ class Top(pr.Root):
         self.loadYaml    = loadYaml
         self.userYaml    = userYaml
         self.defaultFile = defaultFile
+        
+        # Set the path of the PLL configuration file
+        if (refClkSel=='IntClk'):
+            self.pllConfig = 'config/pll-config/Si5345-RevD-Registers-IntClk.csv'
+        elif (refClkSel=='ExtSmaClk'):
+            self.pllConfig = 'config/pll-config/Si5345-RevD-Registers-ExtSmaClk.csv'
+        elif (refClkSel=='ExtLemoClk'):
+            self.pllConfig = 'config/pll-config/Si5345-RevD-Registers-ExtLemoClk.csv'            
+        else:
+            errMsg = f"""
+                refClkSel argument must be either [IntClk,ExtSmaClk,ExtLemoClk]
+                """
+            click.secho(errMsg, bg='red')
+            raise ValueError(errMsg)        
         
         # File writer
         self.dataWriter = pr.utilities.fileio.StreamWriter()
@@ -102,6 +117,58 @@ class Top(pr.Root):
                 expand      = True, 
             ))
         
+            ######################################################################
+            
+        self.add(pr.LocalVariable(    
+            name         = "LiveDisplayRst",
+            mode         = "RW",
+            value        = 0x0,
+            hidden       = True, 
+        ))            
+        
+        @self.command()
+        def LiveDisplayReset(arg):    
+            print('LiveDisplayReset()')
+            self.LiveDisplayRst.set(1)
+            self.LiveDisplayRst.set(0)
+        
+        @self.command(description='This command is intended to be executed before self.dataWriter is closed')
+        def StopRun(arg):  
+            click.secho('StopRun()', bg='yellow')
+
+            # Stop the Master First
+            for i in range(self.numEthDev):
+                if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Master':
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x0)
+                    click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x0)', bg='bright_magenta')
+                    
+            # Stop the Slave after the Master
+            for i in range(self.numEthDev):
+                if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Slave':
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x0)
+                    click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x0)', bg='magenta')
+
+        @self.command(description='This command is intended to be executed after self.dataWriter is opened')
+        def StartRun(arg):  
+            click.secho('StartRun()', bg='blue')
+            
+            # Reset the sequence and trigger counters
+            for i in range(self.numEthDev):
+                self.Fpga[i].Asic.Trig.countReset()
+                self.Fpga[i].Asic.Readout.SeqCntRst()                    
+            
+            # Start the Slave First
+            for i in range(self.numEthDev):
+                if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Slave':
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)
+                    click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x1)', bg='magenta')
+                    
+            # Start the Master after the Slave
+            for i in range(self.numEthDev):
+                if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Master':
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)
+                    click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x1)', bg='bright_magenta')
+            
         ######################################################################
         
         # Start the system
@@ -125,6 +192,9 @@ class Top(pr.Root):
             # Loop through FPGA devices
             for i in range(self.numEthDev):
             
+                # Disable auto-polling during PLL config
+                self.Fpga[i].Asic.enable.set(False)
+                
                 # Check for min. FW version
                 fwVersion = self.Fpga[i].AxiVersion.FpgaVersion.get()
                 if (fwVersion < self.minFpgaVersion):
@@ -149,21 +219,16 @@ class Top(pr.Root):
                 
                 if (self.advanceUser):
                     # Prevent FEB from thermal shutdown until FPGA Tj = 100 degC (max. operating temp)  
-                    self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95)    
-         
-                # Set the PLL reference
-                self.Fpga[i].Asic.Gpio.RefClkSel.setDisp(self.refClkSel)
+                    self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95)
                      
                 # Load the PLL configurations
                 self.Fpga[i].Pll.CsvFilePath.set(self.pllConfig)
+                self.Fpga[i].Pll.LoadCsvFile()
+                self.Fpga[i].Pll.Locked.get()
                 
-                # Check if not locked
-                if (not self.Fpga[i].Pll.Locked.get()):
-                    self.Fpga[i].Pll.LoadCsvFile()
-                                        
             # Wait for the SiLab PLL to lock
             print ('Waiting for SiLab PLLs to lock')
-            time.sleep(1.0)
+            time.sleep(10.0)
             
             # Loop through the devices
             for i in range(self.numEthDev):             
@@ -174,7 +239,7 @@ class Top(pr.Root):
                     else:
                         retry = retry + 1
                         self.Fpga[i].Pll.LoadCsvFile() 
-                        time.sleep(5.0)          
+                        time.sleep(10.0)          
                         
                 # Print the results
                 if (retry<2):
@@ -204,30 +269,21 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.Probe.enable.hidden    = False
                 self.Fpga[i].Asic.Readout.enable.hidden  = False
                 
-                # Check if we are loading YAML files
-                if self.loadYaml:
-                    
-                    # Load the Default YAML file
-                    print(f'Loading Fpga[{i}]:path={self.defaultFile} Default Configuration File...')
-                    self.LoadConfig(self.defaultFile)                
+                # Disable auto-polling during PLL config
+                self.Fpga[i].Asic.enable.set(True)                
                 
-                    # Load the board specific YAML file
-                    if (self.userYaml[i] != ''):
-                        print(f'Loading Fpga[{i}]:path={self.userYaml[i]} User Configuration File...')
+            # Check if we are loading YAML files
+            if self.loadYaml:
+                
+                # Load the Default YAML file
+                print(f'Loading path={self.defaultFile} Default Configuration File...')
+                self.LoadConfig(self.defaultFile)                
+                
+                # Load the User YAML file(s)
+                if (self.userYaml[i] != ''): 
+                    for i in range(len(self.userYaml)):
+                        print(f'Loading path={self.userYaml[i]} User Configuration File...')
                         self.LoadConfig(self.userYaml[i])
-            
-                # Reset the RAM, TDC and DLL resets
-                self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x0)
-                self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x0)
-                self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x0)
-                time.sleep(0.001)
-                self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x1)                
-                self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x1)
-                self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x1)
-                
-                # Reset the sequence and trigger counters
-                self.Fpga[i].Asic.Trig.CountReset()
-                self.Fpga[i].Asic.Readout.SeqCntRst()
                 
         else:
             # Hide all the "enable" variables
@@ -239,3 +295,19 @@ class Top(pr.Root):
             self.ReadAll()
             self.ReadAll()
      
+    # Function calls after loading YAML configuration
+    def initialize(self):
+        super().initialize()
+        for i in range(self.numEthDev):
+            # Reset the RAM, TDC and DLL resets
+            self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x0)
+            self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x0)
+            self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x0)
+            time.sleep(0.001)
+            self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x1)                
+            self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x1)
+            self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x1)
+            
+            # Reset the sequence and trigger counters
+            self.Fpga[i].Asic.Trig.countReset()
+            self.Fpga[i].Asic.Readout.SeqCntRst()

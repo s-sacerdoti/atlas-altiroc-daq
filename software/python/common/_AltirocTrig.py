@@ -12,6 +12,7 @@
 import pyrogue as pr
 
 import common
+import click
 
 class AltirocTrig(pr.Device):
     def __init__(   
@@ -104,7 +105,26 @@ class AltirocTrig(pr.Device):
             bitSize      = 32, 
             mode         = 'RO',
             pollInterval = 1,
-        ))          
+        ))       
+
+        self.add(pr.RemoteVariable(
+            name         = 'TriggerDropCnt', 
+            description  = 'Increments every time a trigger is dropped',
+            offset       = 0x24,
+            bitSize      = 32, 
+            mode         = 'RO',
+            pollInterval = 1,
+        ))   
+
+        self.add(pr.RemoteVariable(
+            name         = 'TimeCounter', 
+            description  = 'Increments every 160 MHz clock cycle and reset to zero when PLL is not locked',
+            offset       = 0x28,
+            bitSize      = 64, 
+            mode         = 'RO',
+            units        = '1/160MHz',
+            pollInterval = 1,
+        ))           
         
         self.add(pr.RemoteVariable(
             name         = 'TrigTypeSel', 
@@ -295,6 +315,14 @@ class AltirocTrig(pr.Device):
             pollInterval = 1,
         ))           
        
+        self.add(pr.RemoteVariable(
+            name         = 'EnableReadout', 
+            description  = 'Enable the triggers to start the readout process',
+            offset       = 0x80,
+            bitSize      = 1, 
+            mode         = 'RW',   
+        ))               
+       
         self.add(pr.RemoteCommand(   
             name         = 'CountReset',
             description  = 'Status counter reset',
@@ -302,7 +330,8 @@ class AltirocTrig(pr.Device):
             bitSize      = 1,
             function     = pr.BaseCommand.touchOne
         ))        
-        
+    
     def countReset(self):
+        click.secho(f'{self.path}.countReset()', bg='cyan')
         self.CountReset()
         

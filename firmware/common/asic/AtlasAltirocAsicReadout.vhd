@@ -39,6 +39,8 @@ entity AtlasAltirocAsicReadout is
       -- Trigger Interface (clk160MHz domain)
       readoutStart    : in  sl;
       readoutCnt      : in  slv(31 downto 0);
+      dropCnt         : in  slv(31 downto 0);
+      timeStamp       : in  slv(63 downto 0);
       readoutBusy     : out sl;
       -- Probe Interface (clk160MHz domain)
       probeValid      : out sl;
@@ -61,7 +63,7 @@ end AtlasAltirocAsicReadout;
 
 architecture rtl of AtlasAltirocAsicReadout is
 
-   constant HDR_SIZE_C : positive := 3;
+   constant HDR_SIZE_C : positive := 5;
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);  -- 32-bit AXI stream interface
 
@@ -79,6 +81,9 @@ architecture rtl of AtlasAltirocAsicReadout is
       FOOTER_S);
 
    type RegType is record
+      probePa            : slv(31 downto 0);
+      probeDigOutDisc    : sl;
+      enProbeDig         : slv(5 downto 0);
       hitDetected        : sl;
       onlySendFirstHit   : sl;
       cntRst             : sl;
@@ -107,8 +112,10 @@ architecture rtl of AtlasAltirocAsicReadout is
       header             : Slv32Array(HDR_SIZE_C-1 downto 0);
       rdCnt              : slv(8 downto 0);
       rdSize             : slv(8 downto 0);
-      startPix           : slv(4 downto 0);
-      stopPix            : slv(4 downto 0);
+      -- startPix        : slv(4 downto 0);
+      -- stopPix         : slv(4 downto 0);
+      readoutSize        : slv(4 downto 0);
+      rdIndexLut         : Slv5Array(24 downto 0);
       pixIndex           : slv(4 downto 0);
       bitCnt             : slv(7 downto 0);
       bitSize            : slv(7 downto 0);
@@ -122,6 +129,9 @@ architecture rtl of AtlasAltirocAsicReadout is
       state              : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      probePa            => (others => '0'),
+      probeDigOutDisc    => '1',
+      enProbeDig         => "100000",
       hitDetected        => '0',
       onlySendFirstHit   => '1',
       cntRst             => '0',
@@ -150,8 +160,15 @@ architecture rtl of AtlasAltirocAsicReadout is
       header             => (others => (others => '0')),
       rdCnt              => (others => '0'),
       rdSize             => toSlv(399, 9),
-      startPix           => toSlv(0, 5),
-      stopPix            => toSlv(24, 5),
+      -- startPix        => toSlv(0, 5),
+      -- stopPix         => toSlv(24, 5),
+      readoutSize        => toSlv(24, 5),
+      rdIndexLut         => (
+         0               => toSlv(0, 5), 1 => toSlv(1, 5), 2 => toSlv(2, 5), 3 => toSlv(3, 5), 4 => toSlv(4, 5),
+         5               => toSlv(5, 5), 6 => toSlv(6, 5), 7 => toSlv(7, 5), 8 => toSlv(8, 5), 9 => toSlv(9, 5),
+         10              => toSlv(10, 5), 11 => toSlv(11, 5), 12 => toSlv(12, 5), 13 => toSlv(13, 5), 14 => toSlv(14, 5),
+         15              => toSlv(15, 5), 16 => toSlv(16, 5), 17 => toSlv(17, 5), 18 => toSlv(18, 5), 19 => toSlv(19, 5),
+         20              => toSlv(20, 5), 21 => toSlv(21, 5), 22 => toSlv(22, 5), 23 => toSlv(23, 5), 24 => toSlv(24, 5)),
       pixIndex           => toSlv(0, 5),
       bitCnt             => (others => '0'),
       bitSize            => toSlv(20, 8),
@@ -183,18 +200,18 @@ begin
          IB => doutN,
          Q1 => dout);
 
-   comb : process (axilReadMaster, axilWriteMaster, dout, probeBusy,
+   comb : process (axilReadMaster, axilWriteMaster, dout, dropCnt, probeBusy,
                    probeObData, r, readoutCnt, readoutStart, rst160MHz,
-                   txSlave) is
-      variable v       : RegType;
-      variable axilEp  : AxiLiteEndPointType;
-      variable stopPix : slv(4 downto 0);
+                   timeStamp, txSlave) is
+      variable v      : RegType;
+      variable axilEp : AxiLiteEndPointType;
+      variable pixIdx : natural;
    begin
       -- Latch the current value
       v := r;
 
       -- Update local variables (in used in cased changed during readout)
-      stopPix := r.header(0)(31 downto 27);
+      pixIdx := conv_integer(r.rdIndexLut(conv_integer(r.pixIndex)));
 
       -- Reset strobes
       v.probeValid := '0';
@@ -215,8 +232,8 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      axiSlaveRegister (axilEp, x"00", 0, v.startPix);
-      axiSlaveRegister (axilEp, x"04", 0, v.stopPix);
+      -- axiSlaveRegister (axilEp, x"00", 0, v.startPix);
+      -- axiSlaveRegister (axilEp, x"04", 0, v.stopPix);
       axiSlaveRegister (axilEp, x"08", 0, v.rstRamPulseWidth);
       axiSlaveRegisterR(axilEp, x"0C", 0, r.seqCnt);
       axiSlaveRegister (axilEp, x"10", 0, v.probeToRstDly);
@@ -235,6 +252,41 @@ begin
       -- axiSlaveRegister (axilEp, x"3C", 1, v.invertRck);
       -- axiSlaveRegister (axilEp, x"40", 0, v.txDataBitReverse);
       axiSlaveRegister (axilEp, x"44", 0, v.onlySendFirstHit);
+      axiSlaveRegister (axilEp, x"48", 0, v.probeDigOutDisc);
+      axiSlaveRegister (axilEp, x"4C", 0, v.enProbeDig);
+      axiSlaveRegister (axilEp, x"50", 0, v.probePa);
+
+      axiSlaveRegister (axilEp, x"E0", 0, v.rdIndexLut(0));
+      axiSlaveRegister (axilEp, x"E0", 5, v.rdIndexLut(1));
+      axiSlaveRegister (axilEp, x"E0", 10, v.rdIndexLut(2));
+      axiSlaveRegister (axilEp, x"E0", 15, v.rdIndexLut(3));
+      axiSlaveRegister (axilEp, x"E0", 20, v.rdIndexLut(4));
+
+      axiSlaveRegister (axilEp, x"E4", 0, v.rdIndexLut(5));
+      axiSlaveRegister (axilEp, x"E4", 5, v.rdIndexLut(6));
+      axiSlaveRegister (axilEp, x"E4", 10, v.rdIndexLut(7));
+      axiSlaveRegister (axilEp, x"E4", 15, v.rdIndexLut(8));
+      axiSlaveRegister (axilEp, x"E4", 20, v.rdIndexLut(9));
+
+      axiSlaveRegister (axilEp, x"E8", 0, v.rdIndexLut(10));
+      axiSlaveRegister (axilEp, x"E8", 5, v.rdIndexLut(11));
+      axiSlaveRegister (axilEp, x"E8", 10, v.rdIndexLut(12));
+      axiSlaveRegister (axilEp, x"E8", 15, v.rdIndexLut(13));
+      axiSlaveRegister (axilEp, x"E8", 20, v.rdIndexLut(14));
+
+      axiSlaveRegister (axilEp, x"EC", 0, v.rdIndexLut(15));
+      axiSlaveRegister (axilEp, x"EC", 5, v.rdIndexLut(16));
+      axiSlaveRegister (axilEp, x"EC", 10, v.rdIndexLut(17));
+      axiSlaveRegister (axilEp, x"EC", 15, v.rdIndexLut(18));
+      axiSlaveRegister (axilEp, x"EC", 20, v.rdIndexLut(19));
+
+      axiSlaveRegister (axilEp, x"F0", 0, v.rdIndexLut(20));
+      axiSlaveRegister (axilEp, x"F0", 5, v.rdIndexLut(21));
+      axiSlaveRegister (axilEp, x"F0", 10, v.rdIndexLut(22));
+      axiSlaveRegister (axilEp, x"F0", 15, v.rdIndexLut(23));
+      axiSlaveRegister (axilEp, x"F0", 20, v.rdIndexLut(24));
+
+      axiSlaveRegister (axilEp, x"F4", 0, v.readoutSize);
 
       axiSlaveRegister (axilEp, x"F8", 0, v.forceStart);
       axiSlaveRegister (axilEp, x"FC", 0, v.cntRst);
@@ -246,7 +298,7 @@ begin
       -- State Machine      
       case (r.state) is
          ----------------------------------------------------------------------      
-         when IDLE_S =>         
+         when IDLE_S =>
             -- Cache the current probe value
             v.probeCache := probeObData;
 
@@ -257,7 +309,7 @@ begin
                --                   Generate the header                    --
                --------------------------------------------------------------               
                -- HDR[0]: Format Version, start and stop
-               v.header(0)(11 downto 0) := x"002";  -- Version = 0x2
+               v.header(0)(11 downto 0) := x"004";  -- Version = 0x4
 
                -- Check if only sending 1st hit per pixel
                if (r.onlySendFirstHit = '1') then
@@ -266,12 +318,15 @@ begin
                   v.header(0)(21 downto 12) := '0' & r.rdSize;
                end if;
 
-               v.header(0)(26 downto 22) := r.startPix;
-               v.header(0)(31 downto 27) := r.stopPix;
+               v.header(0)(26 downto 22) := (others => '0');
+               v.header(0)(31 downto 27) := r.readoutSize;
                -- HDR[1]: Readout Sequence counter
                v.header(1)               := r.seqCnt;
                -- HDR[2]: Trigger Sequence counter
                v.header(2)               := readoutCnt;
+               -- HDR[4:3]: Time Stamp
+               v.header(3)               := timeStamp(31 downto 0);
+               v.header(4)               := timeStamp(63 downto 32);
                --------------------------------------------------------------               
 
                -- Set the flag
@@ -280,7 +335,7 @@ begin
                -- Increment the counter
                v.seqCnt   := r.seqCnt + 1;
                -- Set the index pointer
-               v.pixIndex := r.startPix;
+               v.pixIndex := (others => '0');
                -- Next state
                v.state    := HDR_S;
             end if;
@@ -300,7 +355,7 @@ begin
                -- Check the counter size
                if (r.cnt = (HDR_SIZE_C-1)) then
                   -- Reset the counter
-                  v.cnt := (others => '0');
+                  v.cnt   := (others => '0');
                   -- Next state
                   v.state := PROBE_CONFIG_S;
                end if;
@@ -321,40 +376,51 @@ begin
                   v.probeIbData(740 downto 1) := (others => '0');
 
                   -- Check the pixel range
-                  if (r.pixIndex < 5) then  -- Check for PIX[4:0] range
-                     -- EN_dout<0:4> = 0x1 and en_probe_dig<0:4> = EN_dout<0:4>
+                  if (pixIdx < 5) then  -- Check for PIX[4:0] range
+                     -- EN_dout<0:4> = 0x1 
                      v.probeIbData(15 downto 11) := "00001";
-                     v.probeIbData(10 downto 6)  := "00001";
 
-                  elsif (r.pixIndex < 10) then  -- Check for PIX[9:5] range
-                     -- EN_dout<0:4> = 0x2 and en_probe_dig<0:4> = EN_dout<0:4>
+                  elsif (pixIdx < 10) then  -- Check for PIX[9:5] range
+                     -- EN_dout<0:4> = 0x2 
                      v.probeIbData(15 downto 11) := "00010";
-                     v.probeIbData(10 downto 6)  := "00010";
 
-                  elsif (r.pixIndex < 15) then  -- Check for PIX[14:10] range
-                     -- EN_dout<0:4> = 0x4 and en_probe_dig<0:4> = EN_dout<0:4>
+                  elsif (pixIdx < 15) then  -- Check for PIX[14:10] range
+                     -- EN_dout<0:4> = 0x4 
                      v.probeIbData(15 downto 11) := "00100";
-                     v.probeIbData(10 downto 6)  := "00100";
 
-                  elsif (r.pixIndex < 20) then  -- Check for PIX[19:15] range
-                     -- EN_dout<0:4> = 0x8 and en_probe_dig<0:4> = EN_dout<0:4>
+                  elsif (pixIdx < 20) then  -- Check for PIX[19:15] range
+                     -- EN_dout<0:4> = 0x8 
                      v.probeIbData(15 downto 11) := "01000";
-                     v.probeIbData(10 downto 6)  := "01000";
 
                   else                  -- Check for PIX[24:20] range
-                     -- EN_dout<0:4> = 0x10 and en_probe_dig<0:4> = EN_dout<0:4>
+                     -- EN_dout<0:4> = 0x10
                      v.probeIbData(15 downto 11) := "10000";
-                     v.probeIbData(10 downto 6)  := "10000";
                   end if;
 
-                  -- Set probe_dig_out_disc[pixIndex] = 0x1
-                  v.probeIbData(18+(29*conv_integer(r.pixIndex))) := '1';
+                  -- Check the mode
+                  if r.enProbeDig(5) = '1' then  -- controlled by firmware
 
-                  -- Set toa_busy[pixIndex] = 0x1
-                  v.probeIbData(40+(29*conv_integer(r.pixIndex))) := '1';
+                     -- en_probe_dig<0:4> = EN_dout<0:4>
+                     v.probeIbData(10 downto 6) := v.probeIbData(15 downto 11);
 
-                  -- Set en_read[pixIndex] = 0x1
-                  v.probeIbData(44+(29*conv_integer(r.pixIndex))) := '1';
+                  else                  -- controlled by Software
+
+                     -- en_probe_dig<0:4> = software value
+                     v.probeIbData(10 downto 6) := r.enProbeDig(4 downto 0);
+
+                  end if;
+
+                  -- Set probe_pa[pixIdx] = probePa(pixIdx) register
+                  v.probeIbData(16+(29*pixIdx)) := r.probePa(pixIdx);
+
+                  -- Set probe_dig_out_disc[pixIdx] = probeDigOutDisc register
+                  v.probeIbData(18+(29*pixIdx)) := r.probeDigOutDisc;
+
+                  -- Set toa_busy[pixIdx] = 0x1
+                  v.probeIbData(40+(29*pixIdx)) := '1';
+
+                  -- Set en_read[pixIdx] = 0x1
+                  v.probeIbData(44+(29*pixIdx)) := '1';
 
                   -- Increment the counter
                   v.cnt := r.cnt + 1;
@@ -466,9 +532,8 @@ begin
                v.txMaster.tData := (others => '0');
 
                -- Forward the data
-               -- v.txMaster.tValid              := r.tValid;
                v.txMaster.tData(20 downto 0)  := r.txData;
-               v.txMaster.tData(28 downto 24) := r.pixIndex;
+               v.txMaster.tData(28 downto 24) := toSlv(pixIdx, 5);
 
                -- Check if sending all data
                if (r.onlySendFirstHit = '0') then
@@ -510,12 +575,12 @@ begin
                   v.pixIndex := r.pixIndex + 1;
 
                   -- Check the pixel index
-                  if (r.pixIndex >= stopPix) then
+                  if (r.pixIndex = r.readoutSize) then
                      -- Restore the probe bus
                      v.probeValid  := r.restoreProbeConfig;
                      v.probeIbData := r.probeCache;
                      -- Assert the flag
-                     v.rstbRam := '0';                     
+                     v.rstbRam     := '0';
                      -- Next state
                      v.state       := RST_RAM_S;
                   else
@@ -532,25 +597,25 @@ begin
          ----------------------------------------------------------------------      
          when RST_RAM_S =>
             -- Increment the counter
-            v.cnt     := r.cnt + 1;
+            v.cnt := r.cnt + 1;
             -- Check the counter size
             if (r.cnt = r.rstRamPulseWidth) then
                -- Reset the counter
-               v.cnt   := (others => '0');
+               v.cnt     := (others => '0');
                -- Deassert the flag
-               v.rstbRam := '1';                  
+               v.rstbRam := '1';
                -- Reset the flag
-               v.renable := '0';               
+               v.renable := '0';
                -- Next state
-               v.state := FOOTER_S;
-            end if;                
+               v.state   := FOOTER_S;
+            end if;
          ----------------------------------------------------------------------      
-         when FOOTER_S =>         
+         when FOOTER_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                v.txMaster.tLast              := '1';
                v.txMaster.tValid             := r.tValid;
-               v.txMaster.tData(31 downto 0) := x"DEAD_BEEF";
+               v.txMaster.tData(31 downto 0) := dropCnt;
                -- Next state
                v.state                       := IDLE_S;
             end if;
@@ -575,22 +640,23 @@ begin
       if (rst160MHz = '1') then
          v                    := REG_INIT_C;
          -- Don't touch register configurations
-         v.startPix           := r.startPix;
-         v.stopPix            := r.stopPix;
-         v.rdSize             := r.rdSize;
+         -- v.startPix           := r.startPix;
+         -- v.stopPix            := r.stopPix;
+         v.rstRamPulseWidth   := r.rstRamPulseWidth;
          v.probeToRstDly      := r.probeToRstDly;
          v.rstReadPulseWidth  := r.rstReadPulseWidth;
          v.rstToReadDly       := r.rstToReadDly;
          v.rckHighWidth       := r.rckHighWidth;
          v.rckLowWidth        := r.rckLowWidth;
          v.restoreProbeConfig := r.restoreProbeConfig;
-         v.bitSize            := r.bitSize;
-         v.bitSizeFirst       := r.bitSizeFirst;
-         v.testPattern        := r.testPattern;
          v.sendData           := r.sendData;
          v.enProbeWrite       := r.enProbeWrite;
-         v.invertDout         := r.invertDout;
-         v.invertRck          := r.invertRck;
+         v.onlySendFirstHit   := r.onlySendFirstHit;
+         v.probeDigOutDisc    := r.probeDigOutDisc;
+         v.enProbeDig         := r.enProbeDig;
+         v.probePa            := r.probePa;
+         v.rdIndexLut         := r.rdIndexLut;
+         v.readoutSize        := r.readoutSize;
       end if;
 
       -- Register the variable for next clock cycle

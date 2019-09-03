@@ -139,8 +139,11 @@ set_property -dict { PACKAGE_PIN H9  IOSTANDARD LVCMOS25 } [get_ports { led[1] }
 set_property -dict { PACKAGE_PIN H8  IOSTANDARD LVCMOS25 } [get_ports { led[2] }];
 set_property -dict { PACKAGE_PIN G10 IOSTANDARD LVCMOS25 } [get_ports { led[3] }];
 
-set_property -dict { PACKAGE_PIN C24 IOSTANDARD LVCMOS33 } [get_ports { pwrSyncSclk }];
-set_property -dict { PACKAGE_PIN D21 IOSTANDARD LVCMOS33 } [get_ports { pwrSyncFclk }];
+# Fix the top level swap of SCLK/FCLK
+set_property -dict { PACKAGE_PIN D21 IOSTANDARD LVCMOS33 } [get_ports { pwrSyncSclk }];
+set_property -dict { PACKAGE_PIN C24 IOSTANDARD LVCMOS33 } [get_ports { pwrSyncFclk }];
+# set_property -dict { PACKAGE_PIN C24 IOSTANDARD LVCMOS33 } [get_ports { pwrSyncSclk }];
+# set_property -dict { PACKAGE_PIN D21 IOSTANDARD LVCMOS33 } [get_ports { pwrSyncFclk }];
 
 set_property -dict { PACKAGE_PIN C22 IOSTANDARD LVCMOS33 } [get_ports { pwrScl }];
 set_property -dict { PACKAGE_PIN B20 IOSTANDARD LVCMOS33 } [get_ports { pwrSda }];

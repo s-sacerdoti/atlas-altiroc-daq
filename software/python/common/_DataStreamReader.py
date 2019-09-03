@@ -13,6 +13,8 @@ import rogue.utilities.fileio
 import statistics
 import math
 import matplotlib.pyplot as plt
+import csv
+import click
 
 #################################################################
 
@@ -30,12 +32,12 @@ class EventValue(object):
   def __init__(self):
      self.FormatVersion     = None
      self.PixReadIteration  = None
-     self.StartPix          = None
-     self.StopPix           = None
+     self.ReadoutSize       = None
      self.SeqCnt            = None
      self.TrigCnt           = None
      self.pixValue          = None
-     self.footer            = None
+     self.dropTrigCnt       = None
+     self.Timestamp         = None
 
 def ParseDataWord(dataWord):
     #Parse the 32-bit word
@@ -61,22 +63,22 @@ def ParseFrame(frame):
     frame.read(fullData,0)
 
     # Fill an array of 32-bit formatted word
-    wrdData = [None for i in range(3+512*32+1)]
+    wrdData = [None for i in range(5+512*32+1)]
     wrdData = np.frombuffer(fullData, dtype='uint32', count=(size>>2))
     
     # Parse the data and data to data frame
     eventFrame = EventValue()
     eventFrame.FormatVersion     = (wrdData[0] >>  0) & 0xFFF
     eventFrame.PixReadIteration  = (wrdData[0] >> 12) & 0x1FF
-    eventFrame.StartPix          = (wrdData[0] >> 22) & 0x1F
-    eventFrame.StopPix           = (wrdData[0] >> 27) & 0x1F
+    eventFrame.ReadoutSize       = (wrdData[0] >> 27) & 0x1F
     eventFrame.SeqCnt            = wrdData[1]
     eventFrame.TrigCnt           = wrdData[2]
-    numPixValues = (eventFrame.StopPix-eventFrame.StartPix+1)*(eventFrame.PixReadIteration+1)
+    eventFrame.Timestamp         = (wrdData[4] << 32) | (wrdData[3] << 0)
+    numPixValues = (eventFrame.ReadoutSize+1)*(eventFrame.PixReadIteration+1)
     eventFrame.pixValue  = [None for i in range(numPixValues)]
     for i in range(numPixValues):
-        eventFrame.pixValue[i] = ParseDataWord(wrdData[3+i])
-    eventFrame.footer = wrdData[numPixValues+3]
+        eventFrame.pixValue[i] = ParseDataWord(wrdData[5+i])
+    eventFrame.dropTrigCnt = wrdData[numPixValues+5]
 
     return eventFrame
 
@@ -85,10 +87,30 @@ def ParseFrame(frame):
 # Class for printing out events
 class PrintEventReader(rogue.interfaces.stream.Slave):
     # Init method must call the parent class init
-    def __init__(self):
+    def __init__(self, cvsDump=False):
         super().__init__()
-        self.count = 0
-
+        self.count   = 0
+        self.cvsDump = cvsDump
+        if cvsDump:
+            self.file   = [None for i in range(2)]
+            self.writer = [None for i in range(2)]
+            for i in range(2):
+                self.file[i]   = open(f'fpga{i}.csv', 'w', newline='') 
+                self.writer[i] = csv.writer(self.file[i])
+                self.writer[i].writerow([
+                    'Timestamp',    # 0 = Timestamp
+                    'SeqCnt',       # 1 = SeqCnt
+                    'TrigCnt',      # 2 = TrigCnt
+                    'DropTrigCnt',  # 3 = DropTrigCnt
+                    'pixIndex',     # 4 = pixIndex
+                    'TotOverflow',  # 5 = TotOverflow
+                    'TotData',      # 6 = TotData
+                    'ToaOverflow',  # 7 = ToaOverflow
+                    'ToaData',      # 8 = ToaData
+                    'Hit',          # 9 = Hit
+                    'Sof',          # 10 = Sof
+                ])
+                
     # Method which is called when a frame is received
     def _acceptFrame(self,frame):
 
@@ -101,16 +123,18 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
             for i in range( len(eventFrame.pixValue) ):
                 pixel = eventFrame.pixValue[i]
                 pixIndex = pixel.PixelIndex
+                
                 #if pixel.ToaOverflow != 1: #make sure this pixel is worth printing
                 if (pixel.Hit != 0) and (pixel.ToaData != 0x7F): #make sure this pixel is worth printing
                     if header_still_needs_to_be_printed: #print the header only once per pixel
-                        print('payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
+                        print('FPGA {:#}'.format( frame.getChannel() ) +
+                              ', payloadSize(Bytes) {:#}'.format( frame.getPayload() ) +
                               ', FormatVersion {:#}'.format(eventFrame.FormatVersion) +
                               ', PixReadIteration {:#}'.format(eventFrame.PixReadIteration) +
-                              ', StartPix {:#}'.format(eventFrame.StartPix) +
-                              ', StopPix {:#}'.format(eventFrame.StopPix) + 
-                              ', footer 0x{:X}'.format(eventFrame.footer) + 
-                              ', SeqCnt {:#}'.format(eventFrame.SeqCnt) )
+                              ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
+                              ', DropTrigCnt 0x{:X}'.format(eventFrame.dropTrigCnt) + 
+                              ', SeqCnt {:#}'.format(eventFrame.SeqCnt) +
+                              ', Timestamp {:#}'.format( eventFrame.Timestamp ) )
                         print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
                         header_still_needs_to_be_printed = False
 
@@ -123,6 +147,23 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                         pixel.Hit,
                         pixel.Sof)
                     )
+                    
+                # Check if dumping to .CVS file
+                if self.cvsDump:
+                    self.writer[frame.getChannel()].writerow([
+                        '0x%016X'%eventFrame.Timestamp,  # 0 = Timestamp
+                        eventFrame.SeqCnt,     # 1 = SeqCnt
+                        eventFrame.TrigCnt,    # 2 = TrigCnt
+                        eventFrame.dropTrigCnt,# 3 = DropTrigCnt
+                        pixIndex,           # 4 = pixIndex
+                        pixel.TotOverflow,  # 5 = TotOverflow
+                        pixel.TotData,      # 6 = TotData
+                        pixel.ToaOverflow,  # 7 = ToaOverflow
+                        pixel.ToaData,      # 8 = ToaData
+                        pixel.Hit,          # 9 = Hit
+                        pixel.Sof,          # 10 = Sof
+                    ])                
+                        
             self.count += 1
 #################################################################
 

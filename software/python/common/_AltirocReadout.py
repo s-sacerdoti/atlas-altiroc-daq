@@ -12,6 +12,7 @@
 import pyrogue as pr
 
 import common
+import click
 
 class AltirocReadout(pr.Device):
     def __init__(   
@@ -25,23 +26,23 @@ class AltirocReadout(pr.Device):
             description = description,
             **kwargs)
             
-        self.add(pr.RemoteVariable(
-            name         = 'StartPix', 
-            description  = 'Starting pixel for readout sequence',
-            offset       = 0x00,
-            bitSize      = 5, 
-            mode         = 'RW',
-            disp         = '{:d}',
-        ))
+        # self.add(pr.RemoteVariable(
+            # name         = 'StartPix', 
+            # description  = 'Starting pixel for readout sequence',
+            # offset       = 0x00,
+            # bitSize      = 5, 
+            # mode         = 'RW',
+            # disp         = '{:d}',
+        # ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'LastPix', 
-            description  = 'Last pixel for readout sequence',
-            offset       = 0x04,
-            bitSize      = 5, 
-            mode         = 'RW',
-            disp         = '{:d}',
-        ))   
+        # self.add(pr.RemoteVariable(
+            # name         = 'LastPix', 
+            # description  = 'Last pixel for readout sequence',
+            # offset       = 0x04,
+            # bitSize      = 5, 
+            # mode         = 'RW',
+            # disp         = '{:d}',
+        # ))   
 
         self.add(pr.RemoteVariable(
             name         = 'RstRamPulseWidth', 
@@ -258,6 +259,62 @@ class AltirocReadout(pr.Device):
             mode         = 'RW',
         ))         
         
+        self.add(pr.RemoteVariable(
+            name         = 'EnProbeDigOutDisc', 
+            description  = '1: enables the probe_dig_out_disc during the readout FSM',
+            offset       = 0x48,
+            bitSize      = 1, 
+            mode         = 'RW',
+        ))    
+
+        self.add(pr.RemoteVariable(
+            name         = 'EnProbeDigSelect', 
+            description  = '1: selects en_probe_dig=EN_dout, 0: select this to be software control',
+            offset       = 0x4C,
+            bitSize      = 1, 
+            bitOffset    = 5, 
+            mode         = 'RW',
+        ))   
+
+        self.add(pr.RemoteVariable(
+            name         = 'EnProbeDig', 
+            description  = 'software control of en_probe_dig. Requires EnProbeDigSelect to be zero to take affect',
+            offset       = 0x4C,
+            bitSize      = 5, 
+            bitOffset    = 0, 
+            mode         = 'RW',
+        ))  
+
+        self.add(pr.RemoteVariable(
+            name         = 'EnProbePa', 
+            description  = '1: enables the probe_pa during the readout FSM (1-bit per pixel)',
+            offset       = 0x50,
+            bitSize      = 25,
+            mode         = 'RW',
+        ))          
+        
+        for i in range(5):
+            for j in range(5):
+                pixel = 5*i+j
+                self.add(pr.RemoteVariable(
+                    name         = f'RdIndexLut[{pixel}]', 
+                    description  = 'Pixel Readout Index Lookup Table',
+                    offset       = 0xE0 + 4*i,
+                    bitSize      = 5, 
+                    bitOffset    = 5*j, 
+                    mode         = 'RW',
+                    disp         = '{:d}',
+                ))         
+                
+        self.add(pr.RemoteVariable(
+            name         = 'ReadoutSize', 
+            description  = 'Number of pixels to readout (zero inclusive)',
+            offset       = 0xF4,
+            bitSize      = 5, 
+            mode         = 'RW',
+            disp         = '{:d}',
+        ))   
+        
         self.add(pr.RemoteCommand(   
             name         = 'ForceStart',
             description  = 'Force a start of readout cycle',
@@ -267,10 +324,16 @@ class AltirocReadout(pr.Device):
         ))
         
         self.add(pr.RemoteCommand(   
-            name         = 'SeqCntRst',
+            name         = 'SeqCntReset',
             description  = 'Resets the sequence counter',
             offset       = 0xFC,
             bitSize      = 1,
-            function     = pr.BaseCommand.touchOne
+            function     = pr.BaseCommand.touchOne,
+            hidden       = True,
         ))        
+        
+        @self.command()
+        def SeqCntRst():   
+            click.secho(f'{self.path}.SeqCntRst()', bg='cyan')
+            self.SeqCntReset()
         

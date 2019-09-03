@@ -38,6 +38,8 @@ entity AtlasAltirocAsicTrigger is
       -- Readout Interface
       readoutStart    : out sl;
       readoutCnt      : out slv(31 downto 0);
+      dropCnt         : out slv(31 downto 0);
+      timeStamp       : out slv(63 downto 0);
       readoutBusy     : in  sl;
       probeBusy       : in  sl;
       -- Reference Clock/Reset Interface
@@ -62,7 +64,10 @@ architecture rtl of AtlasAltirocAsicTrigger is
       OSCOPE_DEADTIME_S);
 
    type RegType is record
+      timeCnt             : slv(63 downto 0);
+      timeStamp           : slv(63 downto 0);
       cntRst              : sl;
+      enableReadout       : sl;
       -- Oscilloscope Deadtime
       trigPauseCnt        : slv(15 downto 0);
       trigSizeBeforePause : slv(15 downto 0);
@@ -85,6 +90,7 @@ architecture rtl of AtlasAltirocAsicTrigger is
       -- Trigger Monitoring
       readoutCnt          : slv(31 downto 0);
       triggerCnt          : slv(31 downto 0);
+      dropCnt             : slv(31 downto 0);
       dropTrigCnt         : Slv32Array(3 downto 0);
       trigCnt             : Slv32Array(3 downto 0);
       -- AXI Lite
@@ -99,7 +105,10 @@ architecture rtl of AtlasAltirocAsicTrigger is
       state               : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      timeCnt             => (others => '0'),
+      timeStamp           => (others => '0'),
       cntRst              => '0',
+      enableReadout       => '0',
       -- Oscilloscope Deadtime
       trigPauseCnt        => (others => '0'),
       trigSizeBeforePause => (others => '0'),
@@ -122,6 +131,7 @@ architecture rtl of AtlasAltirocAsicTrigger is
       -- Trigger Monitoring
       readoutCnt          => (others => '0'),
       triggerCnt          => (others => '0'),
+      dropCnt             => (others => '0'),
       dropTrigCnt         => (others => (others => '0')),
       trigCnt             => (others => (others => '0')),
       -- AXI Lite
@@ -277,6 +287,7 @@ begin
          v.trigCnt      := (others => (others => '0'));
          v.trigPauseCnt := (others => '0');
          v.triggerCnt   := (others => '0');
+         v.dropCnt      := (others => '0');
       end if;
 
       -- Update the trigger/readout busy
@@ -303,6 +314,8 @@ begin
       axiSlaveRegisterR(axilEp, x"18", 0, r.trigCnt(2));
       axiSlaveRegisterR(axilEp, x"1C", 0, r.trigCnt(3));
       axiSlaveRegisterR(axilEp, x"20", 0, r.triggerCnt);
+      axiSlaveRegisterR(axilEp, x"24", 0, r.dropCnt);
+      axiSlaveRegisterR(axilEp, x"28", 0, r.timeCnt);  -- 0x28:0x2F
 
       axiSlaveRegister (axilEp, x"40", 0, v.trigMaster);
 
@@ -328,6 +341,8 @@ begin
       axiSlaveRegisterR(axilEp, x"60", 3, orTrig);
       axiSlaveRegisterR(axilEp, x"60", 4, andTrig);
 
+      axiSlaveRegister (axilEp, x"80", 0, v.enableReadout);
+
       axiSlaveRegister (axilEp, x"FC", 0, v.cntRst);
 
       -- Closeout the transaction
@@ -337,74 +352,86 @@ begin
       --                      Trigger logic
       ---------------------------------------------------------------------- 
 
-      -- Check for CMD_PULSE trigger
-      if (softTrig = '1') then
-         -- Check if dropping trigger
-         if (r.state /= IDLE_S) then
-            -- Increment the counter
-            v.dropTrigCnt(0) := r.dropTrigCnt(0) + 1;
-         else
-            -- Set the flag
-            trigger      := '1';
-            -- Increment the counter
-            v.trigCnt(0) := r.trigCnt(0) + 1;
-         end if;
-      end if;
+      -- Check if readout enabled
+      if (r.enableReadout = '1') then
 
-      -- Check for BNC rising edge trigger
-      if (bncTrig = '1') then
-         -- Check if dropping trigger
-         if (r.state /= IDLE_S) then
-            -- Increment the counter
-            v.dropTrigCnt(1) := r.dropTrigCnt(1) + 1;
-         else
-            -- Set the flag
-            trigger      := '1';
-            -- Increment the counter
-            v.trigCnt(1) := r.trigCnt(1) + 1;
-         end if;
-      end if;
-
-      -- Check for trigger master trigger
-      v.orTrigDly  := orTrig;
-      v.andTrigDly := andTrig;
-      if (r.trigMaster = '1') then
-         if (orTrig = '1' and r.orTrigDly = '0') or (andTrig = '1' and r.andTrigDly = '0') then
+         -- Check for CMD_PULSE trigger
+         if (softTrig = '1') then
             -- Check if dropping trigger
             if (r.state /= IDLE_S) then
                -- Increment the counter
-               v.dropTrigCnt(2) := r.dropTrigCnt(2) + 1;
+               v.dropTrigCnt(0) := r.dropTrigCnt(0) + 1;
+               v.dropCnt        := r.dropCnt + 1;
             else
                -- Set the flag
                trigger      := '1';
                -- Increment the counter
-               v.trigCnt(2) := r.trigCnt(2) + 1;
+               v.trigCnt(0) := r.trigCnt(0) + 1;
             end if;
          end if;
-      end if;
 
-      -- Check for trigger slave trigger
-      v.remoteTrigDly := remoteTrig;
-      if (r.trigMaster = '0') then
-         if (remoteTrig = '1') and (r.remoteTrigDly = '0') then
+         -- Check for BNC rising edge trigger
+         if (bncTrig = '1') then
             -- Check if dropping trigger
             if (r.state /= IDLE_S) then
                -- Increment the counter
-               v.dropTrigCnt(3) := r.dropTrigCnt(3) + 1;
+               v.dropTrigCnt(1) := r.dropTrigCnt(1) + 1;
+               v.dropCnt        := r.dropCnt + 1;
             else
                -- Set the flag
                trigger      := '1';
                -- Increment the counter
-               v.trigCnt(3) := r.trigCnt(3) + 1;
+               v.trigCnt(1) := r.trigCnt(1) + 1;
             end if;
          end if;
+
+         -- Check for trigger master trigger
+         v.orTrigDly  := orTrig;
+         v.andTrigDly := andTrig;
+         if (r.trigMaster = '1') then
+            if (orTrig = '1' and r.orTrigDly = '0') or (andTrig = '1' and r.andTrigDly = '0') then
+               -- Check if dropping trigger
+               if (r.state /= IDLE_S) then
+                  -- Increment the counter
+                  v.dropTrigCnt(2) := r.dropTrigCnt(2) + 1;
+                  v.dropCnt        := r.dropCnt + 1;
+               else
+                  -- Set the flag
+                  trigger      := '1';
+                  -- Increment the counter
+                  v.trigCnt(2) := r.trigCnt(2) + 1;
+               end if;
+            end if;
+         end if;
+
+         -- Check for trigger slave trigger
+         v.remoteTrigDly := remoteTrig;
+         if (r.trigMaster = '0') then
+            if (remoteTrig = '1') and (r.remoteTrigDly = '0') then
+               -- Check if dropping trigger
+               if (r.state /= IDLE_S) then
+                  -- Increment the counter
+                  v.dropTrigCnt(3) := r.dropTrigCnt(3) + 1;
+                  v.dropCnt        := r.dropCnt + 1;
+               else
+                  -- Set the flag
+                  trigger      := '1';
+                  -- Increment the counter
+                  v.trigCnt(3) := r.trigCnt(3) + 1;
+               end if;
+            end if;
+         end if;
+
+         -- Check for trigger
+         if (trigger = '1') then
+            -- Increment the counter
+            v.triggerCnt := r.triggerCnt + 1;
+         end if;
+
       end if;
 
-      -- Check for trigger
-      if (trigger = '1') then
-         -- Increment the counter
-         v.triggerCnt := r.triggerCnt + 1;
-      end if;
+      -- Increment the counter
+      v.timeCnt := r.timeCnt + 1;
 
       ----------------------------------------------------------------------      
       --                         State Machine      
@@ -414,11 +441,12 @@ begin
          when IDLE_S =>
             v.stateEncode := x"00";
             -- Check for trigger
-            if (trigger = '1') then
+            if (trigger = '1') and (r.enableReadout = '1') then
                -- Increment the counter
                v.trigPauseCnt := r.trigPauseCnt + 1;
-               -- Latch the triggerCnt
+               -- Latch the values
                v.readoutCnt   := r.triggerCnt;
+               v.timeStamp    := r.timeCnt;
                -- Next state
                v.state        := READ_DLY_S;
             end if;
@@ -507,11 +535,14 @@ begin
       axilReadSlave  <= r.axilReadSlave;
       readoutStart   <= r.readoutStart;
       readoutCnt     <= r.readoutCnt;
+      dropCnt        <= r.dropCnt;
+      timeStamp      <= r.timeStamp;
 
       -- Reset
       if (rst160MHz = '1') then
          v                     := REG_INIT_C;
          -- Don't touch register configurations
+         v.enableReadout       := r.enableReadout;
          v.trigMaster          := r.trigMaster;
          v.calStrobeAlign      := r.calStrobeAlign;
          v.trigStrobeAlign     := r.trigStrobeAlign;
