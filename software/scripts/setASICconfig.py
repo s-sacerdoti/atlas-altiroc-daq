@@ -34,5 +34,5 @@ def set_pixel_specific_parameters(top, pixel_number):
     top.Fpga[0].Asic.Probe.pix[pixel_number].en_read.set(0x1)
     top.Fpga[0].Asic.Probe.pix[pixel_number].toa_busy.set(0x0)
 
-    top.Fpga[0].Asic.Readout.StartPix.set(pixel_number)
-    top.Fpga[0].Asic.Readout.LastPix.set(pixel_number)
+    top.Fpga[0].Asic.Readout.ReadoutSize.set(0)
+    top.Fpga[0].Asic.Readout.RdIndexLut[0].set(pixel_number)

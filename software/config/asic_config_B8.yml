@@ -8,16 +8,10 @@ Top:
         RST_COUNTER: 0x0
         DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
         DlyCalPulseReset: 0 # Falling edge of EXT_TRIG
-      Trig:
-        CalStrobeAlign: 0x3 # Cal pulse 40 Mhz alignment to 160 MHz
-        EnCalPulseTrig: 0x1 # Enable Cal pulse to trigger readout      
       TdcClk:
         Tdc40MHzClkSel: Pll
         FpgaTdcClkHigh: 0x1
         FpgaTdcClkLow: 0x1
-      CalPulse:
-        CalPulseWidth: 0x2 
-        Continuous: 0x0 
       ##########################################################################
       SlowControl:
         ########################

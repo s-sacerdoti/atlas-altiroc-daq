@@ -347,7 +347,7 @@ class PixelReader(rogue.interfaces.stream.Slave):
     def __init__(self):
         rogue.interfaces.stream.Slave.__init__(self)
         self.count = 0
-        self.HitData = []
+        self.HitDataTOA = []
         self.HitDataTOT = []
         self.HitDataTOTf_vpa = []
         self.HitDataTOTf_tz = []
@@ -361,11 +361,15 @@ class PixelReader(rogue.interfaces.stream.Slave):
         self.HitDataTOTc_tz_temp = 0
         self.HitDataTOTc_int1_vpa_temp = 0
         self.HitDataTOTc_int1_tz_temp = 0
-        self.checkTOAOverflow=True #Nikola
+        self.TOAOvflow = []
+        self.TOTOvflow = []
+        self.SeqCnt = []
+        self.TrigCnt = []
+        self.TimeStamp = []
 
     def clear(self):
         self.count = 0
-        self.HitData.clear()
+        self.HitDataTOA.clear()
         self.HitDataTOT.clear()
         self.HitDataTOTf_vpa.clear()
         self.HitDataTOTf_tz.clear()
@@ -379,6 +383,11 @@ class PixelReader(rogue.interfaces.stream.Slave):
         self.HitDataTOTc_tz_temp = 0
         self.HitDataTOTc_int1_vpa_temp = 0
         self.HitDataTOTc_int1_tz_temp = 0
+        self.TOAOvflow.clear()
+        self.TOTOvflow.clear()
+        self.SeqCnt.clear()
+        self.TrigCnt.clear()
+        self.TimeStamp.clear()
 
     def _acceptFrame(self,frame):
         # First it is good practice to hold a lock on the frame data.
@@ -387,18 +396,21 @@ class PixelReader(rogue.interfaces.stream.Slave):
 
             for i in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[i]
-
-                #:odified by Nikola 21/08/2019
-                if self.checkTOAOverflow:
-                    if (dat.Hit > 0) and dat.ToaOverflow == 0:
-                        self.HitData.append(dat.ToaData)
-                else:
-                    if (dat.Hit > 0):
-                        self.HitData.append(dat.ToaData) 
-
-                if (dat.Hit > 0) and (dat.TotData != 0x1fc):
-                    self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*(2**2)
+                
+                #only when neither TOA nor TOT are in overflow:
+                if (dat.Hit > 0) and (dat.TotData != 0x1fc) and (dat.ToaData != 0x7f):
+                    self.SeqCnt.append( dat.SeqCnt )
+                    self.TrigCnt.append( dat.TrigCnt )
+                    self.DropCnt.append( dat.dropTrigCnt)
+                    self.TimeStamp.append( dat.Timestamp )
+                    
+                    self.HitDataTOA.append(dat.ToaData) 
+                    self.TOAOvflow.append(dat.ToaOverflow) 
                     self.HitDataTOT.append(dat.TotData)
+                    self.TOTOvflow.append(dat.TotOverflow)
+
+                    #self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3) + dat.TotOverflow*(2**2)
+                    self.HitDataTOTf_vpa_temp = ((dat.TotData >>  0) & 0x3)
                     self.HitDataTOTc_vpa_temp = (dat.TotData >>  2) & 0x7F
                     self.HitDataTOTc_int1_vpa_temp = (((dat.TotData >>  2) + 1) >> 1) & 0x3F
                     self.HitDataTOTf_vpa.append(self.HitDataTOTf_vpa_temp)

@@ -12,7 +12,6 @@
 ##############################################################################
 # Script Settings
 
-asicVersion = 1 # <= Select either V1 or V2 of the ASIC
 DebugPrint = True
 NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
@@ -40,8 +39,6 @@ import matplotlib.pyplot as plt                                ##
 from setASICconfig import set_pixel_specific_parameters        ##
                                                                ##
 #################################################################
-
-
 def acquire_data(top, useExt, DelayRange): 
     pixel_stream = feb.PixelReader()    
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
@@ -56,12 +53,8 @@ def acquire_data(top, useExt, DelayRange):
 
 
         for pulse_iteration in range(NofIterationsTOA):
-            if (asicVersion == 1):
-                top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
-                time.sleep(0.01)
-            else:
-                top.Fpga[0].Asic.CalPulse.Start()
-                time.sleep(0.001)
+            top.Fpga[0].Asic.CalPulse.Start()
+            time.sleep(0.001)
         pixelData.append( pixel_stream.HitData.copy() )
         while pixel_stream.count < NofIterationsTOA: pass
         pixel_stream.clear()
