@@ -14,7 +14,7 @@
 
 asicVersion = 1 # <= Select either V1 or V2 of the ASIC
 DebugPrint = True
-NofIterationsTOT = 20  # <= Number of Iterations for each Delay value
+NofIterationsTOT = 30  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
 LSB_TOTc = 160    # <= Estimate of TOT coarse LSB in ps
 riseEdge = 2400
@@ -101,7 +101,7 @@ def parse_arguments():
     pixel_number = 4
     DAC_Vth = 320
     Qinj = 13 #10fc
-    config_file = 'config/asic_config_B7.yml'
+    config_file = 'config/asic_config_B8.yml'
     pulserMin = 0
     pulserMax = 20
     pulserStep = 1
@@ -112,7 +112,7 @@ def parse_arguments():
     # Add arguments
     parser.add_argument( "--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP addresses")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
-    parser.add_argument( "--useExt", type = bool, required = False, default = False,help = "Use external trigger")
+    parser.add_argument( "--useExt", type = argBool, required = False, default = False,help = "Use external trigger")
     parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
@@ -178,16 +178,18 @@ def measureTOT( argsip,
     top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(fallEdge)
 
     if useExt: #scan with external trigger
+        print("Will use external trigger")
         top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x1)
         top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x0)
-        top.Fpga[0].Asic.SlowControl.EN_hyst[pixel_number].set(0x1)
         top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x1)
         top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x0)
         pulser = top.Fpga[0].Asic.Gpio.DlyCalPulseSet
 
     #scan changing Qinj
     else:
+        top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x0)
         top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(riseEdge)
+        top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0)
         pulser = top.Fpga[0].Asic.SlowControl.dac_pulser
         
     #You MUST call this function after doing ASIC configurations!!!

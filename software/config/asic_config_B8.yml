@@ -74,7 +74,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 310 #173 / 183
+        #DAC10bit: 310 #173 / 183
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -95,7 +95,7 @@ Top:
         RckHighWidth: 0x2   # Min. tuned on 18JULY2019:LLR
         RckLowWidth: 0x2    # Min. tuned on 18JULY2019:LLR
         #####################
-        RestoreProbeConfig: 0x0
+        RestoreProbeConfig: 0x0 #1 sets probe on
         EnProbeWrite: 0x1
         OnlySendFirstHit: 0x1
         EnProbeDigOutDisc: 0x0
