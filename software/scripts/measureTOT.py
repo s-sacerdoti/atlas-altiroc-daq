@@ -113,7 +113,7 @@ def parse_arguments():
     parser.add_argument( "--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP addresses")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
     parser.add_argument( "--useExt", type = argBool, required = False, default = False,help = "Use external trigger")
-    parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
+    parser.add_argument( "--cfg", type = str, required = False, default = config_file, help = "Select yml configuration file to load")  
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
     parser.add_argument("--DAC", type = int, required = False, default = DAC_Vth, help = "DAC vth")
