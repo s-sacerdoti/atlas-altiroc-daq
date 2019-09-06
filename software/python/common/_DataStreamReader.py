@@ -399,10 +399,10 @@ class PixelReader(rogue.interfaces.stream.Slave):
                 
                 #only when neither TOA nor TOT are in overflow:
                 if (dat.Hit > 0) and (dat.TotData != 0x1fc) and (dat.ToaData != 0x7f):
-                    self.SeqCnt.append( dat.SeqCnt )
-                    self.TrigCnt.append( dat.TrigCnt )
-                    self.DropCnt.append( dat.dropTrigCnt)
-                    self.TimeStamp.append( dat.Timestamp )
+                    self.SeqCnt.append( eventFrame.SeqCnt )
+                    self.TrigCnt.append( eventFrame.TrigCnt )
+                    #self.DropCnt.append( eventFrame.dropTrigCnt)
+                    self.TimeStamp.append( eventFrame.Timestamp )
                     
                     self.HitDataTOA.append(dat.ToaData) 
                     self.TOAOvflow.append(dat.ToaOverflow) 
