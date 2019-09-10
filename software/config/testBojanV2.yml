@@ -54,8 +54,8 @@ Top:
         IntFTz: 0x1 #1  
       
         cBitf: 0x0 #0
-        cBits: 0x6 #f
-        cBitc: 0x0 #f      
+        cBits: 0x0 #6
+        cBitc: 0x0 #0      
       
         Rin_Vpa: 0x0 #0
       
@@ -77,17 +77,17 @@ Top:
       ##########################################################################
       Probe:
         EN_dout: 0x1
-        en_probe_pa: 0x1
-        en_probe_dig: 0x1 # pix=4
-        pix[4]:
-          probe_pa: 0x1
+        en_probe_pa: 0x0
+        en_probe_dig: 0x0 # pix
+        pix[8]:
+          probe_pa: 0x0
           probe_vthc: 0x0
-          probe_dig_out_disc: 0x1
+          probe_dig_out_disc: 0x0
           probe_toa: 0x0
           probe_tot: 0x0
           totf: 0x0
           tot_overflow: 0x0
-          toa_busy: 0x1
+          toa_busy: 0x0
           tot_busy: 0x0
           tot_ready: 0x0
           en_read: 0x1
