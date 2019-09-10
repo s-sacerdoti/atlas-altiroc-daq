@@ -340,7 +340,6 @@ class MyFileReader(rogue.interfaces.stream.Slave):
             PixelData.append(pixData)
 
 #################################################################
-
 # Class for Reading Data output by pixels
 class PixelReader(rogue.interfaces.stream.Slave):
 
@@ -366,6 +365,8 @@ class PixelReader(rogue.interfaces.stream.Slave):
         self.SeqCnt = []
         self.TrigCnt = []
         self.TimeStamp = []
+        self.checkOFtoa = True
+        self.checkOFtot = True
 
     def clear(self):
         self.count = 0
@@ -398,7 +399,10 @@ class PixelReader(rogue.interfaces.stream.Slave):
                 dat = eventFrame.pixValue[i]
                 
                 #only when neither TOA nor TOT are in overflow:
-                if (dat.Hit > 0) and (dat.TotData != 0x1fc) and (dat.ToaData != 0x7f):
+                #if (dat.Hit > 0) and (dat.TotData != 0x1fc) and (dat.ToaData != 0x7f):
+                if (dat.Hit > 0):
+                    if self.checkOFtoa and dat.TotData == 0x1fc: continue
+                    if self.checkOFtot and dat.ToaData == 0x7f: continue
                     self.SeqCnt.append( eventFrame.SeqCnt )
                     self.TrigCnt.append( eventFrame.TrigCnt )
                     #self.DropCnt.append( eventFrame.dropTrigCnt)

@@ -13,9 +13,9 @@
 # Script Settings
 
 DebugPrint = True
-NofIterationsTOA = 30  # <= Number of Iterations for each Delay value
+NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
-pulseWidth = 100
+pulseWidth = 300
 
 #################################################################
                                                                ##

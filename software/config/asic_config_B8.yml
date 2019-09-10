@@ -95,9 +95,10 @@ Top:
         RckHighWidth: 0x2   # Min. tuned on 18JULY2019:LLR
         RckLowWidth: 0x2    # Min. tuned on 18JULY2019:LLR
         #####################
-        RestoreProbeConfig: 0x1 #1 sets probe on
+        RestoreProbeConfig: 0x1 #1 sets probe in previous config
         EnProbeWrite: 0x1
         OnlySendFirstHit: 0x1
+        #Probe cofiguration
         EnProbeDigOutDisc: 0x0
         EnProbeDigSelect: 0x0
         EnProbeDig: 0x0
