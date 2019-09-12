@@ -32,6 +32,7 @@ class AltirocTrig(pr.Device):
             offset       = 0x00,
             bitSize      = 32, 
             mode         = 'RO',
+            disp         = '{:d}',
             pollInterval = 1,
         ))   
         
@@ -41,6 +42,7 @@ class AltirocTrig(pr.Device):
             offset       = 0x04,
             bitSize      = 32, 
             mode         = 'RO',
+            disp         = '{:d}',
             pollInterval = 1,
         )) 
 
@@ -50,6 +52,7 @@ class AltirocTrig(pr.Device):
             offset       = 0x08,
             bitSize      = 32, 
             mode         = 'RO',
+            disp         = '{:d}',
             pollInterval = 1,
         ))  
 
@@ -59,6 +62,7 @@ class AltirocTrig(pr.Device):
             offset       = 0x0C,
             bitSize      = 32, 
             mode         = 'RO',
+            disp         = '{:d}',
             pollInterval = 1,
         ))          
         
@@ -68,6 +72,7 @@ class AltirocTrig(pr.Device):
             offset       = 0x10,
             bitSize      = 32, 
             mode         = 'RO',
+            disp         = '{:d}',
             pollInterval = 1,
         ))   
         
@@ -77,6 +82,7 @@ class AltirocTrig(pr.Device):
             offset       = 0x14,
             bitSize      = 32, 
             mode         = 'RO',
+            disp         = '{:d}',
             pollInterval = 1,
         )) 
 
@@ -86,6 +92,7 @@ class AltirocTrig(pr.Device):
             offset       = 0x18,
             bitSize      = 32, 
             mode         = 'RO',
+            disp         = '{:d}',
             pollInterval = 1,
         ))  
 
@@ -95,6 +102,7 @@ class AltirocTrig(pr.Device):
             offset       = 0x1C,
             bitSize      = 32, 
             mode         = 'RO',
+            disp         = '{:d}',
             pollInterval = 1,
         ))  
 
@@ -104,6 +112,7 @@ class AltirocTrig(pr.Device):
             offset       = 0x20,
             bitSize      = 32, 
             mode         = 'RO',
+            disp         = '{:d}',
             pollInterval = 1,
         ))       
 
@@ -113,6 +122,7 @@ class AltirocTrig(pr.Device):
             offset       = 0x24,
             bitSize      = 32, 
             mode         = 'RO',
+            disp         = '{:d}',
             pollInterval = 1,
         ))   
 
@@ -228,7 +238,8 @@ class AltirocTrig(pr.Device):
             description  = 'Number of trigger event before pausing for oscilloscope dead time',
             offset       = 0x50,
             bitSize      = 16, 
-            bitOffset    = 16, 
+            bitOffset    = 16,
+            disp         = '{:d}',
             mode         = 'RW',     
         ))         
 
@@ -237,7 +248,8 @@ class AltirocTrig(pr.Device):
             description  = 'Deadtime duration for oscilloscope to catch up without readout',
             offset       = 0x54,
             bitSize      = 8, 
-            mode         = 'RW',   
+            mode         = 'RW',
+            disp         = '{:d}',
             units        = 'seconds',
         ))          
        
