@@ -168,7 +168,23 @@ class Top(pr.Root):
                 if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Master':
                     self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)
                     click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x1)', bg='bright_magenta')
-            
+
+        @self.command(description='This command is intended to be executed after self.dataWriter is opened')
+        def ResumeRun(arg):  
+            click.secho('ResumeRun()', bg='blue')
+                           
+            # Start the Slave First
+            for i in range(self.numEthDev):
+                if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Slave':
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)
+                    click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x1)', bg='magenta')
+                    
+            # Start the Master after the Slave
+            for i in range(self.numEthDev):
+                if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Master':
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)
+                    click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x1)', bg='bright_magenta')                    
+                    
         ######################################################################
         
         # Start the system
