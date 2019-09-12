@@ -67,6 +67,7 @@ class AltirocReadout(pr.Device):
             offset       = 0x0C,
             bitSize      = 32, 
             mode         = 'RO',
+            disp         = '{:d}',
             pollInterval = 1,
         ))          
         
