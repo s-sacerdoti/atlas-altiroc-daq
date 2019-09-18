@@ -244,6 +244,16 @@ class AltirocTrig(pr.Device):
         ))         
 
         self.add(pr.RemoteVariable(
+            name         = 'TrigSizeBeforePauseCnt', 
+            description  = 'Counter for the triggers events before pausing for oscilloscope dead time',
+            offset       = 0x5C,
+            bitSize      = 16, 
+            disp         = '{:d}',
+            mode         = 'RO',
+            pollInterval = 1,
+        ))   
+        
+        self.add(pr.RemoteVariable(
             name         = 'DeadtimeDuration', 
             description  = 'Deadtime duration for oscilloscope to catch up without readout',
             offset       = 0x54,
@@ -254,10 +264,23 @@ class AltirocTrig(pr.Device):
         ))          
        
         self.add(pr.RemoteVariable(
+            name         = 'DeadtimeCnt', 
+            description  = 'Deadtime duration',
+            offset       = 0x58,
+            bitSize      = 8, 
+            bitOffset    = 8, 
+            mode         = 'RO',
+            disp         = '{:d}',
+            units        = 'seconds',            
+            pollInterval = 1,
+        ))       
+       
+        self.add(pr.RemoteVariable(
             name         = 'TrigState', 
             description  = 'Trigger FSM state',
             offset       = 0x58,
             bitSize      = 2, 
+            bitOffset    = 0, 
             mode         = 'RO',
             pollInterval = 1,
             enum         = {
@@ -267,15 +290,6 @@ class AltirocTrig(pr.Device):
                 0x3: 'OSCOPE_DEADTIME_S', 
             },
         ))
-
-        # self.add(pr.RemoteVariable(
-            # name         = 'TrigCnt', 
-            # description  = 'Increment for each triggered readout (used for O-scope deadtime)',
-            # offset       = 0x5C,
-            # bitSize      = 32, 
-            # mode         = 'RO',
-            # pollInterval = 1,
-        # ))    
 
         self.add(pr.RemoteVariable(
             name         = 'BncExtTrig', 
