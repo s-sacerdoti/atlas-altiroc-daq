@@ -56,7 +56,7 @@ class Top(pr.Root):
         self._timeout    = 1.0      if (ip[0] != 'simulation') else 100.0 
         self._pollEn     = pollEn   if (ip[0] != 'simulation') else False
         self._initRead   = initRead if (ip[0] != 'simulation') else False      
-        self.loadYaml    = loadYaml
+        self.usrLoadYaml = loadYaml
         self.userYaml    = userYaml
         self.defaultFile = defaultFile
         
@@ -289,7 +289,7 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.enable.set(True)                
                 
             # Check if we are loading YAML files
-            if self.loadYaml:
+            if self.usrLoadYaml:
                 
                 # Load the Default YAML file
                 print(f'Loading path={self.defaultFile} Default Configuration File...')
