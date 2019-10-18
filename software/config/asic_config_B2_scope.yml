@@ -1,0 +1,169 @@
+Top:
+  Fpga[:]: # "[:]" is a wildcard for a dict search
+    ##########################################################################
+    Asic: # Note: Configuration tuned for ASIC Board V2: #6
+      ##########################################################################
+      Gpio:
+        RSTB_RAM: 0x1
+        RST_COUNTER: 0x0
+        DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
+        DlyCalPulseReset: 0 # Falling edge of EXT_TRIG, keeps ext trig OFF
+      TdcClk:
+        Tdc40MHzClkSel: Pll
+        FpgaTdcClkHigh: 0x1
+        FpgaTdcClkLow: 0x1
+      ##########################################################################
+      Trig:
+        enable: True
+        TrigTypeSel: Master
+        CalStrobeAlign: 0x3
+        TrigStrobeAlign: 0x3
+        EnCalPulseTrig: 0x1
+        EnBncExtTrig: 0x0
+        EnPcieLocalTrig: 0x0
+        EnLemoRemoteTrig: 0x0
+        MasterModeSel: OR
+        ReadoutStartDly: 0x80
+        TrigSizeBeforePause: 0x0
+        DeadtimeDuration: 0x0
+        EnableReadout: 0x1
+
+      SlowControl:
+        ########################
+        EN_ck_SRAM[:]: 0x1
+        ON_Ctest[:]: 0x0
+        disable_pa[:]: 0x1
+        bit_vth_cor[:]: 0x40
+        ON_discri[:]: 0x0
+        EN_hyst[:]: 0x1
+        EN_trig_ext[:]: 0x0
+        cBit_f_TOA[:]: 0x0        
+        cBit_s_TOA[:]: 0x0
+        cBit_f_TOT[:]: 0x0
+        cBit_s_TOT[:]: 0x0
+        cBit_c_TOT[:]: 0x0
+
+        #ch0 ON
+        ON_Ctest[8]: 0x1
+        disable_pa[8]: 0x0
+        ON_discri[8]: 0x1
+        
+        DLL_ALockR_en: 0x1
+        CP_b: 0x4 #5
+        
+        ext_Vcrtlf_en: 0x1 #need to fix value externally
+        ext_Vcrtls_en: 0x1 #need to fix value externally
+        ext_Vcrtlc_en: 0x1 #0
+
+        totf_satovfw: 0x1
+        totc_satovfw: 0x1
+        toa_satovfw: 0x1      
+      
+        SatFVa: 0x4 #3
+        IntFVa: 0x0 #1
+        SatFTz: 0x4 #4
+        IntFTz: 0x1 #1  
+      
+        cBitf: 0x0 #0
+        cBits: 0x0 #f
+        cBitc: 0x0 #f      
+      
+        Rin_Vpa: 0x0 #0
+        Cp_Vpa: 0x0
+      
+        cd[0]: 0x7 #6
+        cd[1]: 0x7 #6
+        cd[2]: 0x7 #6
+   
+        dac_biaspa: 0x1e #10
+        ON_dac_biaspa: 0x1
+        dac_pulser: 20 #7
+      
+        DAC10bit: 390 #173 / 183
+
+        ON_dac_LR: 0x0
+        Ck40_choice: 0x1
+        en_8drivers: 0x1
+
+        PLL: 0x0
+        Shifted_ck40: 0x0
+        #dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
+      Probe:                                                                                                                                                                    
+        enable: True                                                                                                                                                            
+        en_probe_pa: 0x1                                                                                                                                                        
+        en_probe_dig: 0x1                                                                                                                                                       
+        EN_dout: 0x1                                                                                                                                                            
+        rstL: 0x1                                                                                                                                                               
+        pix[0]:                                                                                                                                                                 
+          enable: True                                                                                                                                                          
+          probe_pa: 0x1                                                                                                                                                         
+          probe_vthc: 0x0                                                                                                                                                       
+          probe_dig_out_disc: 0x1                                                                                                                                               
+          probe_toa: 0x0                                                                                                                                                        
+          probe_tot: 0x0                                                                                                                                                        
+          totf: 0x0                                                                                                                                                             
+          tot_overflow: 0x0                                                                                                                                                     
+          toa_busy: 0x0                                                                                                                                                         
+          Hit: 0x0                                                                                                                                                              
+          tot_busy: 0x0                                                                                                                                                         
+          tot_ready: 0x0                                                                                                                                                        
+          en_read: 0x0                                                                                                                                                          
+        pix0_probe_pa: 0x1                                                                                                                                                      
+        pix0_probe_vthc: 0x0                                                                                                                                                    
+        pix0_probe_dig_out_disc: 0x1                                                                                                                                            
+        pix0_probe_toa: 0x0                                                                                                                                                     
+        pix0_probe_tot: 0x0                                                                                                                                                     
+        pix0_totf: 0x0                                                                                                                                                          
+        pix0_tot_overflow: 0x0                                                                                                                                                  
+        pix0_toa_busy: 0x0                                                                                                                                                      
+        pix0_Hit: 0x0                                                                                                                                                           
+        pix0_tot_busy: 0x0                                                                                                                                                      
+        pix0_tot_ready: 0x0                                                                                                                                                     
+        pix0_en_read: 0x0 
+      
+      ##########################################################################
+      Readout:
+        #####################
+        RstRamPulseWidth: 0xF
+        ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
+        RstPulseWidth: 0xF
+        RstToReadDly: 0x0   # Min. tuned on 18JULY2019:LLR
+        RckHighWidth: 0x2   # Min. tuned on 18JULY2019:LLR
+        RckLowWidth: 0x2    # Min. tuned on 18JULY2019:LLR
+        #####################
+        RestoreProbeConfig: 0x1 #1 sets probe in previous config
+        EnProbeWrite: 0x1
+        OnlySendFirstHit: 0x1
+        #Probe cofiguration
+        EnProbeDigOutDisc: 0x0
+        EnProbeDigSelect: 0x0
+        EnProbeDig: 0x0
+        EnProbePa: 0x0
+        #####################
+        RdIndexLut[0]: 0
+        RdIndexLut[1]: 1
+        RdIndexLut[2]: 2
+        RdIndexLut[3]: 3
+        RdIndexLut[4]: 4
+        RdIndexLut[5]: 5
+        RdIndexLut[6]: 6
+        RdIndexLut[7]: 7
+        RdIndexLut[8]: 8
+        RdIndexLut[9]: 9
+        RdIndexLut[10]: 10
+        RdIndexLut[11]: 11
+        RdIndexLut[12]: 12
+        RdIndexLut[13]: 13
+        RdIndexLut[14]: 14
+        RdIndexLut[15]: 15
+        RdIndexLut[16]: 16
+        RdIndexLut[17]: 17
+        RdIndexLut[18]: 18
+        RdIndexLut[19]: 19
+        RdIndexLut[20]: 20
+        RdIndexLut[21]: 21
+        RdIndexLut[22]: 22
+        RdIndexLut[23]: 23
+        RdIndexLut[24]: 24
+        ReadoutSize: 0
+  #LiveDisplayRst: 0
