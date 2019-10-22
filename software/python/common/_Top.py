@@ -23,7 +23,12 @@ import common
 import time
 import click
 
-rogue.Version.minVersion('3.7.0') 
+# Force the rogue version to be v3.7.0
+if rogue.Version.current() != 'v3.7.0':
+    # print(f'rogue.Version.current() = {rogue.Version.current()}')
+    errMsg = 'rogue version must be v3.7.0'
+    click.secho(errMsg, bg='red')
+    raise ValueError(errMsg) 
 
 class Top(pr.Root):
     def __init__(   self,       

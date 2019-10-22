@@ -1,3 +1,4 @@
+#!/bin/bash
 ##############################################################################
 ## This file is part of 'ATLAS ALTIROC DEV'.
 ## It is subject to the license terms in the LICENSE.txt file found in the 
@@ -11,12 +12,11 @@
 # Setup environment
 source /afs/slac.stanford.edu/g/reseng/vol26/anaconda/miniconda3/etc/profile.d/conda.sh
 
-# Activate Rogue conda Environment
-conda activate rogue_3.7.0
-# conda activate rogue_pre-release
+echo "Removing existing rogue_3.7.0 environment"
+conda env remove -n rogue_3.7.0
 
-# Python Package directories
-export SURF_DIR=${PWD}/../firmware/submodules/surf/python
+echo "Creating new rogue_3.7.0 environment"
+conda create -n rogue_3.7.0 -c defaults -c conda-forge -c paulscherrerinstitute -c tidair-tag rogue=v3.7.0
 
-# Setup python path
-export PYTHONPATH=${PWD}/python:${SURF_DIR}:${PYTHONPATH}
+echo "Installing matplotlib"
+pip install matplotlib
