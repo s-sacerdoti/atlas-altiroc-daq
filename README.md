@@ -70,7 +70,7 @@ Note: For more information about the firmware build system, please refer to this
 
 <!--- ########################################################################################### -->
 
-# How to install the Rogue With Anaconda
+# How to install the Rogue With Anaconda (version locked to v3.7.0):
 
 > https://slaclab.github.io/rogue/installing/anaconda.html
 

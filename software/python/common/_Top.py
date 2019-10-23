@@ -23,7 +23,12 @@ import common
 import time
 import click
 
-rogue.Version.minVersion('3.7.0') 
+# Force the rogue version to be v3.7.0
+if rogue.Version.current() != 'v3.7.0':
+    # print(f'rogue.Version.current() = {rogue.Version.current()}')
+    errMsg = 'rogue version must be v3.7.0'
+    click.secho(errMsg, bg='red')
+    raise ValueError(errMsg) 
 
 class Top(pr.Root):
     def __init__(   self,       
@@ -43,7 +48,7 @@ class Top(pr.Root):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000050
+        self.minFpgaVersion = 0x20000052
         
         # Enable Init after config
         self.InitAfterConfig._default = True        
@@ -56,7 +61,7 @@ class Top(pr.Root):
         self._timeout    = 1.0      if (ip[0] != 'simulation') else 100.0 
         self._pollEn     = pollEn   if (ip[0] != 'simulation') else False
         self._initRead   = initRead if (ip[0] != 'simulation') else False      
-        self.loadYaml    = loadYaml
+        self.usrLoadYaml = loadYaml
         self.userYaml    = userYaml
         self.defaultFile = defaultFile
         
@@ -168,7 +173,23 @@ class Top(pr.Root):
                 if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Master':
                     self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)
                     click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x1)', bg='bright_magenta')
-            
+
+        @self.command(description='This command is intended to be executed after self.dataWriter is opened')
+        def ResumeRun(arg):  
+            click.secho('ResumeRun()', bg='blue')
+                           
+            # Start the Slave First
+            for i in range(self.numEthDev):
+                if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Slave':
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)
+                    click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x1)', bg='magenta')
+                    
+            # Start the Master after the Slave
+            for i in range(self.numEthDev):
+                if self.Fpga[i].Asic.Trig.TrigTypeSel.getDisp() == 'Master':
+                    self.Fpga[i].Asic.Trig.EnableReadout.set(0x1)
+                    click.secho(f'self.Fpga[{i}].Asic.Trig.EnableReadout.set(0x1)', bg='bright_magenta')                    
+                    
         ######################################################################
         
         # Start the system
@@ -273,7 +294,7 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.enable.set(True)                
                 
             # Check if we are loading YAML files
-            if self.loadYaml:
+            if self.usrLoadYaml:
                 
                 # Load the Default YAML file
                 print(f'Loading path={self.defaultFile} Default Configuration File...')

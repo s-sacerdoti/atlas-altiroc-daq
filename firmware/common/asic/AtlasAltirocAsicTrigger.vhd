@@ -55,7 +55,7 @@ end AtlasAltirocAsicTrigger;
 
 architecture rtl of AtlasAltirocAsicTrigger is
 
-   constant TIMER_1_SEC_C : natural := getTimeRatio(160.0E+6, 1.0);
+   constant TIMER_1_SEC_C : slv(31 downto 0) := toSlv(160000000-1, 32);
 
    type StateType is (
       IDLE_S,
@@ -74,7 +74,7 @@ architecture rtl of AtlasAltirocAsicTrigger is
       deadtimeCnt         : slv(7 downto 0);
       deadtimeDuration    : slv(7 downto 0);
       timeout             : sl;
-      timer               : natural range 0 to (TIMER_1_SEC_C-1);
+      timer               : slv(31 downto 0);
       -- Trigger Control
       trigMaster          : sl;
       trigMode            : sl;
@@ -115,7 +115,7 @@ architecture rtl of AtlasAltirocAsicTrigger is
       deadtimeCnt         => (others => '0'),
       deadtimeDuration    => (others => '0'),
       timeout             => '0',
-      timer               => 0,
+      timer               => (others => '0'),
       -- Trigger Control
       trigMaster          => '0',
       trigMode            => '0',
@@ -274,11 +274,11 @@ begin
       v.timeout      := '0';
 
       -- 1HZ timer
-      if r.timer = (TIMER_1_SEC_C-1) then
-         v.timer   := 0;
+      if r.timer = 0 then
+         v.timer   := TIMER_1_SEC_C;
          v.timeout := '1';              -- 1Hz strobe
       else
-         v.timer := r.timer + 1;
+         v.timer := r.timer - 1;
       end if;
 
       -- Check for counter reset
@@ -333,6 +333,7 @@ begin
       axiSlaveRegister (axilEp, x"50", 16, v.trigSizeBeforePause);
       axiSlaveRegister (axilEp, x"54", 0, v.deadtimeDuration);
       axiSlaveRegisterR(axilEp, x"58", 0, r.stateEncode);
+      axiSlaveRegisterR(axilEp, x"58", 8, r.deadtimeCnt);
       axiSlaveRegisterR(axilEp, x"5C", 0, r.trigPauseCnt);
 
       axiSlaveRegisterR(axilEp, x"60", 0, bncIn);
@@ -440,6 +441,8 @@ begin
          ----------------------------------------------------------------------      
          when IDLE_S =>
             v.stateEncode := x"00";
+            -- Reset the counters
+            v.deadtimeCnt := (others => '0');
             -- Check for trigger
             if (trigger = '1') and (r.enableReadout = '1') then
                -- Increment the counter
@@ -482,7 +485,7 @@ begin
                      -- Reset the counters
                      v.trigPauseCnt := (others => '0');
                      v.deadtimeCnt  := (others => '0');
-                     v.timer        := 0;
+                     v.timer        := TIMER_1_SEC_C;
 
                      -- Check if deadtimeDuration is non-zero
                      if (r.deadtimeDuration /= 0) then
@@ -509,10 +512,15 @@ begin
                -- Increment the counter
                v.deadtimeCnt := r.deadtimeCnt + 1;
 
-               -- Check if deadtimeDuration is non-zero
-               if (v.deadtimeCnt /= r.deadtimeDuration) then
+               -- Check if dead time duration reached or max timeout
+               if (v.deadtimeCnt = r.deadtimeDuration) or (v.deadtimeCnt = x"FF") then
+
+                  -- Reset the counters
+                  v.deadtimeCnt := (others => '0');
+
                   -- Next state
                   v.state := IDLE_S;
+
                end if;
 
             end if;
@@ -525,7 +533,7 @@ begin
       end if;
 
       -- Check for change in deadtimeDuration
-      if (r.state = OSCOPE_DEADTIME_S) and (r.deadtimeDuration /= v.deadtimeDuration) then
+      if (v.state = OSCOPE_DEADTIME_S) and (r.deadtimeDuration /= v.deadtimeDuration) then
          -- Next state
          v.state := IDLE_S;
       end if;
