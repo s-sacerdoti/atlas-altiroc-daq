@@ -29,17 +29,19 @@ NofIterationsTOA = 16  # <= Number of Iterations for each Delay value
 TOA_DelayValueReset = 3200 # <= Value of Falling Edge Programmable Delay
 
 DataAcqusitionTOT = 1   # <= Enable TOT Data Acquisition
+TOT_PulserScan = 0      # <= Select the TOT Scan: 0 = Delay Scan, 1 = Pulser (Qinj) Scan
 TOT_RisingEdgeSweep = 1      # <= Select the TOT Edge to Sweep (0 = falling edge, 1 = rising edge) 
 TOT_DelayRangeL = 850        # <= Low Value of Delay Sweep Range    #850
 TOT_DelayRangeH = 3000       # <= High Value of Delay Sweep Range   #3000
 TOT_DelayRangeStep = 1     # <= Step Size of Delay Sweep Range
 NofIterationsTOT = 16   # <= Number of Iterations for each Delay Value
-TOT_DelayValueReset = 3200       # <= Value of Falling Edge Programmable Delay (used when sweeping the rising edge)  
-TOT_DelayValueSet = 800          # <= Value of Rsisng Edge Programmable Delay (used when sweeping the falling edge)  
+TOT_DelayValueReset = 3200       # <= Value of Falling Edge Programmable Delay (used when sweeping the rising edge or pulser value)  
+TOT_DelayValueSet = 800          # <= Value of Rsisng Edge Programmable Delay (used when sweeping the falling edge)
+TOT_DelayValueSet_Pulser = 1900  # <= Value of Rsisng Edge Programmable Delay (used when sweeping the pulser value)   
 
 nTOA_TOT_Processing = 1 # <= Selects the Data to be Processed and Plotted (0 = TOA, 1 = TOT) 
 
-TOT_f_Calibration_En = 1                                       	   # <= Enables Calculation of TOT Fine-Interpolation Calibration Data and Saves them
+TOT_f_Calibration_En = 0                                       	   # <= Enables Calculation of TOT Fine-Interpolation Calibration Data and Saves them
 #TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_nocalibration.txt'
 TOT_c_Calibration_LOAD_file = 'TestData/TOT_coarse_calibration.txt'  # <= Path to the TOT Coarse Calibration File used in TOT Data Processing
 TOT_c_Calibration_SAVE_file = 'TestData/TOT_coarse_calibration.txt'  # <= Path to the File where TOT Coarse Calibration Data are Saved
@@ -47,6 +49,7 @@ TOT_f_Calibration_LOAD_file = 'TestData/TOT_fine_calibration.txt'  # <= Path to 
 TOT_f_Calibration_SAVE_file = 'TestData/TOT_fine_calibration.txt'  # <= Path to the File where TOT Fine-Interpolation Calibration Data are Saved
 
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
+LSB_TOTc = 160 # <= Estimate of TOT coarse LSB (in ps) to be used in TOT Pulser Scan
 
 nVPA_TZ = 0 # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT) (!) Warning: TZ TOT not yet tested
 
@@ -54,13 +57,21 @@ HistDelayTOA1 = 2217  # <= Delay Value for Histogram to be plotted in Plot (1,0)
 HistDelayTOA2 = 2100 # <= Delay Value for Histogram to be plotted in Plot (1,1)
 HistDelayTOT1 = 1750  # <= TOT Delay Value for Histogram to be plotted in Plot (1,0)
 HistDelayTOT2 = 1750  # <= TOT Delay Value for Histogram to be plotted in Plot (1,1)
+HistPulserTOT1 = 15  # <= Pulser Value for Histogram to be plotted in Plot (1,0)
+HistPulserTOT2 = 55  # <= Pulser Value for Histogram to be plotted in Plot (1,1)
 
 TOTf_hist = 0
 TOTc_hist = 0
 Plot_TOTf_lin = 1
 Plot_TOTf_lin_all = 0
 PlotValidCnt = 1
-
+##############################################################################
+if TOT_PulserScan == 1:
+    TOT_DelayRangeL = 0
+    TOT_DelayRangeH = 64
+    TOT_DelayRangeStep = 1
+    HistDelayTOT1 = HistPulserTOT1 
+    HistDelayTOT2 = HistPulserTOT2
 ##############################################################################
 
 import sys
@@ -173,17 +184,20 @@ if DataAcqusitionTOA == 1:
             top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOA', NofIterationsTOA, dataStream)
 
 if DataAcqusitionTOT == 1:
-
-    #acquire_data(TOT_DelayRangeL, TOT_DelayRangeH, TOT_DelayRangeStep, top, 
-    #        top.Fpga[0].Asic.SlowControl.dac_pulser, 'TOT', NofIterationsTOT, dataStream)
-    if TOT_RisingEdgeSweep == 1:
-        top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(TOT_DelayValueReset)
+    if TOT_PulserScan == 1:
+        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(TOT_DelayValueSet_Pulser)
+        top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(TOT_DelayValueReset) 
         acquire_data(TOT_DelayRangeL, TOT_DelayRangeH, TOT_DelayRangeStep, top, 
-                top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOT', NofIterationsTOT, dataStream)
+                top.Fpga[0].Asic.SlowControl.dac_pulser, 'TOT', NofIterationsTOT, dataStream)
     else:
-        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(TOT_DelayValueSet)
-        acquire_data(TOT_DelayRangeL, TOT_DelayRangeH, TOT_DelayRangeStep, top, 
-                top.Fpga[0].Asic.Gpio.DlyCalPulseReset, 'TOT', NofIterationsTOT, dataStream)
+        if TOT_RisingEdgeSweep == 1:
+            top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(TOT_DelayValueReset)
+            acquire_data(TOT_DelayRangeL, TOT_DelayRangeH, TOT_DelayRangeStep, top, 
+                    top.Fpga[0].Asic.Gpio.DlyCalPulseSet, 'TOT', NofIterationsTOT, dataStream)
+        else:
+            top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(TOT_DelayValueSet)
+            acquire_data(TOT_DelayRangeL, TOT_DelayRangeH, TOT_DelayRangeStep, top, 
+                    top.Fpga[0].Asic.Gpio.DlyCalPulseReset, 'TOT', NofIterationsTOT, dataStream)
 
 #######################
 # Data Processing TOA #
@@ -493,9 +507,12 @@ if nTOA_TOT_Processing == 1:
     MeanDataStdevTOT = np.mean(np.sort(DataStdevTOT)[index[0][0]:len(np.sort(DataStdevTOT))])
 
     # LSB estimation based on "DelayStep" value
-    index=np.where(DataMeanTOT_coarse)
-    fit = np.polyfit(DelayTOT[index[0][10]:index[0][-10]], DataMeanTOT_coarse[index[0][10]:index[0][-10]], 1)
-    LSBcest = DelayStep/abs(fit[0])
+    if TOT_PulserScan == 0:
+        index=np.where(DataMeanTOT_coarse)
+        fit = np.polyfit(DelayTOT[index[0][10]:index[0][-10]], DataMeanTOT_coarse[index[0][10]:index[0][-10]], 1)
+        LSBcest = DelayStep/abs(fit[0])
+    else:
+        LSBcest = LSB_TOTc
 
 #################################################################
 # Print Data
@@ -545,8 +562,12 @@ else:
     ax1.plot(DelayTOT, np.multiply(DataMeanTOT,LSBcest))
     #ax1.plot(DelayTOT, DataMeanTOT_coarse)
     ax1.grid(True)
-    ax1.set_title('TOT Measurment VS Programmable Delay Value', fontsize = 11)
-    ax1.set_xlabel('Programmable Delay Value [step estimate = %f ps]' % DelayStep, fontsize = 10)
+    if TOT_PulserScan == 0:
+        ax1.set_title('TOT Measurment VS Programmable Delay Value', fontsize = 11)
+        ax1.set_xlabel('Programmable Delay Value [step estimate = %f ps]' % DelayStep, fontsize = 10)
+    else:
+       ax1.set_title('TOT Measurment VS Injected Charge', fontsize = 11)
+       ax1.set_xlabel('Pulser DAC Value', fontsize = 10)
     ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
     ax1.legend(['LSB_coarse estimate: %f ps \nLSB_fine estimate: %f ps' % (LSBcest,LSB_TOTf_mean*LSBcest)],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     ax1.set_xlim(left = np.min(DelayTOT), right = np.max(DelayTOT))
@@ -568,8 +589,12 @@ else:
     if PlotValidCnt == 0:
         ax2.scatter(DelayTOT, np.multiply(DataStdevTOT,LSBcest))
         ax2.grid(True)
-        ax2.set_title('TOT Jitter VS Programmable Delay Value', fontsize = 11)
-        ax2.set_xlabel('Programmable Delay Value', fontsize = 10)
+        if TOT_PulserScan == 0:
+            ax2.set_title('TOT Jitter VS Programmable Delay Value', fontsize = 11)
+            ax2.set_xlabel('Programmable Delay Value', fontsize = 10)
+        else:
+            ax2.set_title('TOT Jitter VS Injected Charge', fontsize = 11)
+            ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
         ax2.set_ylabel('Std. Dev. [ps]', fontsize = 10)
         ax2.legend(['Average Std. Dev. = %f ps' % MeanDataStdevTOT*LSBcest], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
         ax2.set_xlim(left = np.min(DelayTOT), right = np.max(DelayTOT))
@@ -577,8 +602,12 @@ else:
     else:
         ax2.plot(DelayTOT, ValidTOTCnt)
         ax2.grid(True)
-        ax2.set_title('TOT Valid Counts VS Programmable Delay Value', fontsize = 11)
-        ax2.set_xlabel('Programmable Delay Value', fontsize = 10)
+        if TOT_PulserScan == 0:
+            ax2.set_title('TOT Valid Counts VS Programmable Delay Value', fontsize = 11)
+            ax2.set_xlabel('Programmable Delay Value', fontsize = 10)
+        else:
+            ax2.set_title('TOT Valid Counts VS Injected Charge', fontsize = 11)
+            ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
         ax2.set_ylabel('Valid Measurements', fontsize = 10)
         ax2.set_xlim(left = np.min(DelayTOT), right = np.max(DelayTOT))
         ax2.set_ylim(bottom = 0, top = np.max(ValidTOTCnt)*1.1)
@@ -612,7 +641,10 @@ else:
         if DataL:
             exec("ax3.hist(HitDataTOT%d, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOT1)
             exec("ax3.set_xlim(left = np.min(HitDataTOT%d)-10*LSB_TOTf_mean, right = np.max(HitDataTOT%d)+10*LSB_TOTf_mean)" % (HistDelayTOT1, HistDelayTOT1))
-            ax3.set_title('TOT Measurment for Programmable Delay = %d' % HistDelayTOT1, fontsize = 11)
+            if TOT_PulserScan == 0:
+                ax3.set_title('TOT Measurment for Programmable Delay = %d' % HistDelayTOT1, fontsize = 11)
+            else:
+                ax3.set_title('TOT Measurment for Pulser = %d' % HistDelayTOT1, fontsize = 11)
             ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
             ax3.set_ylabel('N of Measrements', fontsize = 10)
             ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistDelayTOT1_index]*LSBcest, DataStdevTOT[HistDelayTOT1_index]*LSBcest, ValidTOTCnt[HistDelayTOT1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
@@ -620,7 +652,10 @@ else:
         if TOTf_hist == 1:
             exec("ax3.hist(HitDataTOTf%d, bins = np.arange(9), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOT1)
             ax3.set_xlim(left = -1, right = 8)
-            ax3.set_title('TOT Measurment for Programmable Delay = %d' % HistDelayTOT1, fontsize = 11)
+            if TOT_PulserScan == 0:
+                ax3.set_title('TOT Measurment for Programmable Delay = %d' % HistDelayTOT1, fontsize = 11)
+            else:
+                ax3.set_title('TOT Measurment for Pulser = %d' % HistDelayTOT1, fontsize = 11)
             ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
             ax3.set_ylabel('N of Measrements', fontsize = 10)
             ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistDelayTOT1_index]*LSBcest, DataStdevTOT[HistDelayTOT1_index]*LSBcest, ValidTOTCnt[HistDelayTOT1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
@@ -628,7 +663,10 @@ else:
             if TOTc_hist == 1:
                 exec("ax3.hist(HitDataTOTc%d, bins = np.arange(129), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOT1)
                 ax3.set_xlim(left = -1, right = 128)
-                ax3.set_title('TOT Measurment for Programmable Delay = %d' % HistDelayTOT1, fontsize = 11)
+                if TOT_PulserScan == 0:
+                    ax3.set_title('TOT Measurment for Programmable Delay = %d' % HistDelayTOT1, fontsize = 11)
+                else:
+                    ax3.set_title('TOT Measurment for Pulser = %d' % HistDelayTOT1, fontsize = 11)
                 ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
                 ax3.set_ylabel('N of Measrements', fontsize = 10)
                 ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistDelayTOT1_index]*LSBcest, DataStdevTOT[HistDelayTOT1_index]*LSBcest, ValidTOTCnt[HistDelayTOT1_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
@@ -663,7 +701,10 @@ else:
         if DataL:
             exec("ax4.hist(HitDataTOT%d, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')" % HistDelayTOT2)
             exec("ax4.set_xlim(left = np.min(HitDataTOT%d)-4*LSB_TOTf_mean, right = np.max(HitDataTOT%d)+4*LSB_TOTf_mean)" % (HistDelayTOT2, HistDelayTOT2))
-            ax4.set_title('TOT Measurment for Programmable Delay = %d' % HistDelayTOT2, fontsize = 11)
+            if TOT_PulserScan == 0:
+                ax4.set_title('TOT Measurment for Programmable Delay = %d' % HistDelayTOT2, fontsize = 11)
+            else:
+                ax4.set_title('TOT Measurment for Pulser = %d' % HistDelayTOT2, fontsize = 11)
             ax4.set_xlabel('TOT Measurement [ps]', fontsize = 10)
             ax4.set_ylabel('N of Measrements', fontsize = 10)
             ax4.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[HistDelayTOT2_index]*LSBcest, DataStdevTOT[HistDelayTOT2_index]*LSBcest, ValidTOTCnt[HistDelayTOT2_index])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
