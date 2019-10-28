@@ -39,8 +39,7 @@ class Top(pr.Root):
             initRead    = True,
             configProm  = False,
             advanceUser = False,
-            refClkSel   = 'IntClk',
-            pllConfig   = 'config/pll-config/Si5345-RevD-Registers.csv',
+            refClkSel   = ['IntClk'],
             loadYaml    = True,
             userYaml    = [''],
             defaultFile = 'config/defaults.yml',
@@ -48,7 +47,7 @@ class Top(pr.Root):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000052
+        self.minFpgaVersion = 0x20000053
         
         # Enable Init after config
         self.InitAfterConfig._default = True        
@@ -64,20 +63,26 @@ class Top(pr.Root):
         self.usrLoadYaml = loadYaml
         self.userYaml    = userYaml
         self.defaultFile = defaultFile
+        self.pllConfig   = [None for i in range(self.numEthDev)]
         
-        # Set the path of the PLL configuration file
-        if (refClkSel=='IntClk'):
-            self.pllConfig = 'config/pll-config/Si5345-RevD-Registers-IntClk.csv'
-        elif (refClkSel=='ExtSmaClk'):
-            self.pllConfig = 'config/pll-config/Si5345-RevD-Registers-ExtSmaClk.csv'
-        elif (refClkSel=='ExtLemoClk'):
-            self.pllConfig = 'config/pll-config/Si5345-RevD-Registers-ExtLemoClk.csv'            
-        else:
-            errMsg = f"""
-                refClkSel argument must be either [IntClk,ExtSmaClk,ExtLemoClk]
-                """
+        # Check if missing refClkSel configuration
+        if (len(refClkSel) < len(ip)):
+            errMsg = f'len(refClkSel) = {len(refClkSel)} < len(ip) = {len(ip)}.\nMake sure to define a refClkSel for each IP address'
             click.secho(errMsg, bg='red')
-            raise ValueError(errMsg)        
+            raise ValueError(errMsg)     
+            
+        # Set the path of the PLL configuration file
+        for i in range(self.numEthDev):
+            if (refClkSel[i]=='IntClk'):
+                self.pllConfig[i] = 'config/pll-config/Si5345-RevD-Registers-IntClk.csv'
+            elif (refClkSel[i]=='ExtSmaClk'):
+                self.pllConfig[i] = 'config/pll-config/Si5345-RevD-Registers-ExtSmaClk.csv'
+            elif (refClkSel[i]=='ExtLemoClk'):
+                self.pllConfig[i] = 'config/pll-config/Si5345-RevD-Registers-ExtLemoClk.csv'            
+            else:
+                errMsg = f'refClkSel[{i}] argument must be either [IntClk,ExtSmaClk,ExtLemoClk]'
+                click.secho(errMsg, bg='red')
+                raise ValueError(errMsg)        
         
         # File writer
         self.dataWriter = pr.utilities.fileio.StreamWriter()
@@ -243,7 +248,7 @@ class Top(pr.Root):
                     self.Fpga[i].BoardTemp.RemoteTcritSetpoint.set(95)
                      
                 # Load the PLL configurations
-                self.Fpga[i].Pll.CsvFilePath.set(self.pllConfig)
+                self.Fpga[i].Pll.CsvFilePath.set(self.pllConfig[i])
                 self.Fpga[i].Pll.LoadCsvFile()
                 self.Fpga[i].Pll.Locked.get()
                 

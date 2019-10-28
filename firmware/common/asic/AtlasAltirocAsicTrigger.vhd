@@ -69,6 +69,7 @@ architecture rtl of AtlasAltirocAsicTrigger is
       cntRst              : sl;
       enableReadout       : sl;
       -- Oscilloscope Deadtime
+      busyPulseWidth      : slv(7 downto 0);      
       trigPauseCnt        : slv(15 downto 0);
       trigSizeBeforePause : slv(15 downto 0);
       deadtimeCnt         : slv(7 downto 0);
@@ -110,6 +111,7 @@ architecture rtl of AtlasAltirocAsicTrigger is
       cntRst              => '0',
       enableReadout       => '0',
       -- Oscilloscope Deadtime
+      busyPulseWidth      => (others => '1'),
       trigPauseCnt        => (others => '0'),
       trigSizeBeforePause => (others => '0'),
       deadtimeCnt         => (others => '0'),
@@ -217,12 +219,23 @@ begin
    ---------------------------
    -- BNC TTL output connector
    ---------------------------
+   U_oneShot : entity work.AtlasAltirocBusyOneShot
+      generic map (
+         TPD_G => TPD_G,
+         PULSE_BIT_WIDTH_G => 8)
+      port map (
+         clk        => clk160MHz,
+         rst        => rst160MHz,
+         pulseWidth => r.busyPulseWidth,
+         trigIn     => r.busy,
+         pulseOut   => busyOneShot);   
+         
    U_BNC_BUSY_OUTPUT : entity work.OutputBufferReg
       generic map (
          TPD_G => TPD_G)
       port map (
          C => clk160MHz,
-         I => r.busy,
+         I => busyOneShot,
          O => bncOut);
 
    --------------------------
@@ -331,7 +344,10 @@ begin
 
       axiSlaveRegister (axilEp, x"50", 0, v.readoutStartDly);
       axiSlaveRegister (axilEp, x"50", 16, v.trigSizeBeforePause);
+      
       axiSlaveRegister (axilEp, x"54", 0, v.deadtimeDuration);
+      axiSlaveRegister (axilEp, x"54", 8, v.busyPulseWidth);
+      
       axiSlaveRegisterR(axilEp, x"58", 0, r.stateEncode);
       axiSlaveRegisterR(axilEp, x"58", 8, r.deadtimeCnt);
       axiSlaveRegisterR(axilEp, x"5C", 0, r.trigPauseCnt);
