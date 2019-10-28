@@ -15,6 +15,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 
@@ -35,23 +37,21 @@ end AtlasAltirocBusyOneShot;
 
 architecture rtl of AtlasAltirocBusyOneShot is
 
-   constant PULSE_WIDTH_C : positive := bitSize(PULSE_WIDTH_G-1);
-
    type StateType is (
       IDLE_S,
       CNT_S,
       WAIT_S);
 
    type RegType is record
-      cnt     : slv(PULSE_BIT_WIDTH_G-1 downto 0);
-      dataOut : sl;
-      state   : StateType;
+      cnt      : slv(PULSE_BIT_WIDTH_G-1 downto 0);
+      pulseOut : sl;
+      state    : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      cnt     => (others => 0),
-      dataOut => not(OUT_POLARITY_G),
-      state   => IDLE_S);
+      cnt      => (others => '0'),
+      pulseOut => not(OUT_POLARITY_G),
+      state    => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -90,7 +90,7 @@ begin
             if (r.cnt = pulseWidth) then
 
                -- Reset the counter
-               v.cnt := (others => 0);
+               v.cnt := (others => '0');
 
                -- Check for trigger still active
                if (trigIn = IN_POLARITY_G) then
