@@ -273,7 +273,15 @@ class AltirocTrig(pr.Device):
             mode         = 'RW',
             disp         = '{:d}',
             units        = '1/160MHz',
-        ))            
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'BusyPulseWidthNs', 
+            units        = 'ns',
+            disp         = '{:1.2f}',
+            dependencies = [self.BusyPulseWidth],
+            linkedGet    = common.getNsValue,
+        ))
        
         self.add(pr.RemoteVariable(
             name         = 'DeadtimeCnt', 

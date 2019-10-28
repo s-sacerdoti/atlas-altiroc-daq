@@ -579,6 +579,7 @@ begin
          v.readoutStartDly     := r.readoutStartDly;
          v.trigSizeBeforePause := r.trigSizeBeforePause;
          v.deadtimeDuration    := r.deadtimeDuration;
+         v.busyPulseWidth      := r.busyPulseWidth;
       end if;
 
       -- Register the variable for next clock cycle
