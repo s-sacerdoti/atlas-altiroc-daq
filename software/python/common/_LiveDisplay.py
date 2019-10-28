@@ -65,7 +65,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
                     instant=True)
     '''
     def __init__(self, plot_title='Live Display', toa_xrange=(0,127), toa_yrange=(0,24), toa_xbins=128, toa_ybins=25, 
-                 tot_xrange=(0,8192), tot_yrange=(0,24), tot_xbins=128, tot_ybins=25, 
+                 tot_xrange=(0,127), tot_yrange=(0,24), tot_xbins=128, tot_ybins=25, 
                  xpixels=5, ypixels=5, font_size=6, fig_size=(15,8), submitDir='./', overwrite=False):
         '''
         To initialize:
@@ -89,6 +89,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         self.toa_xrange, self.toa_yrange, self.toa_xbins, self.toa_ybins = toa_xrange, toa_yrange, toa_xbins,toa_ybins
         self.tot_xrange, self.tot_yrange, self.tot_xbins, self.tot_ybins = tot_xrange, tot_yrange, tot_xbins,tot_ybins
         self.xpixels, self.ypixels, self.submitDir, self.overwrite = xpixels, ypixels, submitDir, overwrite
+        self.tot_binning_count = self.tot_xrange[1] / self.toa_xrange[1]
 
         if os.path.exists(self.submitDir):
             if not self.overwrite:
@@ -219,9 +220,9 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
                     hit_data[pixel.PixelIndex] = pixel.Hit
                     self.toa_array[pixel.PixelIndex][pixel.ToaData] += 1
                     #scale down tot data so we can use 128 bins for tot and toa
-                    tot_bin = int(pixel.TotData/64)
+                    HitDataTOTc = (pixel.TotData >>  2) & 0x7F
+                    tot_bin = int(HitDataTOTc/self.tot_binning_count)
                     self.tot_array[pixel.PixelIndex][tot_bin] += 1
-
             hits_toa_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
             self.hits_toa_array += hits_toa_data_binary
         if(snap): self.snapshot()

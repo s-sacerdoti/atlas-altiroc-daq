@@ -26,8 +26,7 @@ Live_display_interval = 1
 #################################################################
 def runLiveDisplay(event_display,fpga_index):
     while(Keep_display_alive):
-        if event_display.has_new_data:
-            event_display.refreshDisplay()
+        event_display.refreshDisplay()
         time.sleep(Live_display_interval)
 #################################################################
 
