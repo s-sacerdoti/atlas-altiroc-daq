@@ -135,7 +135,7 @@ if (args.printEvents):
     pr.streamTap(top.dataStream[0], eventReader) 
 
 # Create Live Display
-live_display_reset = []
+live_display_resets = []
 if args.liveDisplay:
     for fpga_index in range( top.numEthDev ):
         # Create the fifo to ensure there is no back-pressure
@@ -149,12 +149,14 @@ if args.liveDisplay:
                 font_size=4,
                 fig_size=(10,6),
                 overwrite=True  )
-        live_display_reset.append( event_display.reset )
+        live_display_resets.append( event_display.reset )
         # Connect the fifo ---> stream reader
         pr.streamConnect(fifo, event_display) 
         # Retrieve pixel data streaming object
         display_thread = threading.Thread( target=runLiveDisplay, args=(event_display,fpga_index,) )
         display_thread.start()
+top.add_live_display_resets(live_display_resets)
+
 
 # Create GUI
 appTop = pr.gui.application(sys.argv)
