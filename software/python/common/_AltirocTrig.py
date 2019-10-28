@@ -258,10 +258,30 @@ class AltirocTrig(pr.Device):
             description  = 'Deadtime duration for oscilloscope to catch up without readout',
             offset       = 0x54,
             bitSize      = 8, 
+            bitOffset    = 0,             
             mode         = 'RW',
             disp         = '{:d}',
             units        = 'seconds',
-        ))          
+        ))    
+
+        self.add(pr.RemoteVariable(
+            name         = 'BusyPulseWidth', 
+            description  = 'Pulse width of BNC busy',
+            offset       = 0x54,
+            bitSize      = 8, 
+            bitOffset    = 8,             
+            mode         = 'RW',
+            disp         = '{:d}',
+            units        = '1/160MHz',
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'BusyPulseWidthNs', 
+            units        = 'ns',
+            disp         = '{:1.2f}',
+            dependencies = [self.BusyPulseWidth],
+            linkedGet    = common.getNsValue,
+        ))
        
         self.add(pr.RemoteVariable(
             name         = 'DeadtimeCnt', 
