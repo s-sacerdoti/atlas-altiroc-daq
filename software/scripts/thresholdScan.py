@@ -29,9 +29,7 @@ from setASICconfig import set_pixel_specific_parameters        ##
 #################################################################
 #script settings
 LSBest = 20
-NofIterations = 20  # <= Number of Iterations for each Vth
-useProbe = False        #output discri probe
-DebugPrint = True
+#args.N = 20  # <= Number of Iterations for each Vth
 #################################################################
 # Set the argument parser
 def parse_arguments():
@@ -44,7 +42,7 @@ def parse_arguments():
     pixel = 4
     DAC_Vth = 320
     Qinj = 13 #10fc
-    config_file = 'config/asic_config_B7.yml'
+    config_file = 'config/asic_config_B4.yml'
     minDAC = 280
     maxDAC = 420
     DACstep = 5
@@ -52,10 +50,17 @@ def parse_arguments():
 
 
     # Add arguments
+    parser.add_argument("--Cd", type = int, required = False, default = -1, help = "Cd")
+    parser.add_argument("-N", type = int, required = False, default = 50, help = "Nb of events")
     parser.add_argument("--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP address")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
-    parser.add_argument( "--checkOvF", type = argBool, required = False, default = False, help = "use check on TOA overflow bit")
-    parser.add_argument("--cfg", type = str, required = False, default = config_file, help = "config file")
+    parser.add_argument( "--display", type = argBool, required = False, default = True, help = "show plots")
+    parser.add_argument( "--debug", type = argBool, required = False, default = True, help = "debug")
+    parser.add_argument( "--useProbePA", type = argBool, required = False, default = False, help = "use probe PA")
+    parser.add_argument( "--useProbeDiscri", type = argBool, required = False, default = False, help = "use probe Discri")
+    parser.add_argument( "--checkOFtoa", type = argBool, required = False, default = True, help = "check TOA overflow")
+    parser.add_argument( "--checkOFtot", type = argBool, required = False, default = True, help = "check TOT overflow")
+    parser.add_argument("--cfg", type = str, required = False, default = None, help = "config file")
     parser.add_argument("--ch", type = int, required = False, default = pixel, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
     parser.add_argument("--delay", type = int, required = False, default = DelayValue, help = "delay")
@@ -69,10 +74,10 @@ def parse_arguments():
     return args
 
 ##############################################################################
-def acquire_data(dacScan, top, n_iterations, checkOvF): 
+def acquire_data(dacScan, top, n_iterations): 
     pixel_stream = feb.PixelReader() 
-    pixel_stream.checkOFtoa=checkOvF
-    pixel_stream.checkOFtot=checkOvF
+    pixel_stream.checkOFtoa=args.checkOFtoa
+    pixel_stream.checkOFtot=args.checkOFtot 
    
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
     pixel_data = {
@@ -96,7 +101,7 @@ def acquire_data(dacScan, top, n_iterations, checkOvF):
 
         pixel_data['HitDataTOA'].append( pixel_stream.HitDataTOA.copy() )
         pixel_data['TOAOvflow'].append( pixel_stream.TOAOvflow.copy() )
-        while pixel_stream.count < NofIterations: pass
+        while pixel_stream.count < args.N: pass
         pixel_stream.clear()
     
     return pixel_data
@@ -104,7 +109,6 @@ def acquire_data(dacScan, top, n_iterations, checkOvF):
 #################################################################
 def thresholdScan(argip,
       board,
-      checkOvF,
       Configuration_LOAD_file,
       pixel_number,
       Qinj,
@@ -120,15 +124,18 @@ def thresholdScan(argip,
     Configuration_LOAD_file = 'config/asic_config_B7.yml'
     if board == 8:
         Configuration_LOAD_file = 'config/asic_config_B8.yml'
+    elif board == 4:
+        Configuration_LOAD_file = 'config/asic_config_B4.yml'
     elif board == 3:
         Configuration_LOAD_file = 'config/asic_config_B3.yml'
     elif board == 2:
         Configuration_LOAD_file = 'config/asic_config_B2.yml'
 
+
     # Setup root class
     top = feb.Top(ip = argip, userYaml = [Configuration_LOAD_file])
     
-    if DebugPrint:
+    if args.debug:
         top.Fpga[0].AxiVersion.printStatus()
         # Tap the streaming data interface (same interface that writes to file)
         dataStream = feb.PrintEventReader()    
@@ -136,21 +143,45 @@ def thresholdScan(argip,
     
 
     set_pixel_specific_parameters(top, pixel_number)
-
+    if pixel_number in range(0, 5): bitset=0x1
+    if pixel_number in range(5, 10): bitset=0x2
+    if pixel_number in range(10, 15): bitset=0x4
+    if pixel_number in range(15, 20): bitset=0x8
+    if pixel_number in range(20, 25): bitset=0x10
+    for ipix in range(0,25):top.Fpga[0].Asic.Probe.pix[ipix].probe_pa.set(0x0)
+    if not args.useProbePA:
+        top.Fpga[0].Asic.Probe.en_probe_pa.set(0x0) 
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x0)
+    else:
+        top.Fpga[0].Asic.Probe.en_probe_pa.set(bitset) 
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x1)
+    for ipix in range(0,25):top.Fpga[0].Asic.Probe.pix[ipix].probe_dig_out_disc.set(0x0)
+    if not args.useProbeDiscri:
+        top.Fpga[0].Asic.Probe.en_probe_dig.set(0x0) 
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x0)
+    else:
+        top.Fpga[0].Asic.Probe.en_probe_dig.set(bitset) 
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)
+        
     #some more config
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValue)
     top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0)
     top.Fpga[0].Asic.CalPulse.CalPulseDelay.set(5000)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
-    if not checkOvF:
-        top.Fpga[0].Asic.Readout.OnlySendFirstHit.set(0)
+    #if not checkOvF:
+    #    top.Fpga[0].Asic.Readout.OnlySendFirstHit.set(0)
+
+    #overright Cd
+    if args.Cd>=0:
+        for i in range(5):
+            top.Fpga[0].Asic.SlowControl.cd[i].set(args.Cd)  
 
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
     
     #################################################################
     # Data Processing
-    pixel_data = acquire_data(dacScan, top, NofIterations, checkOvF)
+    pixel_data = acquire_data(dacScan, top, args.N)
     
     #################################################################
     # Data Processing
@@ -209,15 +240,15 @@ def thresholdScan(argip,
     midPt = []
     for dac_index, dac_value in enumerate(dacScan):
         try:
-            print('Threshold = %d, HitCnt = %d/%d' % (dac_value, HitCnt[dac_index], NofIterations))
+            print('Threshold = %d, HitCnt = %d/%d' % (dac_value, HitCnt[dac_index], args.N))
         except OSError:
             pass
-        if HitCnt[dac_index] > NofIterations-2:
-            if dac_index>0 and HitCnt[dac_index-1] < (NofIterations-1) :
+        if HitCnt[dac_index] > args.N-2:
+            if dac_index>0 and HitCnt[dac_index-1] < (args.N-1) :
                 minTH = (dacScan[dac_index-1]+dacScan[dac_index])/2
-            elif dac_index<len(dacScan)-1 and HitCnt[dac_index+1] < NofIterations :
+            elif dac_index<len(dacScan)-1 and HitCnt[dac_index+1] < args.N :
                 maxTH = (dacScan[dac_index+1]+dacScan[dac_index])/2
-        if HitCnt[dac_index]/NofIterations < 0.6:
+        if HitCnt[dac_index]/args.N < 0.6:
             th50percent = dac_value
     
     th25= (maxTH-minTH)*0.25+minTH
@@ -230,7 +261,7 @@ def thresholdScan(argip,
     ff.write('Pixel = '+str(pixel_number)+'\n')
     #ff.write('column = '+hex(column)+'\n')
     ff.write('config file = '+Configuration_LOAD_file+'\n')
-    ff.write('NofIterations = '+str(NofIterations)+'\n')
+    ff.write('args.N = '+str(args.N)+'\n')
     #ff.write('dac_biaspa = '+hex(dac_biaspa)+'\n')
     ff.write('cmd_pulser = '+str(Qinj)+'\n')
     ff.write('LSBest = '+str(LSBest)+'\n')
@@ -249,34 +280,44 @@ def thresholdScan(argip,
             ff.write(str(dac_value)+' '+str(allTOA[dac_index][itoa])+' '+str(len(allTOA[dac_index]))+'\n')
 
     ff.close()
+
+    #################################################################
+    #
+    #################################################################
+    print ("-------------------------------------------------------")
+    print("The arguments was:")
+    print(args)
+    print("Config file was:", Configuration_LOAD_file)
+    print ("-------------------------------------------------------")
     
     #################################################################
     #################################################################
     ## Plot Data
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
-    
-    #plot N events vs threshold
-    ax1.plot(dacScan,HitCnt)
-    #ax1.scatter(dacScan,HitCnt)
-    ax1.set_title('Number of hits vs Threshold', fontsize = 11)
-    ax1.set_xlabel('Threshold DAC', fontsize = 10)
-    ax1.set_ylabel('Number of TOA hits', fontsize = 10)
-    
-    #plot TOA vs threshold
-    ax2.scatter(dacScan,TOAmean_ps)
-    ax2.set_title('Mean TOA vs Threshold', fontsize = 11)
-    ax2.set_xlabel('Threshold DAC', fontsize = 10)
-    ax2.set_ylabel('Mean TOA value [ps]', fontsize = 10)
-    
-    #plot jitter vs Threshold
-    ax3.scatter(dacScan,TOAjit_ps)
-    ax3.set_title('Jitter TOA vs Threshold', fontsize = 11)
-    ax3.legend(['Average Std. Dev. = %f ps' % (jitterMean*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-    ax3.set_xlabel('Threshold DAC', fontsize = 10)
-    ax3.set_ylabel('Mean TOA Jitter', fontsize = 10)
-    
-    plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
-    plt.show()
+    if args.display:
+        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
+
+        #plot N events vs threshold
+        ax1.plot(dacScan,HitCnt)
+        #ax1.scatter(dacScan,HitCnt)
+        ax1.set_title('Number of hits vs Threshold', fontsize = 11)
+        ax1.set_xlabel('Threshold DAC', fontsize = 10)
+        ax1.set_ylabel('Number of TOA hits', fontsize = 10)
+
+        #plot TOA vs threshold
+        ax2.scatter(dacScan,TOAmean_ps)
+        ax2.set_title('Mean TOA vs Threshold', fontsize = 11)
+        ax2.set_xlabel('Threshold DAC', fontsize = 10)
+        ax2.set_ylabel('Mean TOA value [ps]', fontsize = 10)
+
+        #plot jitter vs Threshold
+        ax3.scatter(dacScan,TOAjit_ps)
+        ax3.set_title('Jitter TOA vs Threshold', fontsize = 11)
+        ax3.legend(['Average Std. Dev. = %f ps' % (jitterMean*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+        ax3.set_xlabel('Threshold DAC', fontsize = 10)
+        ax3.set_ylabel('Mean TOA Jitter', fontsize = 10)
+
+        plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
+        plt.show()
     #################################################################
     
     time.sleep(0.5)
@@ -287,5 +328,7 @@ def thresholdScan(argip,
 if __name__ == "__main__":
     args = parse_arguments()
     print(args)
-    thresholdScan(args.ip, args.board, args.checkOvF, args.cfg, args.ch, args.Q,args.delay, args.minVth, args.maxVth, args.VthStep, args.out)
+    thresholdScan(args.ip, args.board, args.cfg, args.ch, args.Q,args.delay, args.minVth, args.maxVth, args.VthStep, args.out)
+
+    
 

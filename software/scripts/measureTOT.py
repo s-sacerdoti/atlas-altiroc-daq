@@ -11,12 +11,13 @@
 
 ##############################################################################
 # Script Settings
+# POST TB
 
 asicVersion = 1 # <= Select either V1 or V2 of the ASIC
-DebugPrint = True
-NofIterationsTOT = 30  # <= Number of Iterations for each Delay value
+#DebugPrint = True
+#NofIterationsTOT = 30  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
-LSB_TOTc = 160    # <= Estimate of TOT coarse LSB in ps
+LSB_TOTc = 160   # <= Estimate of TOT coarse LSB in ps
 riseEdge = 2400
 fallEdge = 3000
 
@@ -52,7 +53,12 @@ from setASICconfig import set_pixel_specific_parameters        ##
 
 
 def acquire_data(top, pulser, PulserRange, using_TZ_TOT): 
-    pixel_stream = feb.PixelReader()    
+    pixel_stream = feb.PixelReader()
+    pixel_stream.checkOFtoa=args.checkOFtoa
+    pixel_stream.checkOFtot=args.checkOFtot
+    #pixel_stream.checkOFtoa=False
+    #pixel_stream.checkOFtot=True
+    
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
     pixel_data = {
         'allTOTdata' : [],
@@ -66,7 +72,7 @@ def acquire_data(top, pulser, PulserRange, using_TZ_TOT):
         print('Scanning Pulse value of ' + str(pulse_value))
         pulser.set(pulse_value)
 
-        for pulse_iteration in range(NofIterationsTOT):
+        for pulse_iteration in range(args.N):
             if (asicVersion == 1):
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
                 time.sleep(0.001)
@@ -84,7 +90,7 @@ def acquire_data(top, pulser, PulserRange, using_TZ_TOT):
             pixel_data['HitDataTOTc'].append( pixel_stream.HitDataTOTc_vpa.copy() )
             pixel_data['HitDataTOTc_int1'].append( pixel_stream.HitDataTOTc_int1_vpa.copy() )
 
-        while pixel_stream.count < NofIterationsTOT: pass
+        while pixel_stream.count < args.N: pass
         pixel_stream.clear()
 
     return pixel_data
@@ -101,7 +107,7 @@ def parse_arguments():
     pixel_number = 4
     DAC_Vth = 320
     Qinj = 13 #10fc
-    config_file = 'config/asic_config_B8.yml'
+    config_file = None#'config/asic_config_B8.yml'
     pulserMin = 0
     pulserMax = 20
     pulserStep = 1
@@ -112,12 +118,21 @@ def parse_arguments():
     # Add arguments
     parser.add_argument( "--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP addresses")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
+    parser.add_argument( "--display", type = argBool, required = False, default = True, help = "show plots")
+    parser.add_argument( "--debug", type = argBool, required = False, default = True, help = "debug")
+    parser.add_argument( "--useProbePA", type = argBool, required = False, default = False, help = "use probe PA")
+
+    parser.add_argument( "--checkOFtoa", type = argBool, required = False, default = True, help = "check TOA overflow")
+    parser.add_argument( "--checkOFtot", type = argBool, required = False, default = True, help = "check TOT overflow")
+    parser.add_argument( "--useProbeDiscri", type = argBool, required = False, default = False, help = "use probe Discri")
+    parser.add_argument("-N", type = int, required = False, default = 50, help = "Nb of events")
+    parser.add_argument("--Cd", type = int, required = False, default = -1, help = "Cd")
     parser.add_argument( "--useExt", type = argBool, required = False, default = False,help = "Use external trigger")
     parser.add_argument( "--cfg", type = str, required = False, default = config_file, help = "Select yml configuration file to load")  
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
     parser.add_argument("--DAC", type = int, required = False, default = DAC_Vth, help = "DAC vth")
-    parser.add_argument("--useTZ", type = bool, required = False, default = using_TZ_tot, help = "TOT TDC Processing")
+    parser.add_argument("--useTZ", type = argBool, required = False, default = using_TZ_tot, help = "TOT TDC Processing")
     parser.add_argument("--pulserMin",  type = int, required = False, default = pulserMin,  help = "pulser start")
     parser.add_argument("--pulserMax",  type = int, required = False, default = pulserMax,  help = "pulser stop")
     parser.add_argument("--pulserStep", type = int, required = False, default = pulserStep, help = "pulser step")
@@ -149,14 +164,17 @@ def measureTOT( argsip,
     Configuration_LOAD_file = 'config/asic_config_B7.yml'
     if board == 8:
         Configuration_LOAD_file = 'config/asic_config_B8.yml'
+    elif board == 4:
+        Configuration_LOAD_file = 'config/asic_config_B4.yml'
     elif board == 3:
         Configuration_LOAD_file = 'config/asic_config_B3.yml'
     elif board == 2:
         Configuration_LOAD_file = 'config/asic_config_B2.yml'
+
     # Setup root class
     top = feb.Top(ip = argsip, userYaml = [Configuration_LOAD_file])
     
-    if DebugPrint:
+    if args.debug:
         top.Fpga[0].AxiVersion.printStatus()
         # Tap the streaming data interface (same interface that writes to file)
         dataStream = feb.PrintEventReader()    
@@ -172,6 +190,25 @@ def measureTOT( argsip,
     top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
 
     set_pixel_specific_parameters(top, pixel_number)
+    if pixel_number in range(0, 5): bitset=0x1
+    if pixel_number in range(5, 10): bitset=0x2
+    if pixel_number in range(10, 15): bitset=0x4
+    if pixel_number in range(15, 20): bitset=0x8
+    if pixel_number in range(20, 25): bitset=0x10
+    for ipix in range(0,25):top.Fpga[0].Asic.Probe.pix[ipix].probe_pa.set(0x0)
+    if not args.useProbePA:
+        top.Fpga[0].Asic.Probe.en_probe_pa.set(0x0) 
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x0)
+    else:
+        top.Fpga[0].Asic.Probe.en_probe_pa.set(bitset) 
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x1)
+    for ipix in range(0,25):top.Fpga[0].Asic.Probe.pix[ipix].probe_dig_out_disc.set(0x0)
+    if not args.useProbeDiscri:
+        top.Fpga[0].Asic.Probe.en_probe_dig.set(0x0) 
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x0)
+    else:
+        top.Fpga[0].Asic.Probe.en_probe_dig.set(bitset) 
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)
 
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
@@ -192,6 +229,12 @@ def measureTOT( argsip,
         top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0)
         pulser = top.Fpga[0].Asic.SlowControl.dac_pulser
         
+    #overright Cd
+    if args.Cd>=0:
+        for i in range(5):
+            top.Fpga[0].Asic.SlowControl.cd[i].set(args.Cd)  
+
+
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
 
@@ -287,7 +330,7 @@ def measureTOT( argsip,
         ff.write('TOT measurement with charge scan ---- '+str(time.ctime())+'\n')
     ff.write('Pixel = '+str(pixel_number)+'\n')
     ff.write('config file = '+Configuration_LOAD_file+'\n')
-    ff.write('NofIterations = '+str(NofIterationsTOT)+'\n')
+    ff.write('NofIterations = '+str(args.N)+'\n')
     #ff.write('cmd_pulser = '+str(Qinj)+'\n')
     #ff.write('Delay DAC = '+str(DelayValue)+'\n')
     ff.write('LSBest = '+str(LSB_TOTc)+'\n')
@@ -299,6 +342,7 @@ def measureTOT( argsip,
     ff.write('Pulse width   TOT   TOTc   TOTf'+'\n')
     for ipuls, pulser in enumerate(PulserRange):
       pulser = pulser-fallEdge
+      print (pulser,pulser-fallEdge,len(pixel_data['HitDataTOTc'][ipuls]))
       for itot in range(len(pixel_data['HitDataTOTc'][ipuls])):
         ff.write(str(pulser)+' '+str(pixel_data['allTOTdata'][ipuls][itot])+' '+str(pixel_data['HitDataTOTc'][ipuls][itot])+' '+str(pixel_data['HitDataTOTf'][ipuls][itot])+'\n')
     #ff.write('TOAvalues = '+str(HitDataTOT)+'\n')
@@ -306,78 +350,100 @@ def measureTOT( argsip,
     
     print('Saved file '+outFile)
 
-
     #################################################################
-    # Plot Data
-    
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
-    
-    # Plot (0,0) ; top left
-    ax1.plot(PulserRange, DataMeanTOT)
-    ax1.grid(True)
-    ax1.set_title('TOT Measurment VS Injected Charge', fontsize = 11)
-    ax1.set_xlabel('Pulser DAC Value', fontsize = 10)
-    ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
-    ax1.set_xlim(left = PulserRange.start, right = PulserRange.stop)
-    ax1.set_ylim(bottom = 0, top = np.max(DataMeanTOT)*1.1)
-    
-    # Plot (0,1) ; top right
-    if PlotValidCnt == 0:
-        ax2.scatter(PulserRange, DataStdevTOT)
-        ax2.grid(True)
-        ax2.set_title('TOT Jitter VS Injected Charge', fontsize = 11)
-        ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
-        ax2.set_ylabel('Std. Dev. [ps]', fontsize = 10)
-        ax2.legend(['Average Std. Dev. = %f ps' % MeanDataStdevTOT], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-        ax2.set_xlim(left = PulserRange.start, right = PulserRange.stop)
-        ax2.set_ylim(bottom = 0, top = np.max(DataStdevTOT)*1.1)
-    else:
-        ax2.plot(PulserRange, ValidTOTCnt)
-        ax2.grid(True)
-        ax2.set_title('TOT Valid Counts VS Injected Charge', fontsize = 11)
-        ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
-        ax2.set_ylabel('Valid Measurements', fontsize = 10)
-        ax2.set_xlim(left = PulserRange.start, right = PulserRange.stop)
-        ax2.set_ylim(bottom = 0, top = np.max(ValidTOTCnt)*1.1)
-    
-    # Plot (1,0)
-    
-    TOT_index_to_plot = -1
-    for pulse_index, pulse_value in enumerate(PulserRange): #find a good delay value to plot
-        #I'd say having 80% of hits come back is good enough to plot
-        if ValidTOTCnt[pulse_index] > NofIterationsTOT * 0.8:
-            TOT_index_to_plot = pulse_index
-            break
+    print ("-------------------------------------------------------")
+    print("The arguments was:")
+    print(args)
+    print("Config file was:", Configuration_LOAD_file)
+    print ("-------------------------------------------------------")
 
-    HitDataTOTf = pixel_data['HitDataTOTf'][TOT_index_to_plot]
-    HitDataTOTc = pixel_data['HitDataTOTc'][TOT_index_to_plot]
-    HitDataTOT = HitDataTOT_list[TOT_index_to_plot]
     
-    if TOT_index_to_plot != -1:
-        if TOTf_hist:
-            ax3.hist(HitDataTOTf, bins = np.arange(9), align = 'left', edgecolor = 'k', color = 'royalblue')
-            ax3.set_xlim(left = -1, right = 8)
-        elif TOTc_hist:
-            ax3.hist(HitDataTOTc, bins = np.arange(129), align = 'left', edgecolor = 'k', color = 'royalblue')
-            ax3.set_xlim(left = -1, right = 128)
-        elif len(HitDataTOT) > 1:
-            ax3.hist(HitDataTOT, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')
-            ax3.set_xlim(left = np.min(HitDataTOT)-10*LSB_TOTf_mean, right = np.max(HitDataTOT)+10*LSB_TOTf_mean)
-        ax3.set_title('TOT Measurment for Pulser = %d' % TOT_index_to_plot, fontsize = 11)
-        ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
-        ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[TOT_index_to_plot], DataStdevTOT[TOT_index_to_plot], ValidTOTCnt[TOT_index_to_plot])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-        ax3.set_ylabel('N of Measrements', fontsize = 10)
+    #################################################################
+    # fit slopes removes 0
+    nonzero = DataMeanTOT != 0
+    safety_bound = 2 #so we don't measure too close to the edges of the pulse 
+    Delay = np.array(PulserRange)
+    fit_x_values = Delay[nonzero][safety_bound:-safety_bound]
+    fit_y_values = DataMeanTOT[nonzero][safety_bound:-safety_bound]
+    if len(fit_x_values) == 0: 
+        slope = 99999
+    else:
+        linear_fit_slope = np.polyfit(fit_x_values, fit_y_values, 1)[0]
+        slope = DelayStep/abs(linear_fit_slope)
     
-    # Plot (1,1)
-    ax4.hist(HitDataTOTf_cumulative, bins = np.arange(9), edgecolor = 'k', color = 'royalblue')
-    ax4.set_xlim(left = -1, right = 8)
-    ax4.grid(True)
-    ax4.set_title('TOT Fine Interpolation Linearity', fontsize = 11)
-    ax4.set_xlabel('TOT Fine Code', fontsize = 10)
-    ax4.set_ylabel('N of Measrements', fontsize = 10)
-    
-    plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
-    plt.show()
+    if args.display:
+        #################################################################
+        # Plot Data
+
+        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
+
+        # Plot (0,0) ; top left
+        ax1.plot(PulserRange, DataMeanTOT)
+        ax1.grid(True)
+        ax1.set_title('TOT Measurment VS Injected Charge', fontsize = 11)
+        ax1.set_xlabel('Pulser DAC Value', fontsize = 10)
+        ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
+        ax1.legend(['slope: %f ' % slope],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+        ax1.set_xlim(left = PulserRange.start, right = PulserRange.stop)
+        ax1.set_ylim(bottom = 0, top = np.max(DataMeanTOT)*1.1)
+
+        # Plot (0,1) ; top right
+        if PlotValidCnt == 0:
+            ax2.scatter(PulserRange, DataStdevTOT)
+            ax2.grid(True)
+            ax2.set_title('TOT Jitter VS Injected Charge', fontsize = 11)
+            ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
+            ax2.set_ylabel('Std. Dev. [ps]', fontsize = 10)
+            ax2.legend(['Average Std. Dev. = %f ps' % MeanDataStdevTOT], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+            ax2.set_xlim(left = PulserRange.start, right = PulserRange.stop)
+            ax2.set_ylim(bottom = 0, top = np.max(DataStdevTOT)*1.1)
+        else:
+            ax2.plot(PulserRange, ValidTOTCnt)
+            ax2.grid(True)
+            ax2.set_title('TOT Valid Counts VS Injected Charge', fontsize = 11)
+            ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
+            ax2.set_ylabel('Valid Measurements', fontsize = 10)
+            ax2.set_xlim(left = PulserRange.start, right = PulserRange.stop)
+            ax2.set_ylim(bottom = 0, top = np.max(ValidTOTCnt)*1.1)
+
+        # Plot (1,0)
+
+        TOT_index_to_plot = -1
+        for pulse_index, pulse_value in enumerate(PulserRange): #find a good delay value to plot
+            #I'd say having 80% of hits come back is good enough to plot
+            if ValidTOTCnt[pulse_index] > args.N * 0.8:
+                TOT_index_to_plot = pulse_index
+                break
+
+        HitDataTOTf = pixel_data['HitDataTOTf'][TOT_index_to_plot]
+        HitDataTOTc = pixel_data['HitDataTOTc'][TOT_index_to_plot]
+        HitDataTOT = HitDataTOT_list[TOT_index_to_plot]
+
+        if TOT_index_to_plot != -1:
+            if TOTf_hist:
+                ax3.hist(HitDataTOTf, bins = np.arange(9), align = 'left', edgecolor = 'k', color = 'royalblue')
+                ax3.set_xlim(left = -1, right = 8)
+            elif TOTc_hist:
+                ax3.hist(HitDataTOTc, bins = np.arange(129), align = 'left', edgecolor = 'k', color = 'royalblue')
+                ax3.set_xlim(left = -1, right = 128)
+            elif len(HitDataTOT) > 1:
+                ax3.hist(HitDataTOT, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')
+                ax3.set_xlim(left = np.min(HitDataTOT)-10*LSB_TOTf_mean, right = np.max(HitDataTOT)+10*LSB_TOTf_mean)
+            ax3.set_title('TOT Measurment for Pulser = %d' % TOT_index_to_plot, fontsize = 11)
+            ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
+            ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[TOT_index_to_plot], DataStdevTOT[TOT_index_to_plot], ValidTOTCnt[TOT_index_to_plot])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+            ax3.set_ylabel('N of Measrements', fontsize = 10)
+
+        # Plot (1,1)
+        ax4.hist(HitDataTOTf_cumulative, bins = np.arange(9), edgecolor = 'k', color = 'royalblue')
+        ax4.set_xlim(left = -1, right = 8)
+        ax4.grid(True)
+        ax4.set_title('TOT Fine Interpolation Linearity', fontsize = 11)
+        ax4.set_xlabel('TOT Fine Code', fontsize = 10)
+        ax4.set_ylabel('N of Measrements', fontsize = 10)
+
+        plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
+        plt.show()
     #################################################################
     
     time.sleep(0.5)

@@ -5,6 +5,12 @@ def set_pixel_specific_parameters(top, pixel_number):
     if pixel_number in range(15, 20): bitset=0x8
     if pixel_number in range(20, 25): bitset=0x10
 
+
+    for ipix in range(25):
+        top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].set(0x0)	
+        top.Fpga[0].Asic.SlowControl.disable_pa[ipix].set(0x1)	
+        top.Fpga[0].Asic.SlowControl.ON_discri[ipix].set(0x0)
+
     top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)
     top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x1)
     top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x0)
@@ -18,9 +24,14 @@ def set_pixel_specific_parameters(top, pixel_number):
     top.Fpga[0].Asic.SlowControl.cBit_s_TOT[pixel_number].set(0x0)
     top.Fpga[0].Asic.SlowControl.cBit_c_TOT[pixel_number].set(0xf)
 
+
+
+    #top.Fpga[0].Asic.SlowControl.disable_pa[5].set(0x0)
+    #top.Fpga[0].Asic.SlowControl.ON_discri[5].set(0x1)
+
     top.Fpga[0].Asic.Probe.EN_dout.set(bitset)
-    top.Fpga[0].Asic.Probe.en_probe_pa.set(bitset)
-    top.Fpga[0].Asic.Probe.en_probe_dig.set(bitset)
+    top.Fpga[0].Asic.Probe.en_probe_pa.set(bitset) # was bitset
+    top.Fpga[0].Asic.Probe.en_probe_dig.set(bitset) # was bitset
     top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x1)
     top.Fpga[0].Asic.Probe.pix[pixel_number].probe_vthc.set(0x0)
     top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)
