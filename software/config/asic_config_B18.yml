@@ -7,48 +7,50 @@ Top:
         RSTB_RAM: 0x1
         RST_COUNTER: 0x0
         DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
-        DlyCalPulseReset: 0 # Falling edge of EXT_TRIG, keeps ext trig OFF
+        DlyCalPulseReset: 0 # Falling edge of EXT_TRIG
       TdcClk:
         Tdc40MHzClkSel: Pll
         FpgaTdcClkHigh: 0x1
         FpgaTdcClkLow: 0x1
-      ##########################################################################
       Trig:
         enable: True
         TrigTypeSel: Master
-        CalStrobeAlign: 0x3
-        TrigStrobeAlign: 0x3
-        EnCalPulseTrig: 0x1
-        EnBncExtTrig: 0x0
-        EnPcieLocalTrig: 0x0
-        EnLemoRemoteTrig: 0x0
-        MasterModeSel: OR
-        ReadoutStartDly: 0x80
-        TrigSizeBeforePause: 0x0
-        DeadtimeDuration: 0x0
-        EnableReadout: 0x1
-
+        CalStrobeAlign: 0x3      # Same as calibration pulse testing
+        TrigStrobeAlign: 0x3     # Sets 6.25 ns trigger window w.r.t to 40 MHz clock  (might need tuning for the real system)
+        EnCalPulseTrig: 0x1      # Disable calibration pulse
+        EnBncExtTrig: 0x0        # Disable BNC external trigger
+        EnPcieLocalTrig: 0x0     # Enable the local TOA_BUSY trigger
+        EnLemoRemoteTrig: 0x0    # Enable the remote TOA_BUSY trigger   
+        MasterModeSel: OR        # Either OR or AND the TOA_BUSY triggers together (inverted to active HIGH logic in FW)
+        ReadoutStartDly: 128     # Units of 6.4ns (might need tuning for the real system)
+        TrigSizeBeforePause: 0x0 # number of triggers before o-scope deadtime (zero bypass deadtime
+        DeadtimeDuration: 0x0    # number of seconds to hold off readout until o-scope recovers
+        EnableReadout: 0x1       # prevents either o-scope or dataStream from receiving data until enabled
+      ##########################################################################
       SlowControl:
         ########################
+        #general settings -> all off
         EN_ck_SRAM[:]: 0x1
         ON_Ctest[:]: 0x0
-        disable_pa[:]: 0x1
-        bit_vth_cor[:]: 0x40
+        disable_pa[:]: 0x0
         ON_discri[:]: 0x0
+        bit_vth_cor[:]: 0x40
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
-        cBit_f_TOA[:]: 0x0        
+        cBit_f_TOA[:]: 0x0   # increase to 0 to f to reduce LSB while keeping cBit_s_TOA=0        
         cBit_s_TOA[:]: 0x0
         cBit_f_TOT[:]: 0x0
         cBit_s_TOT[:]: 0x0
         cBit_c_TOT[:]: 0x0
+ 
+        ###################
+        DLL_ALockR_en: 0x1 # should be kept to 1
+        CP_b: 0x5 # B2:Cp_b 5 or 7 with R pull up/dwn but 1 with dividers.  WO Ileak on Vctrl, Charge pump I only detremines the velocity of DLL locking and not the value to which it locks
         
-        DLL_ALockR_en: 0x1
-        CP_b: 0x4 #5
-        
-        ext_Vcrtlf_en: 0x1 #need to fix value externally
-        ext_Vcrtls_en: 0x1 #need to fix value externally
-        ext_Vcrtlc_en: 0x1 #0
+
+        ext_Vcrtlf_en: 0x0 # B18 no Strap needed, 0 or 1 (better to keep 0 => DLL will do the job starting from initial condition obtained under rstb_DLL)
+        ext_Vcrtls_en: 0x1 # B18 Strap needed, must be 1
+        ext_Vcrtlc_en: 0x0 # B18 no strap needed, 0 or 1 (better to keep 0)
 
         totf_satovfw: 0x1
         totc_satovfw: 0x1
@@ -59,22 +61,23 @@ Top:
         SatFTz: 0x4 #4
         IntFTz: 0x1 #1  
       
-        cBitf: 0x0 #0
-        cBits: 0x0 #f
-        cBitc: 0x0 #f      
+        cBitf: 0x0 # with R dividers cbitf 0, decrease from f to 0 to reduce LSB while increasing cBits to f 
+        cBits: 0x0 #
+        cBitc: 0 # with R dividers 0     
       
-        Rin_Vpa: 0x0 #0
+        Rin_Vpa: 0x1 #0 0 => 25K, 1 => 15K. Set to 1 to avoid couplings with TOA busyb (sensor)
         Cp_Vpa: 0x0
+        Ccomp_TZ: 0x0 #0
       
-        cd[0]: 0x7 #6
-        cd[1]: 0x7 #6
-        cd[2]: 0x7 #6
+        cd[0]: 0x0 
+        cd[1]: 0x0 
+        cd[2]: 0x0 
    
         dac_biaspa: 0x1e #10
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        #DAC10bit: 310 #173 / 183
+        DAC10bit: 451 #average
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -84,7 +87,7 @@ Top:
         Shifted_ck40: 0x0
         #dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
 
-      
+
       ##########################################################################
       Readout:
         #####################

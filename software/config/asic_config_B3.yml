@@ -7,18 +7,27 @@ Top:
         RSTB_RAM: 0x1
         RST_COUNTER: 0x0
         DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
-        DlyCalPulseReset: 0 # Falling edge of EXT_TRIG
-      Trig:
-        CalStrobeAlign: 0x3 # Cal pulse 40 Mhz alignment to 160 MHz
-        EnCalPulseTrig: 0x1 # Enable Cal pulse to trigger readout      
+        DlyCalPulseReset: 0 # Falling edge of EXT_TRIG, keeps ext trig OFF
       TdcClk:
         Tdc40MHzClkSel: Pll
         FpgaTdcClkHigh: 0x1
         FpgaTdcClkLow: 0x1
-      CalPulse:
-        CalPulseWidth: 0x2 
-        Continuous: 0x0 
       ##########################################################################
+      Trig:
+        enable: True
+        TrigTypeSel: Master
+        CalStrobeAlign: 0x3
+        TrigStrobeAlign: 0x3
+        EnCalPulseTrig: 0x1
+        EnBncExtTrig: 0x0
+        EnPcieLocalTrig: 0x0
+        EnLemoRemoteTrig: 0x0
+        MasterModeSel: OR
+        ReadoutStartDly: 0x80
+        TrigSizeBeforePause: 0x0
+        DeadtimeDuration: 0x0
+        EnableReadout: 0x1
+
       SlowControl:
         ########################
         EN_ck_SRAM[:]: 0x1
@@ -34,35 +43,6 @@ Top:
         cBit_s_TOT[:]: 0x0
         cBit_c_TOT[:]: 0x0
         
-        ###################
-        #turn off broken channels
-        EN_ck_SRAM[0]: 0x0
-        EN_ck_SRAM[9]: 0x0
-        EN_ck_SRAM[14]: 0x0
-
-        disable_pa[0]: 0x1
-        disable_pa[9]: 0x1
-        disable_pa[14]: 0x1
-
-        ON_discri[0]: 0x0
-        ON_discri[9]: 0x0
-        ON_discri[14]: 0x0
-        ###################
-       
-        bit_vth_cor[1]: 34
-        bit_vth_cor[2]: 91
-        bit_vth_cor[3]: 52
-        bit_vth_cor[4]: 57
-        bit_vth_cor[5]: 74
-        bit_vth_cor[6]: 82
-        bit_vth_cor[7]: 89
-        bit_vth_cor[8]: 64
-        bit_vth_cor[10]: 82
-        bit_vth_cor[11]: 57
-        bit_vth_cor[12]: 68
-        bit_vth_cor[13]: 68
-        bit_vth_cor[14]: 29
-  
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
         
@@ -86,15 +66,15 @@ Top:
         Rin_Vpa: 0x0 #0
         Cp_Vpa: 0x0
       
-        cd[0]: 0x0 #6
-        cd[1]: 0x0 #6
-        cd[2]: 0x0 #6
+        cd[0]: 0x7 #6
+        cd[1]: 0x7 #6
+        cd[2]: 0x7 #6
    
         dac_biaspa: 0x1e #10
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 310 #173 / 183
+        #DAC10bit: 310 #173 / 183
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -104,23 +84,9 @@ Top:
         Shifted_ck40: 0x0
         #dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
 
-
+      
       ##########################################################################
       Readout:
-        ReadoutSize: 11                                                                                                                                                                                      
-        RdIndexLut[0]: 1   
-        RdIndexLut[1]: 2   
-        RdIndexLut[2]: 3   
-        RdIndexLut[3]: 4   
-        RdIndexLut[4]: 5   
-        RdIndexLut[5]: 6   
-        RdIndexLut[6]: 7   
-        RdIndexLut[7]: 8   
-        RdIndexLut[8]: 10   
-        RdIndexLut[9]: 11   
-        RdIndexLut[10]: 12   
-        RdIndexLut[11]: 13   
-
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
@@ -129,13 +95,39 @@ Top:
         RckHighWidth: 0x2   # Min. tuned on 18JULY2019:LLR
         RckLowWidth: 0x2    # Min. tuned on 18JULY2019:LLR
         #####################
-        RestoreProbeConfig: 0x0
+        RestoreProbeConfig: 0x1 #1 sets probe in previous config
         EnProbeWrite: 0x1
         OnlySendFirstHit: 0x1
-        #####################
         #Probe cofiguration
         EnProbeDigOutDisc: 0x0
         EnProbeDigSelect: 0x0
         EnProbeDig: 0x0
         EnProbePa: 0x0
-
+        #####################
+        RdIndexLut[0]: 0
+        RdIndexLut[1]: 1
+        RdIndexLut[2]: 2
+        RdIndexLut[3]: 3
+        RdIndexLut[4]: 4
+        RdIndexLut[5]: 5
+        RdIndexLut[6]: 6
+        RdIndexLut[7]: 7
+        RdIndexLut[8]: 8
+        RdIndexLut[9]: 9
+        RdIndexLut[10]: 10
+        RdIndexLut[11]: 11
+        RdIndexLut[12]: 12
+        RdIndexLut[13]: 13
+        RdIndexLut[14]: 14
+        RdIndexLut[15]: 15
+        RdIndexLut[16]: 16
+        RdIndexLut[17]: 17
+        RdIndexLut[18]: 18
+        RdIndexLut[19]: 19
+        RdIndexLut[20]: 20
+        RdIndexLut[21]: 21
+        RdIndexLut[22]: 22
+        RdIndexLut[23]: 23
+        RdIndexLut[24]: 24
+        ReadoutSize: 0
+  LiveDisplayRst: 0
