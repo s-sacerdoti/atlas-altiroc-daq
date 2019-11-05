@@ -38,3 +38,6 @@ build*
 *.mcs
 *.gz
 *.ltx
+
+#data
+./software/DATA
