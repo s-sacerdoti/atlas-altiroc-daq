@@ -32,6 +32,8 @@ parser.add_argument(
     help     = "path to data file",
 ) 
 
+parser.add_argument("--boards", nargs ='+', required = True, help = "Which ASIC Board(s) was used in this test")
+ 
 # Get the arguments
 args = parser.parse_args()
 
@@ -39,10 +41,10 @@ args = parser.parse_args()
 
 # Create the File reader streaming interface
 dataReader = rogue.utilities.fileio.StreamReader()
-
+fileList=[args.dataFile.replace(".dat","")+"_B"+args.boards[0]+".csv", args.dataFile.replace(".dat","")+"_B"+args.boards[1]+".csv"]
 # Create the Event reader streaming interface
-dataStream = feb.PrintEventReader(cvsDump=True,suffix=args.dataFile.split("data")[1].replace(".dat",""))
-
+#dataStream = feb.PrintEventReader(cvsDump=True,suffix=args.dataFile.split("data")[1].replace(".dat",""))
+dataStream = feb.PrintEventReader(cvsDump=True,fileList=fileList)
 # Connect the file reader ---> event reader
 pr.streamConnect(dataReader, dataStream) 
 
