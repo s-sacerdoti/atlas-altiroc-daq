@@ -40,5 +40,4 @@ build*
 *.ltx
 
 #data
-TestData
-DATA
+./software/DATA

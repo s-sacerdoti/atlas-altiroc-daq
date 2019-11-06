@@ -32,12 +32,15 @@ class EventValue(object):
     def __init__(self):
         self.FormatVersion     = None
         self.PixReadIteration  = None
+        self.StartPix          = None
+        self.StopPix           = None
         self.ReadoutSize       = None
         self.SeqCnt            = None
         self.TrigCnt           = None
         self.pixValue          = None
         self.dropTrigCnt       = None
         self.Timestamp         = None
+        self.footer            = None
 
 def ParseDataWord(dataWord):
     #Parse the 32-bit word
@@ -156,6 +159,7 @@ def ParseFrame(frame):
 # Class for printing out events
 class PrintEventReader(rogue.interfaces.stream.Slave):
     # Init method must call the parent class init
+    #def __init__(self, cvsDump=False,suffix=""):
     def __init__(self, cvsDump=False,fileList=[]):
         super().__init__()
         self.count   = 0
@@ -164,6 +168,7 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
             self.file   = [None for i in range(2)]
             self.writer = [None for i in range(2)]
             for i in range(2):
+                #self.file[i]   = open(f'fpga{i}%s.csv' %suffix, 'w', newline='') 
                 if len(fileList)==2:
                    self.file[i]   = open(fileList[i], 'w', newline='') 
                 else:
@@ -207,7 +212,7 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                               ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
                               ', DropTrigCnt 0x{:X}'.format(eventFrame.dropTrigCnt) + 
                               ', SeqCnt {:#}'.format(eventFrame.SeqCnt) +
-                              ', Timestamp {:#}'.format( eventFrame.Timestamp ) )
+                              ', Timestamp {:#}'.format(eventFrame.Timestamp) )
                         print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
                         header_still_needs_to_be_printed = False
 
