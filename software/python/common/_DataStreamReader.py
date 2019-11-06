@@ -32,12 +32,15 @@ class EventValue(object):
     def __init__(self):
         self.FormatVersion     = None
         self.PixReadIteration  = None
+        self.StartPix          = None
+        self.StopPix           = None
         self.ReadoutSize       = None
         self.SeqCnt            = None
         self.TrigCnt           = None
         self.pixValue          = None
         self.dropTrigCnt       = None
         self.Timestamp         = None
+        self.footer            = None
 
 def ParseDataWord(dataWord):
     #Parse the 32-bit word
@@ -209,7 +212,7 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                               ', ReadoutSize {:#}'.format(eventFrame.ReadoutSize) + 
                               ', DropTrigCnt 0x{:X}'.format(eventFrame.dropTrigCnt) + 
                               ', SeqCnt {:#}'.format(eventFrame.SeqCnt) +
-                              ', Timestamp {:#}'.format( eventFrame.Timestamp ) )
+                              ', Timestamp {:#}'.format(eventFrame.Timestamp) )
                         print('    Pixel : TotOverflow | TotData | ToaOverflow | ToaData | Hit | Sof') 
                         header_still_needs_to_be_printed = False
 
