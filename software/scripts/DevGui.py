@@ -22,12 +22,24 @@ import threading
 
 Keep_display_alive = True
 Live_display_interval = 1
+Resync_interval = 0.25
 
 #################################################################
 def runLiveDisplay(event_display,fpga_index):
     while(Keep_display_alive):
         event_display.refreshDisplay()
         time.sleep(Live_display_interval)
+#################################################################
+
+def poke_top(top):
+    while(True):
+        readout0 = top.Fpga[0].Asic.Readout
+        readout1 = top.Fpga[1].Asic.Readout
+        if readout0.SeqCnt != readout1.SeqCnt:
+            print('Resynced!')
+            readout0.SeqCntRst()
+            readout1.SeqCntRst()
+        time.sleep(Resync_interval)
 #################################################################
 
 # Set the argument parser
@@ -109,6 +121,14 @@ parser.add_argument(
     help     = "Displays live plots of pixel information",
 )  
 
+parser.add_argument(
+    "--forceSeqResync", 
+    type     = argBool,
+    required = False,
+    default  = True,
+    help     = "Periodically forces a resync of the sequence counters",
+)  
+
 # Get the arguments
 args = parser.parse_args()
 
@@ -155,6 +175,9 @@ if args.liveDisplay:
         display_thread = threading.Thread( target=runLiveDisplay, args=(event_display,fpga_index,) )
         display_thread.start()
 top.add_live_display_resets(live_display_resets)
+
+if len( args.ip ) == 2 and args.forceSeqResync:
+    poke_thread = threading.Thread( target=poke_top, args=(top) )
 
 
 # Create GUI
