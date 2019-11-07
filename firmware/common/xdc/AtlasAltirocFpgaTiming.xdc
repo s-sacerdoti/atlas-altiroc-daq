@@ -12,7 +12,6 @@ create_clock -name gtClkP      -period 3.200 [get_ports { gtClkP }];      # 315.
 create_clock -name localRefClk -period 6.237 [get_ports { localRefClkP }]; # 160.32 MHz (on-board reference)
 create_clock -name clk160MHz   -period 6.237 [get_ports { pllClkInP[0] }]; # 160.32 MHz (4 x 40.08 MHz LHC clock)
 
-create_generated_clock -name iprogClk  [get_pins {U_Core/U_System/U_AxiVersion/GEN_ICAP.Iprog_1/GEN_7SERIES.Iprog7Series_Inst/DIVCLK_GEN.BUFR_ICPAPE2/O}] 
 create_generated_clock -name dnaClk    [get_pins {U_Core/U_System/U_AxiVersion/GEN_DEVICE_DNA.DeviceDna_1/GEN_7SERIES.DeviceDna7Series_Inst/BUFR_Inst/O}] 
 create_generated_clock -name dnaClkInv [get_pins {U_Core/U_System/U_AxiVersion/GEN_DEVICE_DNA.DeviceDna_1/GEN_7SERIES.DeviceDna7Series_Inst/DNA_CLK_INV_BUFR/O}] 
 

@@ -38,9 +38,14 @@ entity AtlasAltirocPgp3 is
       -- Streaming ASIC Data Interface (axilClk domain)
       sDataMaster     : in  AxiStreamMasterType;
       sDataSlave      : out AxiStreamSlaveType;
-      -- Stable Reference IDELAY Clock and Reset
-      refClk300MHz    : out sl;
-      refRst300MHz    : out sl;
+      -- SEM AXIS Interface (axilClk domain)
+      semTxAxisMaster : in  AxiStreamMasterType;
+      semTxAxisSlave  : out AxiStreamSlaveType;
+      semRxAxisMaster : out AxiStreamMasterType;
+      semRxAxisSlave  : in  AxiStreamSlaveType;
+      -- Stable Reference SEM Clock and Reset
+      refClk100MHz    : out sl;
+      refRst100MHz    : out sl;
       -- Link Status
       rxLinkUp        : out sl;
       txLinkUp        : out sl;
@@ -61,11 +66,11 @@ architecture mapping of AtlasAltirocPgp3 is
    signal pgpTxIn  : Pgp3TxInType  := PGP3_TX_IN_INIT_C;
    signal pgpTxOut : Pgp3TxOutType := PGP3_TX_OUT_INIT_C;
 
-   signal pgpTxMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal pgpTxSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-   signal pgpRxMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal pgpRxSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-   signal pgpRxCtrl    : AxiStreamCtrlArray(1 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
+   signal pgpTxMasters : AxiStreamMasterArray(2 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpTxSlaves  : AxiStreamSlaveArray(2 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal pgpRxMasters : AxiStreamMasterArray(2 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal pgpRxSlaves  : AxiStreamSlaveArray(2 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal pgpRxCtrl    : AxiStreamCtrlArray(2 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
 
    signal pgpClk : sl;
    signal pgpRst : sl;
@@ -110,27 +115,27 @@ begin
          CLKIN_PERIOD_G     => 6.4,     -- 156.25 MHz
          DIVCLK_DIVIDE_G    => 1,       -- 156.25 MHz = 156.25 MHz/1
          CLKFBOUT_MULT_F_G  => 6.0,     -- 937.5 MHz = 156.25 MHz x 6     
-         CLKOUT0_DIVIDE_F_G => 3.125,   -- 300 MHz = 937.5 MHz/3.125
+         CLKOUT0_DIVIDE_F_G => 9.375,   -- 100 MHz = 937.5 MHz/9.375
          CLKOUT1_DIVIDE_G   => 6)       -- 156.25 MHz = 937.5 MHz/6       
       port map(
          clkIn     => pgpRefClkDiv2,
          rstIn     => pgpRefClkDiv2Rst,
-         clkOut(0) => refClk300MHz,
+         clkOut(0) => refClk100MHz,
          clkOut(1) => sysClk,
-         rstOut(0) => refRst300MHz,
+         rstOut(0) => refRst100MHz,
          rstOut(1) => sysRst);
 
    U_PGPv3 : entity work.Pgp3Gtx7Wrapper
       generic map(
-         TPD_G               => TPD_G,
-         ROGUE_SIM_EN_G      => SIMULATION_G,
-         NUM_LANES_G         => 1,
-         NUM_VC_G            => 2,
-         RATE_G              => PGP3_RATE_G,
-         REFCLK_TYPE_G       => PGP3_REFCLK_312_C,
-         EN_PGP_MON_G        => false,
-         EN_GTH_DRP_G        => false,
-         EN_QPLL_DRP_G       => false)
+         TPD_G          => TPD_G,
+         ROGUE_SIM_EN_G => SIMULATION_G,
+         NUM_LANES_G    => 1,
+         NUM_VC_G       => 3,
+         RATE_G         => PGP3_RATE_G,
+         REFCLK_TYPE_G  => PGP3_REFCLK_312_C,
+         EN_PGP_MON_G   => false,
+         EN_GTH_DRP_G   => false,
+         EN_QPLL_DRP_G  => false)
       port map (
          -- Stable Clock and Reset
          stableClk         => sysClk,
@@ -210,5 +215,26 @@ begin
          pgpRst      => pgpRst,
          pgpTxMaster => pgpTxMasters(1),
          pgpTxSlave  => pgpTxSlaves(1));
+
+   U_Vc2 : entity work.AtlasAltirocPgp3AxisFifo
+      generic map (
+         TPD_G        => TPD_G,
+         SIMULATION_G => SIMULATION_G)
+      port map (
+         -- System Interface (axilClk domain)
+         sysClk      => sysClk,
+         sysRst      => sysRst,
+         sAxisMaster => semTxAxisMaster,
+         sAxisSlave  => semTxAxisSlave,
+         mAxisMaster => semRxAxisMaster,
+         mAxisSlave  => semRxAxisSlave,
+         -- PGP Interface (pgpClk domain)
+         pgpClk      => pgpClk,
+         pgpRst      => pgpRst,
+         pgpTxMaster => pgpTxMasters(2),
+         pgpTxSlave  => pgpTxSlaves(2),
+         pgpRxMaster => pgpRxMasters(2),
+         pgpRxSlave  => pgpRxSlaves(2),
+         pgpRxCtrl   => pgpRxCtrl(2));
 
 end mapping;

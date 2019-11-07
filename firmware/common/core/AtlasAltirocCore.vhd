@@ -144,11 +144,19 @@ architecture mapping of AtlasAltirocCore is
    signal txDataMaster : AxiStreamMasterType;
    signal txDataSlave  : AxiStreamSlaveType;
 
+   signal semRxAxisMaster : AxiStreamMasterType;
+   signal semRxAxisSlave  : AxiStreamSlaveType;
+   signal semTxAxisMaster : AxiStreamMasterType;
+   signal semTxAxisSlave  : AxiStreamSlaveType;
+
    signal rxLinkUp : sl;
    signal txLinkUp : sl;
 
    signal axilClk : sl;
    signal axilRst : sl;
+
+   signal refClk100MHz : sl;
+   signal refRst100MHz : sl;
 
    signal clk160MHz : sl;
    signal rst160MHz : sl;
@@ -221,6 +229,14 @@ begin
             -- Streaming ASIC Data Interface (axilClk domain)
             sDataMaster     => txDataMaster,
             sDataSlave      => txDataSlave,
+            -- SEM AXIS Interface (axilClk domain)
+            semTxAxisMaster => semTxAxisMaster,
+            semTxAxisSlave  => semTxAxisSlave,
+            semRxAxisMaster => semRxAxisMaster,
+            semRxAxisSlave  => semRxAxisSlave,
+            -- Stable Reference SEM Clock and Reset
+            refClk100MHz    => refClk100MHz,
+            refRst100MHz    => refRst100MHz,
             -- Link Status
             rxLinkUp        => rxLinkUp,
             txLinkUp        => txLinkUp,
@@ -255,6 +271,14 @@ begin
             -- Streaming ASIC Data Interface (axilClk domain)
             sDataMaster     => txDataMaster,
             sDataSlave      => txDataSlave,
+            -- SEM AXIS Interface (axilClk domain)
+            semTxAxisMaster => semTxAxisMaster,
+            semTxAxisSlave  => semTxAxisSlave,
+            semRxAxisMaster => semRxAxisMaster,
+            semRxAxisSlave  => semRxAxisSlave,
+            -- Stable Reference SEM Clock and Reset
+            refClk100MHz    => refClk100MHz,
+            refRst100MHz    => refRst100MHz,
             -- Link Status
             rxLinkUp        => rxLinkUp,
             txLinkUp        => txLinkUp,
@@ -299,6 +323,9 @@ begin
          AXI_BASE_ADDR_G => XBAR_CONFIG_C(SYS_INDEX_C).baseAddr,
          BUILD_INFO_G    => BUILD_INFO_G)
       port map (
+         -- Stable Reference SEM Clock and Reset
+         refClk100MHz    => refClk100MHz,
+         refRst100MHz    => refRst100MHz,
          -- AXI-Lite Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
@@ -306,6 +333,11 @@ begin
          axilReadSlave   => axilReadSlaves(SYS_INDEX_C),
          axilWriteMaster => axilWriteMasters(SYS_INDEX_C),
          axilWriteSlave  => axilWriteSlaves(SYS_INDEX_C),
+         -- SEM AXIS Interface (axilClk domain)
+         semTxAxisMaster => semTxAxisMaster,
+         semTxAxisSlave  => semTxAxisSlave,
+         semRxAxisMaster => semRxAxisMaster,
+         semRxAxisSlave  => semRxAxisSlave,
          -- CMD Pulse Delay Ports
          dlyTempScl      => dlyTempScl,
          dlyTempSda      => dlyTempSda,

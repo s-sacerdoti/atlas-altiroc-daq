@@ -139,7 +139,14 @@ class Fpga(pr.Device):
             description = 'This device contains DAC that sets the VTH', 
             offset      = 0x00060000, 
             expand      = False,
-        ))        
+        ))  
+
+        self.add(common.Sem(
+            name        = 'Sem', 
+            description = 'This device contains FEB Soft Error Mitigation Module', 
+            offset      = 0x00080000, 
+            expand      = False,
+        ))          
 
         self.add(common.Altiroc(
             name        = 'Asic', 

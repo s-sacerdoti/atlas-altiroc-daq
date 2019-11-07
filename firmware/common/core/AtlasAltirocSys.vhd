@@ -20,6 +20,7 @@ use IEEE.std_logic_arith.all;
 
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
+use work.AxiStreamPkg.all;
 use work.I2cPkg.all;
 
 library unisim;
@@ -33,6 +34,9 @@ entity AtlasAltirocSys is
       AXI_CLK_FREQ_G  : real             := 156.25E+6;  -- units of Hz
       AXI_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
+      -- Stable Reference SEM Clock and Reset
+      refClk100MHz    : in    sl;
+      refRst100MHz    : in    sl;
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in    sl;
       axilRst         : in    sl;
@@ -40,6 +44,11 @@ entity AtlasAltirocSys is
       axilReadSlave   : out   AxiLiteReadSlaveType;
       axilWriteMaster : in    AxiLiteWriteMasterType;
       axilWriteSlave  : out   AxiLiteWriteSlaveType;
+      -- SEM AXIS Interface (axilClk domain)
+      semTxAxisMaster : out   AxiStreamMasterType;
+      semTxAxisSlave  : in    AxiStreamSlaveType;
+      semRxAxisMaster : in    AxiStreamMasterType;
+      semRxAxisSlave  : out   AxiStreamSlaveType;
       -- CMD Pulse Delay Ports
       dlyTempScl      : inout sl;
       dlyTempSda      : inout sl;
@@ -69,7 +78,7 @@ end AtlasAltirocSys;
 
 architecture mapping of AtlasAltirocSys is
 
-   constant NUM_AXIL_MASTERS_C : natural := 8;
+   constant NUM_AXIL_MASTERS_C : natural := 9;
 
    constant VERSION_INDEX_C  : natural := 0;
    constant XADC_INDEX_C     : natural := 1;
@@ -79,6 +88,7 @@ architecture mapping of AtlasAltirocSys is
    constant DLY_TEMP_INDEX_C : natural := 5;
    constant DAC_INDEX_C      : natural := 6;
    constant PLL_INDEX_C      : natural := 7;
+   constant SEM_INDEX_C      : natural := 8;
 
    constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
       VERSION_INDEX_C  => (
@@ -112,6 +122,10 @@ architecture mapping of AtlasAltirocSys is
       PLL_INDEX_C      => (
          baseAddr      => (AXI_BASE_ADDR_G+x"0007_0000"),
          addrBits      => 16,
+         connectivity  => x"FFFF"),
+      SEM_INDEX_C      => (
+         baseAddr      => (AXI_BASE_ADDR_G+x"0008_0000"),
+         addrBits      => 16,
          connectivity  => x"FFFF"));
 
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
@@ -138,6 +152,9 @@ architecture mapping of AtlasAltirocSys is
 
    signal bootSck   : sl;
    signal txLinkUpL : sl;
+
+   signal fpgaReload     : sl;
+   signal fpgaReloadAddr : slv(31 downto 0);
 
    signal userValues : Slv32Array(0 to 63) := (others => x"00000000");
 
@@ -178,7 +195,7 @@ begin
          CLK_PERIOD_G       => (1.0/AXI_CLK_FREQ_G),
          XIL_DEVICE_G       => "7SERIES",
          EN_DEVICE_DNA_G    => true,
-         EN_ICAP_G          => true,
+         EN_ICAP_G          => false,   -- Located in the SEM
          AUTO_RELOAD_EN_G   => true,
          AUTO_RELOAD_TIME_G => 4)
       port map (
@@ -191,12 +208,39 @@ begin
          axiWriteSlave  => axilWriteSlaves(VERSION_INDEX_C),
          -- Optional: FPGA Reloading Interface
          fpgaEnReload   => txLinkUpL,
+         fpgaReload     => fpgaReload,
+         fpgaReloadAddr => fpgaReloadAddr,
          -- Optional: user values
          userValues     => userValues);
 
    txLinkUpL <= not(txLinkUp);
 
    NOT_SIM : if (SIMULATION_G = false) generate
+
+      -----------------------
+      -- AXI-Lite XADC Module
+      -----------------------   
+      U_SEM : entity work.FebSemWrapper
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            semClk          => refClk100MHz,
+            semClkRst       => refRst100MHz,
+            axilClk         => axilClk,
+            axilRst         => axilRst,
+            axilReadMaster  => axilReadMasters(SEM_INDEX_C),
+            axilReadSlave   => axilReadSlaves(SEM_INDEX_C),
+            axilWriteMaster => axilWriteMasters(SEM_INDEX_C),
+            axilWriteSlave  => axilWriteSlaves(SEM_INDEX_C),
+            localMac        => localMac,
+            fpgaReload      => fpgaReload,
+            fpgaReloadAddr  => fpgaReloadAddr,
+            axisClk         => axilClk,
+            axisRst         => axilRst,
+            semTxAxisMaster => semTxAxisMaster,
+            semTxAxisSlave  => semTxAxisSlave,
+            semRxAxisMaster => semRxAxisMaster,
+            semRxAxisSlave  => semRxAxisSlave);
 
       -----------------------
       -- AXI-Lite XADC Module
