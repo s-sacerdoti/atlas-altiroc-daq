@@ -160,6 +160,10 @@ architecture rtl of AtlasAltirocAsicTrigger is
    signal trigWindow : sl;
    signal busyPulse  : sl;
 
+   signal toaBusy    : sl;
+   signal lemoIn     : sl;
+   signal lemoOutInt : sl;
+
 begin
 
    -----------------------------------------------
@@ -193,12 +197,28 @@ begin
    -----------------------
    -- PCIe input connector
    -----------------------
-   localTrig <= not(toaBusyb) and r.enLocalTrig;
+   U_toaBusy : entity work.Synchronizer
+      generic map (
+         TPD_G          => TPD_G,
+         OUT_POLARITY_G => '0')         -- Invert the signal
+      port map (
+         clk     => clk160MHz,
+         dataIn  => toaBusyb,
+         dataOut => toaBusy);
+   localTrig <= toaBusy and r.enLocalTrig;
 
    ---------------------------
    -- LEMO TTL input connector
    ---------------------------
-   remoteTrig <= not(lemoInL) and r.enRemoteTrig;
+   U_lemoIn : entity work.Synchronizer
+      generic map (
+         TPD_G          => TPD_G,
+         OUT_POLARITY_G => '0')         -- Invert the signal
+      port map (
+         clk     => clk160MHz,
+         dataIn  => lemoInL,
+         dataOut => lemoIn);
+   remoteTrig <= lemoIn and r.enRemoteTrig;
 
    ----------------------------------------
    -- OR Logic for Remote and Local Trigger
@@ -215,7 +235,14 @@ begin
    --    if trigger master then send copy of master trigger
    --    if trigger slave  then send copy of ASIC's TOA_BUSY_L signal
    ------------------------------------------------------------------
-   lemoOut <= r.busy when(r.trigMaster = '1') else not(toaBusyb);
+   lemoOutInt <= r.busy when(r.trigMaster = '1') else toaBusy;
+   U_lemoOut : entity work.OutputBufferReg
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         C => clk160MHz,
+         I => lemoOutInt,
+         O => lemoOut);
 
    ---------------------------
    -- BNC TTL output connector
