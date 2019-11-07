@@ -37,7 +37,14 @@ Top:
         disable_pa[:]: 0x1
         ON_discri[:]: 0x0
         bit_vth_cor[:]: 0x40
-        
+        EN_hyst[:]: 0x1
+        EN_trig_ext[:]: 0x0
+        cBit_f_TOA[:]: 0x0        
+        cBit_s_TOA[:]: 0x0
+        cBit_f_TOT[:]: 0x0
+        cBit_s_TOT[:]: 0x0
+        cBit_c_TOT[:]: 0x0 
+
         ###################
         #turn ON single channel
         EN_ck_SRAM[8]: 0x1
@@ -87,7 +94,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 440 #av of alive pixels
+        DAC10bit: 400 #av of alive pixels
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
