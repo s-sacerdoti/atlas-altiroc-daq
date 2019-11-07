@@ -385,3 +385,8 @@ class Top(pr.Root):
             # Reset the sequence and trigger counters
             self.Fpga[i].Asic.Trig.countReset()
             self.Fpga[i].Asic.Readout.SeqCntRst()
+
+    def stop(self):
+        self.semDataWriter.close()
+        super().stop()
+        
