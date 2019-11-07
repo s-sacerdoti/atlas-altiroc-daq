@@ -40,10 +40,10 @@ Top:
         
         ###################
         #turn ON single channel
-        EN_ck_SRAM[5]: 0x1
-        ON_Ctest[5]: 0x0
-        disable_pa[5]: 0x0
-        ON_discri[5]: 0x1
+        EN_ck_SRAM[8]: 0x1
+        ON_Ctest[8]: 0x0
+        disable_pa[8]: 0x0
+        ON_discri[8]: 0x1
 
         ###################
 
@@ -87,7 +87,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 451 #av of alive pixels
+        DAC10bit: 440 #av of alive pixels
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -101,7 +101,7 @@ Top:
       ##########################################################################
       Readout:
         ReadoutSize: 0
-        RdIndexLut[0]: 5
+        RdIndexLut[0]: 8
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
