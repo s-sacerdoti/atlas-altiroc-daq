@@ -21,7 +21,10 @@ import pyrogue.interfaces.simulation
 
 import common
 import time
+import datetime
 import click
+import os
+import threading
 
 # Force the rogue version to be v3.7.0
 if rogue.Version.current() != 'v3.7.0':
@@ -29,6 +32,31 @@ if rogue.Version.current() != 'v3.7.0':
     errMsg = 'rogue version must be v3.7.0'
     click.secho(errMsg, bg='red')
     raise ValueError(errMsg) 
+
+class SemAsciiFileWriter(rogue.interfaces.stream.Slave):
+    def __init__(self):
+        rogue.interfaces.stream.Slave.__init__(self)
+
+        now = datetime.datetime.now()
+        fpath = os.path.abspath(now.strftime('seu/SEU_Monitor-%Y%m%d_%H%M%S.dat'))
+        print(f'fpath: {fpath}')
+        
+        self.dataFile = open(fpath, 'a')
+        self.lock = threading.Lock()
+
+    def close(self):
+        self.dataFile.close()
+
+    def _acceptFrame(self, frame):
+        with self.lock:
+            ba = bytearray(frame.getPayload())
+            frame.read(ba, 0)
+            s = ba.rstrip(bytearray(1))
+            s = s.decode('utf8')
+            s = f'{datetime.datetime.now()} - {s}'
+            errMsg = 'SEU:' + s
+            click.secho(errMsg, bg='red')
+            self.dataFile.write(s)
 
 class Top(pr.Root):
     def __init__(   self,       
@@ -47,7 +75,7 @@ class Top(pr.Root):
         super().__init__(name=name, description=description, **kwargs)
         
         # Set the min. firmware Version support by the software
-        self.minFpgaVersion = 0x20000053
+        self.minFpgaVersion = 0x20000060
         
         # Enable Init after config
         self.InitAfterConfig._default = True        
@@ -92,7 +120,11 @@ class Top(pr.Root):
         self.rudp       = [None for i in range(self.numEthDev)]
         self.srpStream  = [None for i in range(self.numEthDev)]
         self.dataStream = [None for i in range(self.numEthDev)]
+        self.semStream  = [None for i in range(self.numEthDev)]
         self.memMap     = [None for i in range(self.numEthDev)]
+        
+        # SEM monitor streams
+        self.semDataWriter = SemAsciiFileWriter()        
         
         # Loop through the devices
         for i in range(self.numEthDev):
@@ -105,6 +137,7 @@ class Top(pr.Root):
                 self.rudp[i]       = pr.protocols.UdpRssiPack(host=ip[i],port=8192,packVer=2,jumbo=False)        
                 self.srpStream[i]  = self.rudp[i].application(0)
                 self.dataStream[i] = self.rudp[i].application(1) 
+                self.semStream[i]  = self.rudp[i].application(2) 
                 
             ######################################################################
             
@@ -112,8 +145,15 @@ class Top(pr.Root):
             self.memMap[i] = rogue.protocols.srp.SrpV3()                
             pr.streamConnectBiDir( self.memMap[i], self.srpStream[i] )             
             
-            # Connect data stream to file as channel to dataStream
-            pr.streamConnect(self.dataStream[i],self.dataWriter.getChannel(i))
+            # Check if not PROM loading 
+            if not self.configProm:
+            
+                # Connect data stream to file as channel to dataStream
+                pr.streamConnect(self.dataStream[i],self.dataWriter.getChannel(i))
+                
+                # Connect to the SEM monitor streams and file writer
+                pr.streamConnect(self.semStream[i], self.semDataWriter)
+                pr.streamTap(self.semStream[i],self.dataWriter.getChannel(i+128))
                 
             ######################################################################
             
@@ -301,7 +341,10 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.Readout.enable.hidden  = False
                 
                 # Disable auto-polling during PLL config
-                self.Fpga[i].Asic.enable.set(True)                
+                self.Fpga[i].Asic.enable.set(True)    
+                
+                # Set the FPGA Index
+                self.Fpga[i].Sem.FpgaIndex.set(i)
                 
             # Check if we are loading YAML files
             if self.usrLoadYaml:
@@ -342,3 +385,8 @@ class Top(pr.Root):
             # Reset the sequence and trigger counters
             self.Fpga[i].Asic.Trig.countReset()
             self.Fpga[i].Asic.Readout.SeqCntRst()
+
+    def stop(self):
+        self.semDataWriter.close()
+        super().stop()
+        

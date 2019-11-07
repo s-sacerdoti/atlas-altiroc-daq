@@ -45,9 +45,14 @@ entity AtlasAltirocEth is
       -- Streaming ASIC Data Interface (axilClk domain)
       sDataMaster     : in  AxiStreamMasterType;
       sDataSlave      : out AxiStreamSlaveType;
-      -- Stable Reference IDELAY Clock and Reset
-      refClk300MHz    : out sl;
-      refRst300MHz    : out sl;
+      -- SEM AXIS Interface (axilClk domain)
+      semTxAxisMaster : in  AxiStreamMasterType;
+      semTxAxisSlave  : out AxiStreamSlaveType;
+      semRxAxisMaster : out AxiStreamMasterType;
+      semRxAxisSlave  : in  AxiStreamSlaveType;
+      -- Stable Reference SEM Clock and Reset
+      refClk100MHz    : out sl;
+      refRst100MHz    : out sl;
       -- Link Status
       rxLinkUp        : out sl;
       txLinkUp        : out sl;
@@ -78,7 +83,7 @@ architecture mapping of AtlasAltirocEth is
    signal ibServerMasters : AxiStreamMasterArray(SERVER_SIZE_C-1 downto 0);
    signal ibServerSlaves  : AxiStreamSlaveArray(SERVER_SIZE_C-1 downto 0);
 
-   constant APP_STREAMS_C     : positive                                       := 2;
+   constant APP_STREAMS_C     : positive                                       := 3;
    constant APP_AXIS_CONFIG_C : AxiStreamConfigArray(APP_STREAMS_C-1 downto 0) := (others => PGP3_AXIS_CONFIG_C);
 
    signal ethTxMasters : AxiStreamMasterArray(APP_STREAMS_C-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
@@ -98,7 +103,7 @@ begin
 
    axilClk <= sysClk;
    axilRst <= sysRst;
-   
+
    U_txLinkUp : entity work.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
@@ -125,14 +130,14 @@ begin
          CLKIN_PERIOD_G     => ite(ETH_10G_G, 6.4, 8.0),
          DIVCLK_DIVIDE_G    => 1,
          CLKFBOUT_MULT_F_G  => ite(ETH_10G_G, 6.0, 7.5),
-         CLKOUT0_DIVIDE_F_G => 3.125,   -- 300 MHz = 937.5 MHz/3.125
+         CLKOUT0_DIVIDE_F_G => 9.375,   -- 100 MHz = 937.5 MHz/9.375
          CLKOUT1_DIVIDE_G   => 6)       -- 156.25 MHz = 937.5 MHz/6       
       port map(
          clkIn     => ethClk,
          rstIn     => ethRst,
-         clkOut(0) => refClk300MHz,
+         clkOut(0) => refClk100MHz,
          clkOut(1) => sysClk,
-         rstOut(0) => refRst300MHz,
+         rstOut(0) => refRst100MHz,
          rstOut(1) => sysRst);
 
    GEN_1G : if (ETH_10G_G = false) generate
@@ -256,7 +261,8 @@ begin
          APP_STREAMS_G       => APP_STREAMS_C,
          APP_STREAM_ROUTES_G => (
             0                => X"00",   -- SRPv3
-            1                => X"01"),  -- Data[0]          
+            1                => X"01",   -- Data[0]          
+            2                => X"02"),  -- SEM          
          APP_AXIS_CONFIG_G   => APP_AXIS_CONFIG_C,
          TSP_AXIS_CONFIG_G   => EMAC_AXIS_CONFIG_C)
       port map (
@@ -317,5 +323,26 @@ begin
          pgpRst      => ethRst,
          pgpTxMaster => ethTxMasters(1),
          pgpTxSlave  => ethTxSlaves(1));
+
+   U_Vc2 : entity work.AtlasAltirocPgp3AxisFifo
+      generic map (
+         TPD_G        => TPD_G,
+         SYNTH_MODE_G => SYNTH_MODE_G,
+         SIMULATION_G => true)          -- Using AXIS Slave
+      port map (
+         -- System Interface (axilClk domain)
+         sysClk      => sysClk,
+         sysRst      => sysRst,
+         sAxisMaster => semTxAxisMaster,
+         sAxisSlave  => semTxAxisSlave,
+         mAxisMaster => semRxAxisMaster,
+         mAxisSlave  => semRxAxisSlave,
+         -- PGP Interface (pgpClk domain)
+         pgpClk      => ethClk,
+         pgpRst      => ethRst,
+         pgpTxMaster => ethTxMasters(2),
+         pgpTxSlave  => ethTxSlaves(2),
+         pgpRxMaster => ethRxMasters(2),
+         pgpRxSlave  => ethRxSlaves(2));
 
 end mapping;

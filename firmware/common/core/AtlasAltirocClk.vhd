@@ -121,15 +121,15 @@ begin
          I => pllClkIn(0),
          O => clock160MHz);
 
-   U_rst160MHz : entity work.RstSync
+   U_rst160MHz : entity work.PwrUpRst
       generic map(
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
          OUT_POLARITY_G => '1')
       port map (
-         clk      => clock160MHz,
-         asyncRst => pllLolL,
-         syncRst  => reset160MHz);
+         clk    => clock160MHz,
+         arst   => pllLolL,
+         rstOut => reset160MHz);
 
    clk160MHz <= clock160MHz;
    rst160MHz <= reset160MHz;
