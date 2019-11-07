@@ -504,8 +504,8 @@ begin
                      v.deadtimeCnt  := (others => '0');
                      v.timer        := TIMER_1_SEC_C;
 
-                     -- Check if deadtimeDuration is non-zero
-                     if (r.deadtimeDuration /= 0) then
+                     -- Check if deadtimeDuration is non-zero and trigger master
+                     if (r.deadtimeDuration /= 0) and (r.trigMaster = '1') then
                         -- Next state
                         v.state := OSCOPE_DEADTIME_S;
                      else
