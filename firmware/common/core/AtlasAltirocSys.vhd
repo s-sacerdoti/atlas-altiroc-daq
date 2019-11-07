@@ -232,7 +232,6 @@ begin
             axilReadSlave   => axilReadSlaves(SEM_INDEX_C),
             axilWriteMaster => axilWriteMasters(SEM_INDEX_C),
             axilWriteSlave  => axilWriteSlaves(SEM_INDEX_C),
-            localMac        => localMac,
             fpgaReload      => fpgaReload,
             fpgaReloadAddr  => fpgaReloadAddr,
             axisClk         => axilClk,

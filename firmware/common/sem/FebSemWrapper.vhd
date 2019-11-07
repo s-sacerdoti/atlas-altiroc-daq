@@ -46,7 +46,6 @@ entity FebSemWrapper is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
-      localMac        : in  slv(47 downto 0);
       fpgaReload      : in  sl;
       fpgaReloadAddr  : in  slv(31 downto 0);
 
@@ -134,6 +133,7 @@ architecture rtl of FebSemWrapper is
    signal semAxilWriteSlave  : AxiLiteWriteSlaveType;
 
    type SemRegType is record
+      febAddr          : slv(3 downto 0);
       axilWriteSlave   : AxiLiteWriteSlaveType;
       axilReadSlave    : AxiLiteReadSlaveType;
       txSsiMaster      : SsiMasterType;
@@ -148,6 +148,7 @@ architecture rtl of FebSemWrapper is
    end record SemRegType;
 
    constant REG_INIT_C : SemRegType := (
+      febAddr          => (others => '1'),
       axilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C,
       txSsiMaster      => ssiMasterInit(SEM_AXIS_CONFIG_C),
@@ -330,7 +331,8 @@ begin
       -- port map (
          -- rst    => axilRst,
          -- wr_clk => axilClk,
-         -- din    => febConfig.febAddress,
+         -- -- din    => febConfig.febAddress,
+         -- din    => febAddr,
          -- rd_clk => semClk,
          -- dout   => febAddrSync);
 
@@ -361,7 +363,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Transform monitor interface into AxiStream streams
    -------------------------------------------------------------------------------------------------
-   mon2axis : process (localMac, iprogIcapCsl, iprogIcapGrant, iprogIcapI, iprogIcapReq,
+   mon2axis : process (iprogIcapCsl, iprogIcapGrant, iprogIcapI, iprogIcapReq,
                        iprogIcapRnw, monitor_rxread, monitor_txdata, monitor_txwrite, r,
                        rxAxisMaster, semAxilReadMaster, semAxilWriteMaster, semClkRst,
                        sem_icap_csib, sem_icap_i, sem_icap_rdwrb, status_classification,
@@ -410,14 +412,38 @@ begin
       -- This assures that every frame will be at least 4x16-bits for PGP
       ----------------------------------------------------------------------------------------------
       if (r.sofNext = '1') then
-         -- v.txSsiMaster.data(47 downto 0)  := localMac;
+
          v.txSsiMaster.data(7 downto 0)   := toSlv(character'pos('F'), 8);
          v.txSsiMaster.data(15 downto 8)  := toSlv(character'pos('P'), 8);
          v.txSsiMaster.data(23 downto 16) := toSlv(character'pos('G'), 8);
          v.txSsiMaster.data(31 downto 24) := toSlv(character'pos('A'), 8);
-         v.txSsiMaster.data(39 downto 32) := toSlv(character'pos('S'), 8);
-         v.txSsiMaster.data(47 downto 40) := toSlv(character'pos('E'), 8);
-         v.txSsiMaster.data(55 downto 48) := toSlv(character'pos('M'), 8);
+         v.txSsiMaster.data(39 downto 32) := toSlv(character'pos('['), 8);         
+         case r.febAddr is
+            when X"0" =>
+               v.txSsiMaster.data(47 downto 40) := toSlv(character'pos('0'), 8);
+            when X"1" =>
+               v.txSsiMaster.data(47 downto 40) := toSlv(character'pos('1'), 8);
+            when X"2" =>
+               v.txSsiMaster.data(47 downto 40) := toSlv(character'pos('2'), 8);
+            when X"3" =>
+               v.txSsiMaster.data(47 downto 40) := toSlv(character'pos('3'), 8);
+            when X"4" =>
+               v.txSsiMaster.data(47 downto 40) := toSlv(character'pos('4'), 8);
+            when X"5" =>
+               v.txSsiMaster.data(47 downto 40) := toSlv(character'pos('5'), 8);
+            when X"6" =>
+               v.txSsiMaster.data(47 downto 40) := toSlv(character'pos('6'), 8);
+            when X"7" =>
+               v.txSsiMaster.data(47 downto 40) := toSlv(character'pos('7'), 8);
+            when X"8" =>
+               v.txSsiMaster.data(47 downto 40) := toSlv(character'pos('8'), 8);
+            when X"9" =>
+               v.txSsiMaster.data(47 downto 40) := toSlv(character'pos('9'), 8);
+            when others =>
+               v.txSsiMaster.data(47 downto 40) := toSlv(character'pos('?'), 8);
+         end case;
+         
+         v.txSsiMaster.data(55 downto 48) := toSlv(character'pos(']'), 8);
          v.txSsiMaster.data(63 downto 56) := toSlv(character'pos(':'), 8);
          v.txSsiMaster.valid              := '1';
          v.txSsiMaster.sof                := '1';
@@ -505,6 +531,7 @@ begin
       axiSlaveRegisterR(axilEp, X"38", 0, r.statusCounters(6));
       axiSlaveRegisterR(axilEp, X"3C", 0, r.statusCounters(7));
 
+      axiSlaveRegister(axilEp, X"FC", 0, v.febAddr);
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 

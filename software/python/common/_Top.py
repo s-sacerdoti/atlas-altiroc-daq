@@ -341,7 +341,10 @@ class Top(pr.Root):
                 self.Fpga[i].Asic.Readout.enable.hidden  = False
                 
                 # Disable auto-polling during PLL config
-                self.Fpga[i].Asic.enable.set(True)                
+                self.Fpga[i].Asic.enable.set(True)    
+                
+                # Set the FPGA Index
+                self.Fpga[i].Sem.FpgaIndex.set(i)
                 
             # Check if we are loading YAML files
             if self.usrLoadYaml:
