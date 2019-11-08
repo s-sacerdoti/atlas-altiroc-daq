@@ -9,18 +9,19 @@ Top:
         DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
         DlyCalPulseReset: 0 # Falling edge of EXT_TRIG
       Trig:
-        TrigTypeSel: Slave        
+        TrigTypeSel: Master
         CalStrobeAlign: 0x3      # Same as calibration pulse testing
         TrigStrobeAlign: 0x3     # Sets 6.25 ns trigger window w.r.t to 40 MHz clock  (might need tuning for the real system)
         EnCalPulseTrig: 0x0      # Disable calibration pulse
         EnBncExtTrig: 0x0        # Disable BNC external trigger
-        EnPcieLocalTrig: 0x0     # Enable the local TOA_BUSY trigger
-        EnLemoRemoteTrig: 0x1    # Enable the remote TOA_BUSY trigger   
+        EnPcieLocalTrig: 0x1     # Enable the local TOA_BUSY trigger
+        EnLemoRemoteTrig: 0x0    # Enable the remote TOA_BUSY trigger   
         MasterModeSel: OR        # Either OR or AND the TOA_BUSY triggers together (inverted to active HIGH logic in FW)
         ReadoutStartDly: 128     # Units of 6.4ns (might need tuning for the real system)
-        TrigSizeBeforePause: 0x0 # number of triggers before o-scope deadtime (zero bypass deadtime
-        DeadtimeDuration: 0x0    # number of seconds to hold off readout until o-scope recovers
+        TrigSizeBeforePause: 4000 # number of triggers before o-scope deadtime (zero bypass deadtime
+        DeadtimeDuration: 20    # number of seconds to hold off readout until o-scope recovers
         EnableReadout: 0x0       # prevents either o-scope or dataStream from receiving data until enabled
+        BusyPulseWidth: 0
       TdcClk:
         Tdc40MHzClkSel: Pll
         FpgaTdcClkHigh: 0x1
@@ -30,9 +31,9 @@ Top:
         Continuous: 0x0 
       ##########################################################################
       SlowControl:
-        ########################
-        #general settings
-        EN_ck_SRAM[:]: 0x0
+        #####################
+        #general settings:all OFF
+        EN_ck_SRAM[:]: 0x1
         ON_Ctest[:]: 0x0
         disable_pa[:]: 0x1
         ON_discri[:]: 0x0
@@ -43,31 +44,44 @@ Top:
         cBit_s_TOA[:]: 0x0
         cBit_f_TOT[:]: 0x0
         cBit_s_TOT[:]: 0x0
-        cBit_c_TOT[:]: 0x0 
-
-        ###################
-        #turn ON single channel
+        cBit_c_TOT[:]: 0x0
+        #turn on 7-8-10-12-13
+        #EN_ck_SRAM[7]: 0x1
         EN_ck_SRAM[7]: 0x1
-        ON_Ctest[7]: 0x0
-        disable_pa[7]: 0x0
-        ON_discri[7]: 0x1
-
-        ###################
-        bit_vth_cor[:]: 64
+        #EN_ck_SRAM[10]: 0x1
+        #EN_ck_SRAM[12]: 0x1
+        #EN_ck_SRAM[13]: 0x1
         
-        #bit_vth_cor[5]: 45
-        #bit_vth_cor[6]: 47
-        #bit_vth_cor[7]: 75
-        #bit_vth_cor[8]: 90
-        #bit_vth_cor[10]: 35
-        #bit_vth_cor[12]: 87
-        #bit_vth_cor[13]: 75
-        #bit_vth_cor[14]: 65
+        #disable_pa[7]: 0x0
+        disable_pa[7]: 0x0
+        #disable_pa[10]: 0x0
+        #disable_pa[12]: 0x0
+        #disable_pa[13]: 0x0
+        #ON_discri[7]: 0x1
+        ON_discri[7]: 0x1
+        #ON_discri[10]: 0x1
+        #ON_discri[12]: 0x1
+        #ON_discri[13]: 0x1
+        ###################
+
+        bit_vth_cor[1]: 64 #34
+        bit_vth_cor[2]: 64 #91
+        bit_vth_cor[3]: 64 #52
+        bit_vth_cor[4]: 64 #57
+        bit_vth_cor[5]: 64 #74
+        bit_vth_cor[6]: 64 #82
+        bit_vth_cor[7]: 64 #89
+        bit_vth_cor[8]: 64 #64
+        bit_vth_cor[10]: 64 #82
+        bit_vth_cor[11]: 64 #57
+        bit_vth_cor[12]: 64 #68
+        bit_vth_cor[13]: 64 #68
+        bit_vth_cor[14]: 64 #29
         
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
         
-        ext_Vcrtlf_en: 0x1 #need to fix value externally
+        ext_Vcrtlf_en: 0x0 #need to fix value externally
         ext_Vcrtls_en: 0x1 #need to fix value externally
         ext_Vcrtlc_en: 0x1 #0
 
@@ -95,7 +109,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 400 #av of alive pixels
+        DAC10bit: 440 #av DAC 1-09
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -109,7 +123,7 @@ Top:
       ##########################################################################
       Readout:
         ReadoutSize: 0
-        RdIndexLut[0]: 7
+        RdIndexLut[0]: 7   
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
