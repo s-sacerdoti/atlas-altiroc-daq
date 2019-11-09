@@ -32,7 +32,7 @@ Top:
       SlowControl:
         ########################
         #general settings:all OFF
-        EN_ck_SRAM[:]: 0x1
+        EN_ck_SRAM[:]: 0x0
         ON_Ctest[:]: 0x0
         disable_pa[:]: 0x1
         ON_discri[:]: 0x0
@@ -47,26 +47,13 @@ Top:
         
         ###################
         #turn ON single channel
-        EN_ck_SRAM[7]: 0x1
-        ON_Ctest[7]: 0x0
-        disable_pa[7]: 0x0
-        ON_discri[7]: 0x1
-        ###################
-
-        bit_vth_cor[1]: 64 #34
-        bit_vth_cor[2]: 64 #91
-        bit_vth_cor[3]: 64 #52
-        bit_vth_cor[4]: 64 #57
-        bit_vth_cor[5]: 64 #74
-        bit_vth_cor[6]: 64 #82
-        bit_vth_cor[7]: 64 #89
+        EN_ck_SRAM[8]: 0x1
+        ON_Ctest[8]: 0x0
+        disable_pa[8]: 0x0
+        ON_discri[8]: 0x1
         bit_vth_cor[8]: 64 #64
-        bit_vth_cor[10]: 64 #82
-        bit_vth_cor[11]: 64 #57
-        bit_vth_cor[12]: 64 #68
-        bit_vth_cor[13]: 64 #68
-        bit_vth_cor[14]: 64 #29
-        
+        ###################
+                
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
         
@@ -98,7 +85,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 440 #av DAC 1-09
+        DAC10bit: 480 #av DAC 1-09
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -112,7 +99,7 @@ Top:
       ##########################################################################
       Readout:
         ReadoutSize: 0
-        RdIndexLut[0]: 7
+        RdIndexLut[0]: 8
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR

@@ -9,7 +9,7 @@ Top:
         DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
         DlyCalPulseReset: 0 # Falling edge of EXT_TRIG
       Trig:
-        TrigTypeSel: Slave        
+        TrigTypeSel: Slave
         CalStrobeAlign: 0x3      # Same as calibration pulse testing
         TrigStrobeAlign: 0x3     # Sets 6.25 ns trigger window w.r.t to 40 MHz clock  (might need tuning for the real system)
         EnCalPulseTrig: 0x0      # Disable calibration pulse
@@ -31,8 +31,8 @@ Top:
       ##########################################################################
       SlowControl:
         ########################
-        #general settings->all off
-        EN_ck_SRAM[:]: 0x0
+        #general settings:all OFF
+        EN_ck_SRAM[:]: 0x1
         ON_Ctest[:]: 0x0
         disable_pa[:]: 0x1
         ON_discri[:]: 0x0
@@ -43,33 +43,23 @@ Top:
         cBit_s_TOA[:]: 0x0
         cBit_f_TOT[:]: 0x0
         cBit_s_TOT[:]: 0x0
-        cBit_c_TOT[:]: 0x0 
-
+        cBit_c_TOT[:]: 0x0
+        
         ###################
         #turn ON single channel
-        EN_ck_SRAM[8]: 0x1
-        ON_Ctest[8]: 0x0
-        disable_pa[8]: 0x0
-        ON_discri[8]: 0x1
-
+        EN_ck_SRAM[7]: 0x1
+        ON_Ctest[7]: 0x0
+        disable_pa[7]: 0x0
+        ON_discri[7]: 0x1
+        bit_vth_cor[7]: 64
         ###################
-        bit_vth_cor[:]: 64
-        
-        #bit_vth_cor[5]: 45
-        #bit_vth_cor[6]: 47
-        #bit_vth_cor[7]: 75
-        #bit_vth_cor[8]: 90
-        #bit_vth_cor[10]: 35
-        #bit_vth_cor[12]: 87
-        #bit_vth_cor[13]: 75
-        #bit_vth_cor[14]: 65
-        
+
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
         
         ext_Vcrtlf_en: 0x0 #need to fix value externally
-        ext_Vcrtls_en: 0x0 #need to fix value externally
-        ext_Vcrtlc_en: 0x0 #0
+        ext_Vcrtls_en: 0x1 #need to fix value externally
+        ext_Vcrtlc_en: 0x1 #0
 
         totf_satovfw: 0x1
         totc_satovfw: 0x1
@@ -95,7 +85,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 430 #av of alive pixels
+        DAC10bit: 440 #av DAC 1-09
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -109,7 +99,7 @@ Top:
       ##########################################################################
       Readout:
         ReadoutSize: 0
-        RdIndexLut[0]: 8
+        RdIndexLut[0]: 7
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
