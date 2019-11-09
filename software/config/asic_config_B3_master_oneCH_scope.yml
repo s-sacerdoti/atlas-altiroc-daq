@@ -1,5 +1,5 @@
 Top:
-  Fpga[1]: # "[:]" is a wildcard for a dict search
+  Fpga[0]: # "[:]" is a wildcard for a dict search
     ##########################################################################
     Asic: # Note: Configuration tuned for ASIC Board V2: #6
       ##########################################################################
@@ -15,7 +15,7 @@ Top:
         EnCalPulseTrig: 0x0      # Disable calibration pulse
         EnBncExtTrig: 0x0        # Disable BNC external trigger
         EnPcieLocalTrig: 0x1     # Enable the local TOA_BUSY trigger
-        EnLemoRemoteTrig: 0x1    # Enable the remote TOA_BUSY trigger   
+        EnLemoRemoteTrig: 0x0    # Enable the remote TOA_BUSY trigger   
         MasterModeSel: OR        # Either OR or AND the TOA_BUSY triggers together (inverted to active HIGH logic in FW)
         ReadoutStartDly: 128     # Units of 6.4ns (might need tuning for the real system)
         TrigSizeBeforePause: 4000 # number of triggers before o-scope deadtime (zero bypass deadtime
@@ -98,7 +98,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 360 #av DAC 1-09
+        DAC10bit: 440 #av DAC 1-09
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
