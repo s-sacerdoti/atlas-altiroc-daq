@@ -156,22 +156,22 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         self.ax1.set_title('TOT')
         self.ax1.set_xlabel('TOT Discrete Units')
         self.ax1.set_ylabel('Pixel Number')
-        self.im1 = self.ax1.hist(self.tot_array[7], bins=self.tot_xbins)
+        self.im1 = self.ax1.hist(self.tot_array[7], bins=np.arange(128))
+        self.ax1.set_xticks(np.arange(128)-0.5,np.arrange(128)) 
         #self.im1 = self.ax1.imshow(self.tot_array, aspect='auto')
         #self.cbar1 = self.ax1.figure.colorbar(self.im1, ax=self.ax1, orientation='horizontal', aspect=150, pad=.13)
         #self.cbar1.ax.set_ylabel("Scale")
-        self.ax1.set_xticks(np.arange(self.tot_xbins))
         #self.ax1.set_yticks(np.arange(self.tot_ybins))
-        self.ax1.set_xticklabels(np.linspace(start=self.tot_xrange[0],stop=self.tot_xrange[1],num=self.tot_xbins,dtype=int))
+        #self.ax1.set_xticklabels(np.linspace(start=self.tot_xrange[0],stop=self.tot_xrange[1],num=self.tot_xbins,dtype=int))
         #self.ax1.set_yticklabels(np.linspace(start=self.tot_yrange[0],stop=self.tot_yrange[1],num=self.tot_ybins,dtype=int))
         #plt.setp(self.ax1.get_xticklabels(), rotation=90, ha="right",
         #         rotation_mode="anchor")
         #for edge, spine in self.ax1.spines.items():
         #    spine.set_visible(False)
-        self.ax1.set_xticks(np.arange(self.tot_xbins+1)-.5, minor=True)
+        #self.ax1.set_xticks(np.arange(self.tot_xbins+1)-.5, minor=True)
         #self.ax1.set_yticks(np.arange(self.tot_ybins+1)-.5, minor=True)
         #self.ax1.grid(which="minor", color="w", linestyle='-', linewidth=1)
-        self.ax1.tick_params(which="minor", bottom=False, left=False)
+        #self.ax1.tick_params(which="minor", bottom=False, left=False)
         
         self.fig.tight_layout()
         self.fig.canvas.draw()
@@ -245,8 +245,9 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         the plt.pause() can be uncommented if one wishes to keep the plot constantly in the foreground
         '''
         self.im.set_data(toa_data)
+        self.im1.hist(tot_data, bins=np.arange(128))
+        self.ax1.set_xticks(np.arange(128)-0.5,np.arrange(128)) 
         #self.im1.set_data(tot_data)
-        self.im1 = plt.hist(tot_data,bins=127)
         self.im2.set_data(hits_toa_data)
         self.cbar.mappable.set_clim(vmin=np.amin(toa_data),vmax=np.amax(toa_data))
         #self.cbar1.mappable.set_clim(vmin=np.amin(tot_data),vmax=np.amax(tot_data))
