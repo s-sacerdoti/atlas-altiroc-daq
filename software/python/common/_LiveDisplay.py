@@ -106,7 +106,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
     
         self.toa_array = np.zeros((toa_ybins,toa_xbins), dtype=int)
         self.tot_array = np.zeros((tot_ybins,tot_xbins), dtype=int)
-        self.tot_all_data = np.array([])
+        self.tot_all_data = np.array([0])
         self.hits_toa_array = np.zeros((ypixels,xpixels), dtype=int)
         self.hits_tot_array = np.zeros((ypixels,xpixels), dtype=int)
         plt.rcParams.update({'font.size': font_size})
@@ -186,7 +186,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         '''
         self.toa_array = np.zeros((self.toa_ybins,self.toa_xbins), dtype=int)
         self.tot_array = np.zeros((self.tot_ybins,self.tot_xbins), dtype=int)
-        self.tot_all_data = np.array([])
+        self.tot_all_data = [0]
         self.hits_toa_array = np.zeros((self.ypixels,self.xpixels), dtype=int)
         self.refreshDisplay()
         
@@ -227,10 +227,10 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
                     HitDataTOTc = (pixel.TotData >>  2) & 0x7F
                     tot_bin = int(HitDataTOTc/self.tot_binning_count)
                     self.tot_array[pixel.PixelIndex][tot_bin] += 1
-                    if i == 7: self.tot_all_data.push_back(HitDataTOTc)
+                    if i == 7: self.tot_all_data.append(HitDataTOTc)
             hits_toa_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
             self.hits_toa_array += hits_toa_data_binary
-            print(self_tot_data)
+            print(self.tot_data)
         if(snap): self.snapshot()
         if(instant): self.instantaneous(toa_data_binary, tot_data_binary, hits_toa_data_binary)
         self.has_new_data = True
@@ -238,7 +238,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
 
     def refreshDisplay(self):
         self.has_new_data = False
-        self.__makeDisplay(self.toa_array, self.tot_array, self.hits_toa_array, self.tot_all_data)
+        self.__makeDisplay(self.toa_array, self.tot_array, self.hits_toa_array, np.array(self.tot_all_data))
         
 
     def makeDisplay(self, toa_data, tot_data, hits_toa_data, figname="onlineEventDisplay", snap=False,tot_all_data):
