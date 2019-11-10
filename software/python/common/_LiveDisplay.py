@@ -106,6 +106,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
     
         self.toa_array = np.zeros((toa_ybins,toa_xbins), dtype=int)
         self.tot_array = np.zeros((tot_ybins,tot_xbins), dtype=int)
+        self.tot_all_data = np.array([0])
         self.hits_toa_array = np.zeros((ypixels,xpixels), dtype=int)
         self.hits_tot_array = np.zeros((ypixels,xpixels), dtype=int)
         plt.rcParams.update({'font.size': font_size})
@@ -156,7 +157,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         self.ax1.set_title('TOT')
         self.ax1.set_xlabel('TOT Discrete Units')
         self.ax1.set_ylabel('Pixel Number')
-        self.im1 = self.ax1.hist(self.tot_array[7], bins=np.arange(128))
+        self.im1 = self.ax1.hist(self.tot_all_data, bins=np.arange(128))
         self.ax1.set_xticks(np.arange(128)-0.5) 
         #self.im1 = self.ax1.imshow(self.tot_array, aspect='auto')
         #self.cbar1 = self.ax1.figure.colorbar(self.im1, ax=self.ax1, orientation='horizontal', aspect=150, pad=.13)
@@ -185,6 +186,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         '''
         self.toa_array = np.zeros((self.toa_ybins,self.toa_xbins), dtype=int)
         self.tot_array = np.zeros((self.tot_ybins,self.tot_xbins), dtype=int)
+        self.tot_all_data = np.array([0])
         self.hits_toa_array = np.zeros((self.ypixels,self.xpixels), dtype=int)
         self.refreshDisplay()
         
@@ -197,7 +199,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
                         "onlineEventDisplaySnapshot-{date:%Y-%m-%d__%H_%M_%S}".format(date=datetime.datetime.now()),
                           snap=True)
         
-    def instantaneous(self, toa_data, tot_data, hits_toa_data):
+    def instantaneous(self, toa_data, tot_data, hits_toa_data, tot_all_data):
         '''
         This function is used to make a special call to the makeDisplay() that saves only the instantaneous
         TOa/TOT/Hit data to a pdf file in the same directory as the script
@@ -217,15 +219,19 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
             hit_data = np.zeros(self.xpixels*self.ypixels, dtype=int)
             for i in range( len(eventFrame.pixValue) ):
                 pixel = eventFrame.pixValue[i]
-                if pixel.Hit and not pixel.ToaOverflow:
+                #if pixel.Hit and not pixel.ToaOverflow:
+                if pixel.Hit:
                     hit_data[pixel.PixelIndex] = pixel.Hit
                     self.toa_array[pixel.PixelIndex][pixel.ToaData] += 1
                     #scale down tot data so we can use 128 bins for tot and toa
                     HitDataTOTc = (pixel.TotData >>  2) & 0x7F
                     tot_bin = int(HitDataTOTc/self.tot_binning_count)
                     self.tot_array[pixel.PixelIndex][tot_bin] += 1
+                    if pixel.PixelIndex == 7: 
+                        self.tot_all_data = np.append(self.tot_all_data,HitDataTOTc)
             hits_toa_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
             self.hits_toa_array += hits_toa_data_binary
+            print(self.tot_all_data)
         if(snap): self.snapshot()
         if(instant): self.instantaneous(toa_data_binary, tot_data_binary, hits_toa_data_binary)
         self.has_new_data = True
@@ -233,10 +239,10 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
 
     def refreshDisplay(self):
         self.has_new_data = False
-        self.__makeDisplay(self.toa_array, self.tot_array, self.hits_toa_array)
+        self.__makeDisplay(self.toa_array, self.tot_array, self.hits_toa_array,self.tot_all_data)
         
 
-    def makeDisplay(self, toa_data, tot_data, hits_toa_data, figname="onlineEventDisplay", snap=False):
+    def makeDisplay(self, toa_data, tot_data, hits_toa_data, tot_all_data,figname="onlineEventDisplay", snap=False):
         '''
         This function updates the plot with the new arrays. The comments can be uncommented if
         one wishes to establish a fixed number of tick marks on the various colorbars in the plot
@@ -246,7 +252,8 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         '''
         self.im.set_data(toa_data)
         print(tot_data[7])
-        self.im1 = plt.hist(tot_data[7], bins=np.arange(128))
+        print(tot_all_data)
+        self.im1 = plt.hist(tot_all_data, bins=np.arange(128))
         self.ax1.set_xticks(np.arange(128)-0.5) 
         #self.im1.set_data(tot_data)
         self.im2.set_data(hits_toa_data)
