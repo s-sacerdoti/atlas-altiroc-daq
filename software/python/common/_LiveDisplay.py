@@ -157,7 +157,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         self.ax1.set_xlabel('TOT Discrete Units')
         self.ax1.set_ylabel('Pixel Number')
         self.im1 = self.ax1.hist(self.tot_array[7], bins=np.arange(128))
-        self.ax1.set_xticks(np.arange(128)-0.5,np.arrange(128)) 
+        self.ax1.set_xticks(np.arange(128)-0.5) 
         #self.im1 = self.ax1.imshow(self.tot_array, aspect='auto')
         #self.cbar1 = self.ax1.figure.colorbar(self.im1, ax=self.ax1, orientation='horizontal', aspect=150, pad=.13)
         #self.cbar1.ax.set_ylabel("Scale")
@@ -245,8 +245,8 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         the plt.pause() can be uncommented if one wishes to keep the plot constantly in the foreground
         '''
         self.im.set_data(toa_data)
-        self.im1.hist(tot_data, bins=np.arange(128))
-        self.ax1.set_xticks(np.arange(128)-0.5,np.arrange(128)) 
+        self.im1 = plt.hist(tot_data, bins=np.arange(128))
+        self.ax1.set_xticks(np.arange(128)-0.5) 
         #self.im1.set_data(tot_data)
         self.im2.set_data(hits_toa_data)
         self.cbar.mappable.set_clim(vmin=np.amin(toa_data),vmax=np.amax(toa_data))
