@@ -245,7 +245,8 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
         the plt.pause() can be uncommented if one wishes to keep the plot constantly in the foreground
         '''
         self.im.set_data(toa_data)
-        self.im1 = plt.hist(tot_data, bins=np.arange(128))
+        print(tot_data)
+        self.im1 = plt.hist(tot_data[7], bins=np.arange(128))
         self.ax1.set_xticks(np.arange(128)-0.5) 
         #self.im1.set_data(tot_data)
         self.im2.set_data(hits_toa_data)
