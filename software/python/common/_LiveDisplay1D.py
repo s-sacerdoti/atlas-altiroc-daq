@@ -1,5 +1,6 @@
 import datetime
 import rogue
+import collections
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -24,6 +25,13 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
         self.ax1.grid(linewidth=1)
         self.ax1.tick_params(which="minor", bottom=False, left=False)
         self.ax1.set_xticks( np.arange(0,self.toa_max,10) )
+
+        self.ax3.cla()
+        self.ax3.set_title('Trigger Rate')
+        self.ax3.plot(*self.trigger_rates)
+        self.ax3.set_xlabel('Time (s)')
+        self.ax3.set_ylabel('Rate (Hz)')
+
     
 
     def __init__(self, plot_title='Live Display', font_size=6, fig_size=(15,8),
@@ -53,7 +61,6 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
           , 'linewidth': 2
           , 'label': [ str(i) for i in range(self.num_channels) ]
         }
-        #for edge, spine in self.ax0.spines.items(): spine.set_visible(False)
 
         self.ax1 = self.fig.add_subplot(self.gs[3:, :13])
         self.totc_plot_info = {
@@ -65,14 +72,6 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
           , 'linewidth': 2
           #, 'label': ('Signal', 'Background')
         }
-        #for edge, spine in self.ax1.spines.items(): spine.set_visible(False)
-
-        self.refresh_histograms()
-
-        handles, labels = self.ax0.get_legend_handles_labels()
-        self.legend_ax = self.fig.add_subplot(self.gs[:2, 13:])
-        self.legend_ax.legend(handles[::-1], labels[::-1], ncol=3, loc='upper left')
-        self.legend_ax.axis('off')
 
         self.ax2 = self.fig.add_subplot(self.gs[4:, 13:])
         self.ax2.set_title('TOA - Hits')
@@ -92,10 +91,19 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
         self.ax2.grid(which="minor", color="w", linestyle='-', linewidth=3)
         self.ax2.tick_params(which="minor", bottom=False, left=False)
 
-        self.timing_data = ([0,0],[1,-1])
+        self.num_times_to_average = 10
+        self.time_conversion = 6.25 # nano-seconds per timing-data unit
+        num_rates_to_plot = 100
+        self.timing_data = collections.deque([], self.num_times_to_average*2)
+        self.trigger_rates = [ collections.deque([], num_rates_to_plot), collections.deque([], num_rates_to_plot) ]
         self.ax3 = self.fig.add_subplot(self.gs[2:4, 13:])
-        self.ax3.set_title('Trigger Rate')
-        self.trigger_rate_line = self.ax3.plot(*self.timing_data)[0]
+
+        self.refresh_histograms()
+
+        handles, labels = self.ax0.get_legend_handles_labels()
+        self.legend_ax = self.fig.add_subplot(self.gs[:2, 13:])
+        self.legend_ax.legend(handles[::-1], labels[::-1], ncol=3, loc='upper left')
+        self.legend_ax.axis('off')
         
         self.fig.tight_layout()
         self.fig.canvas.draw()
@@ -118,6 +126,7 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
             hit_data = np.zeros(self.xpixels*self.ypixels, dtype=int)
             toa_list = []
             totc_list = []
+            self.timing_data.append(eventFrame.Timestamp)
             for i in range( len(eventFrame.pixValue) ):
                 pixel = eventFrame.pixValue[i]
                 if pixel.Hit and not pixel.ToaOverflow:
@@ -133,19 +142,21 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
 
             hits_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
             self.hit_array += hits_data_binary
-        self.timing_data[0].append(1)
-        self.timing_data[1].append(1)
 
 
     def refreshDisplay(self):
+        if len(self.timing_data) >= self.num_times_to_average:
+            time1 = self.timing_data[-1] * self.time_conversion
+            time0 = self.timing_data[-self.num_times_to_average] * self.time_conversion
+            averaged_trigger_rate = self.num_times_to_average / (time1 - time0) # GHz frequency of triggers
+            self.trigger_rates[0].append(time1 / 1E9) # seconds
+            self.trigger_rates[1].append(averaged_trigger_rate * 1E9) # Hz
         self.refresh_histograms()
 
         self.im2.set_data(self.hit_array)
         self.cbar2.mappable.set_clim(vmin=np.amin(self.hit_array),vmax=np.amax(self.hit_array))
         self.cbar2.draw_all() 
 
-        self.trigger_rate_line.set_data(self.timing_data)
-
-        #self.fig.tight_layout()
+        self.fig.tight_layout()
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
