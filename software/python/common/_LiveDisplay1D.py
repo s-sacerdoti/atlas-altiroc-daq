@@ -10,6 +10,22 @@ import common as feb
 
 
 class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
+    def refresh_histograms(self):
+        self.ax0.cla()
+        self.ax0.hist(**self.toa_plot_info)
+        self.ax0.title.set_text('TOA')
+        self.ax0.grid(linewidth=1)
+        self.ax0.tick_params(which="minor", bottom=False, left=False)
+        self.ax0.set_xticks( np.arange(0,self.toa_max,10) )
+
+        self.ax1.cla()
+        self.ax1.hist(**self.totc_plot_info)
+        self.ax1.title.set_text('TOTc')
+        self.ax1.grid(linewidth=1)
+        self.ax1.tick_params(which="minor", bottom=False, left=False)
+        self.ax1.set_xticks( np.arange(0,self.toa_max,10) )
+    
+
     def __init__(self, plot_title='Live Display', font_size=6, fig_size=(15,8),
                  toa_max=128, totc_max=128, xpixels=5, ypixels=5, num_bins=128, pixel_enable_list=range(25) ):
         rogue.interfaces.stream.Slave.__init__(self)
@@ -27,8 +43,7 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
         self.fig = plt.figure(num=plot_title, figsize=fig_size, dpi=100)
         self.gs = gridspec.GridSpec(6, 16)
         
-        self.ax0 = self.fig.add_subplot(self.gs[:3, :14])
-        self.ax0.set_title('TOA')
+        self.ax0 = self.fig.add_subplot(self.gs[:3, :13])
         self.toa_plot_info = {
             'x': np.array( [np.linspace(0,toa_max,num_bins,0)]*self.num_channels ).transpose()
           , 'weights': self.toa_array
@@ -38,14 +53,9 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
           , 'linewidth': 2
           , 'label': [ str(i) for i in range(self.num_channels) ]
         }
-        self.ax0.hist(**self.toa_plot_info)
-        for edge, spine in self.ax0.spines.items(): spine.set_visible(False)
-        self.ax0.grid(which="minor", color="w", linestyle='-', linewidth=1)
-        self.ax0.tick_params(which="minor", bottom=False, left=False)
-        self.ax0.legend(ncol=4)
+        #for edge, spine in self.ax0.spines.items(): spine.set_visible(False)
 
-        self.ax1 = self.fig.add_subplot(self.gs[3:, :14])
-        self.ax1.set_title('TOTc')
+        self.ax1 = self.fig.add_subplot(self.gs[3:, :13])
         self.totc_plot_info = {
             'x': np.array( [np.linspace(0,totc_max,num_bins,0)]*self.num_channels ).transpose()
           , 'weights': self.totc_array
@@ -55,12 +65,16 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
           , 'linewidth': 2
           #, 'label': ('Signal', 'Background')
         }
-        self.ax1.hist(**self.totc_plot_info)
-        for edge, spine in self.ax1.spines.items(): spine.set_visible(False)
-        self.ax1.grid(which="minor", color="w", linestyle='-', linewidth=1)
-        self.ax1.tick_params(which="minor", bottom=False, left=False)
+        #for edge, spine in self.ax1.spines.items(): spine.set_visible(False)
+
+        self.refresh_histograms()
+
+        handles, labels = self.ax0.get_legend_handles_labels()
+        self.legend_ax = self.fig.add_subplot(self.gs[:3, 13:])
+        self.legend_ax.legend(handles[::-1], labels[::-1], ncol=3, loc='upper left')
+        self.legend_ax.axis('off')
         
-        self.ax2 = self.fig.add_subplot(self.gs[2:5, 14:])
+        self.ax2 = self.fig.add_subplot(self.gs[3:, 13:15])
         self.ax2.set_title('TOA - Hits')
         self.ax2.set_xlabel('Column')
         self.ax2.set_ylabel('Row')
@@ -117,12 +131,7 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
 
 
     def refreshDisplay(self):
-        self.ax0.cla()
-        self.ax0.hist(**self.toa_plot_info)
-        self.ax0.legend(ncol=4)
-
-        self.ax1.cla()
-        self.ax1.hist(**self.totc_plot_info)
+        self.refresh_histograms()
 
         self.im2.set_data(self.hit_array)
         self.cbar2.mappable.set_clim(vmin=np.amin(self.hit_array),vmax=np.amax(self.hit_array))
