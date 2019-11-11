@@ -85,8 +85,8 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
         
     # Resets the stored arrays that integrate the number of hits and TOT/TOA values recorded
     def reset(self):
-        self.toa_array = np.zeros((self.num_bins,self.num_channels), dtype=int)
-        self.totc_array = np.zeros((self.num_bins,self.num_channels), dtype=int)
+        self.toa_array.fill(0)
+        self.totc_array.fill(0)
         self.hit_array = np.zeros((self.ypixels,self.xpixels), dtype=int)
         self.refreshDisplay()
     
