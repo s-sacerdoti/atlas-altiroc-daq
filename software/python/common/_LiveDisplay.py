@@ -227,7 +227,7 @@ class onlineEventDisplay(rogue.interfaces.stream.Slave):
                     HitDataTOTc = (pixel.TotData >>  2) & 0x7F
                     tot_bin = int(HitDataTOTc/self.tot_binning_count)
                     self.tot_array[pixel.PixelIndex][tot_bin] += 1
-                    if pixel.PixelIndex == 13 and HitDataTOTc != 127 and HitDataTOTc>0: 
+                    if pixel.PixelIndex == 5 and HitDataTOTc != 127 and HitDataTOTc>0: 
                         self.tot_all_data = np.append(self.tot_all_data,HitDataTOTc)
             hits_toa_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
             self.hits_toa_array += hits_toa_data_binary
