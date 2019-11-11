@@ -153,6 +153,8 @@ if (args.printEvents):
     # Connect the file reader to the event reader
     pr.streamTap(top.dataStream[0], eventReader) 
 
+pixel_enable_list = range(25)
+
 # Create Live Display
 live_display_resets = []
 if args.liveDisplay:
@@ -162,12 +164,9 @@ if args.liveDisplay:
         # Connect the device reader ---> fifo
         pr.streamTap(top.dataStream[fpga_index], fifo) 
         # Create the pixelreader streaming interface
-        event_display = feb.onlineEventDisplay(
-                plot_title='FPGA ' + str(fpga_index),
-                submitDir='display_snapshots',
-                font_size=4,
-                fig_size=(10,6),
-                overwrite=True  )
+        #event_display = feb.onlineEventDisplay( plot_title='FPGA ' + str(fpga_index), submitDir='display_snapshots', font_size=4, fig_size=(10,6), overwrite=True  )
+        event_display = feb.onlineEventDisplay1D( plot_title='FPGA ' + str(fpga_index),
+                fig_size=(10,6), pixel_enable_list=pixel_enable_list )
         live_display_resets.append( event_display.reset )
         # Connect the fifo ---> stream reader
         pr.streamConnect(fifo, event_display) 
