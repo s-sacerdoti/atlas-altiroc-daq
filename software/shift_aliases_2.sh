@@ -4,3 +4,14 @@ alias batch_1200='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml con
 alias batch_1201='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch13DAC450_scope.yml config/asic_config_B18_slave_ch5DAC420.yml --liveDisplay True --refClkSel ExtSmaClk ExtSmaClk'
 
 alias ch_dac='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_oneCH.yml config/asic_config_B18_slave_allON.yml --liveDisplay True --refClkSel ExtSmaClk ExtSmaClk'
+
+alias batch_1300='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch0DAC420_scope.yml --liveDisplay True --refClkSel ExtSmaClk ExtSmaClk'
+alias batch_1301='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch0DAC440_scope.yml --liveDisplay True --refClkSel ExtSmaClk ExtSmaClk'
+alias batch_1400='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch1DAC390_scope.yml --liveDisplay True --refClkSel ExtSmaClk ExtSmaClk'
+alias batch_1401='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch1DAC410_scope.yml --liveDisplay True --refClkSel ExtSmaClk ExtSmaClk'
+alias batch_1500='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch2DAC400_scope.yml --liveDisplay True --refClkSel ExtSmaClk ExtSmaClk'
+alias batch_1501='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch2DAC420_scope.yml --liveDisplay True --refClkSel ExtSmaClk ExtSmaClk'
+alias batch_1600='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch9DAC380_scope.yml --liveDisplay True --refClkSel ExtSmaClk ExtSmaClk'
+alias batch_1601='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch9DAC400_scope.yml --liveDisplay True --refClkSel ExtSmaClk ExtSmaClk'
+alias batch_1700='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch11DAC440_scope.yml --liveDisplay True --refClkSel ExtSmaClk ExtSmaClk'
+alias batch_1701='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch11DAC460_scope.yml --liveDisplay True --refClkSel ExtSmaClk ExtSmaClk'
