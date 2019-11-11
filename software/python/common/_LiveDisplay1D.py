@@ -70,16 +70,16 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
         self.refresh_histograms()
 
         handles, labels = self.ax0.get_legend_handles_labels()
-        self.legend_ax = self.fig.add_subplot(self.gs[:3, 13:])
+        self.legend_ax = self.fig.add_subplot(self.gs[:2, 13:])
         self.legend_ax.legend(handles[::-1], labels[::-1], ncol=3, loc='upper left')
         self.legend_ax.axis('off')
-        
-        self.ax2 = self.fig.add_subplot(self.gs[3:, 13:15])
+
+        self.ax2 = self.fig.add_subplot(self.gs[4:, 13:])
         self.ax2.set_title('TOA - Hits')
         self.ax2.set_xlabel('Column')
         self.ax2.set_ylabel('Row')
         self.im2 = self.ax2.imshow(self.hit_array, aspect='equal', cmap='cividis')
-        self.cbar2 = self.ax2.figure.colorbar(self.im2, ax=self.ax2, orientation='horizontal', aspect=20, pad=.15)
+        self.cbar2 = self.ax2.figure.colorbar(self.im2, ax=self.ax2, aspect=20, pad=.15)
         self.cbar2.ax.set_ylabel("Scale")
         self.ax2.set_xticks(np.arange(self.xpixels))
         self.ax2.set_yticks(np.arange(self.ypixels))
@@ -91,6 +91,11 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
         self.ax2.set_yticks(np.arange(self.ypixels+1)-.5, minor=True)
         self.ax2.grid(which="minor", color="w", linestyle='-', linewidth=3)
         self.ax2.tick_params(which="minor", bottom=False, left=False)
+
+        self.timing_data = ([0,0],[1,-1])
+        self.ax3 = self.fig.add_subplot(self.gs[2:4, 13:])
+        self.ax3.set_title('Trigger Rate')
+        self.trigger_rate_line = self.ax3.plot(*self.timing_data)[0]
         
         self.fig.tight_layout()
         self.fig.canvas.draw()
@@ -128,6 +133,8 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
 
             hits_data_binary = np.reshape(hit_data, (self.ypixels,self.xpixels), order='F')
             self.hit_array += hits_data_binary
+        self.timing_data[0].append(1)
+        self.timing_data[1].append(1)
 
 
     def refreshDisplay(self):
@@ -136,6 +143,8 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
         self.im2.set_data(self.hit_array)
         self.cbar2.mappable.set_clim(vmin=np.amin(self.hit_array),vmax=np.amax(self.hit_array))
         self.cbar2.draw_all() 
+
+        self.trigger_rate_line.set_data(self.timing_data)
 
         #self.fig.tight_layout()
         self.fig.canvas.draw()
