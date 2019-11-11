@@ -22,6 +22,8 @@ from common._Fpga               import *
 from common._Top                import *
 from common._Sem                import *
 from common._LiveDisplay        import *
+from common._LiveDisplay        import *
+from common._LiveDisplay1D      import *
 
 def getNsValue(var):
     return ( var.dependencies[0].value() + 1 )*6.25 
