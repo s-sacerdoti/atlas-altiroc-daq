@@ -47,11 +47,11 @@ Top:
         
         ###################
         #turn ON single channel
-        EN_ck_SRAM[2]: 0x1
-        ON_Ctest[2]: 0x0
-        disable_pa[2]: 0x0
-        ON_discri[2]: 0x1
-        bit_vth_cor[2]: 64
+        EN_ck_SRAM[5]: 0x1
+        ON_Ctest[5]: 0x0
+        disable_pa[5]: 0x0
+        ON_discri[5]: 0x1
+        bit_vth_cor[5]: 64
         ###################
         
         DLL_ALockR_en: 0x1
@@ -85,7 +85,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 400 #dac active channel
+        DAC10bit: 550 #dac active channel
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -99,7 +99,7 @@ Top:
       ##########################################################################
       Readout:
         ReadoutSize: 0
-        RdIndexLut[0]: 2
+        RdIndexLut[0]: 5
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR

@@ -1,5 +1,5 @@
 Top:
-  Fpga[1]: # "[:]" is a wildcard for a dict search
+  Fpga[0]: # "[:]" is a wildcard for a dict search
     ##########################################################################
     Asic: # Note: Configuration tuned for ASIC Board V2: #6
       ##########################################################################
@@ -15,11 +15,11 @@ Top:
         EnCalPulseTrig: 0x0      # Disable calibration pulse
         EnBncExtTrig: 0x0        # Disable BNC external trigger
         EnPcieLocalTrig: 0x1     # Enable the local TOA_BUSY trigger
-        EnLemoRemoteTrig: 0x1    # Enable the remote TOA_BUSY trigger   
+        EnLemoRemoteTrig: 0x0    # Enable the remote TOA_BUSY trigger   
         MasterModeSel: OR        # Either OR or AND the TOA_BUSY triggers together (inverted to active HIGH logic in FW)
         ReadoutStartDly: 128     # Units of 6.4ns (might need tuning for the real system)
-        TrigSizeBeforePause: 0x0 # number of triggers before o-scope deadtime (zero bypass deadtime
-        DeadtimeDuration: 0x0    # number of seconds to hold off readout until o-scope recovers
+        TrigSizeBeforePause: 0 # number of triggers before o-scope deadtime (zero bypass deadtime
+        DeadtimeDuration: 0    # number of seconds to hold off readout until o-scope recovers
         EnableReadout: 0x0       # prevents either o-scope or dataStream from receiving data until enabled
       TdcClk:
         Tdc40MHzClkSel: Pll
@@ -32,7 +32,7 @@ Top:
       SlowControl:
         ########################
         #general settings:all OFF
-        EN_ck_SRAM[:]: 0x1
+        EN_ck_SRAM[:]: 0x0
         ON_Ctest[:]: 0x0
         disable_pa[:]: 0x1
         ON_discri[:]: 0x0
@@ -47,26 +47,13 @@ Top:
         
         ###################
         #turn ON single channel
-        EN_ck_SRAM[8]: 0x1
-        ON_Ctest[8]: 0x0
-        disable_pa[8]: 0x0
-        ON_discri[8]: 0x1
+        EN_ck_SRAM[12]: 0x1
+        ON_Ctest[12]: 0x0
+        disable_pa[12]: 0x0
+        ON_discri[12]: 0x1
+        bit_vth_cor[12]: 64 #64
         ###################
-
-        bit_vth_cor[1]: 34
-        bit_vth_cor[2]: 91
-        bit_vth_cor[3]: 52
-        bit_vth_cor[4]: 57
-        bit_vth_cor[5]: 74
-        bit_vth_cor[6]: 82
-        bit_vth_cor[7]: 89
-        bit_vth_cor[8]: 64
-        bit_vth_cor[10]: 82
-        bit_vth_cor[11]: 57
-        bit_vth_cor[12]: 68
-        bit_vth_cor[13]: 68
-        bit_vth_cor[14]: 29
-        
+                
         DLL_ALockR_en: 0x1
         CP_b: 0x4 #5
         
@@ -98,7 +85,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 480 #av DAC 1-09
+        DAC10bit: 470 #av DAC 1-09
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -112,7 +99,7 @@ Top:
       ##########################################################################
       Readout:
         ReadoutSize: 0
-        RdIndexLut[0]: 8
+        RdIndexLut[0]: 12
         #####################
         RstRamPulseWidth: 0xF
         ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
