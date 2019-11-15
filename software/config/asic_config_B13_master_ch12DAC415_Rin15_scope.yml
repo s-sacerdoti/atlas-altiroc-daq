@@ -1,0 +1,120 @@
+Top:
+  Fpga[0]: # "[:]" is a wildcard for a dict search
+    ##########################################################################
+    Asic: # Note: Configuration tuned for ASIC Board V2: #6
+      ##########################################################################
+      Gpio:
+        RSTB_RAM: 0x1
+        RST_COUNTER: 0x0
+        DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
+        DlyCalPulseReset: 0 # Falling edge of EXT_TRIG
+      Trig:
+        TrigTypeSel: Master
+        CalStrobeAlign: 0x3      # Same as calibration pulse testing
+        TrigStrobeAlign: 0x3     # Sets 6.25 ns trigger window w.r.t to 40 MHz clock  (might need tuning for the real system)
+        EnCalPulseTrig: 0x0      # Disable calibration pulse
+        EnBncExtTrig: 0x0        # Disable BNC external trigger
+        EnPcieLocalTrig: 0x1     # Enable the local TOA_BUSY trigger
+        EnLemoRemoteTrig: 0x0    # Enable the remote TOA_BUSY trigger   
+        MasterModeSel: OR        # Either OR or AND the TOA_BUSY triggers together (inverted to active HIGH logic in FW)
+        ReadoutStartDly: 128     # Units of 6.4ns (might need tuning for the real system)
+        TrigSizeBeforePause: 4000 # number of triggers before o-scope deadtime (zero bypass deadtime
+        DeadtimeDuration: 20    # number of seconds to hold off readout until o-scope recovers
+        EnableReadout: 0x0       # prevents either o-scope or dataStream from receiving data until enabled
+      TdcClk:
+        Tdc40MHzClkSel: Pll
+        FpgaTdcClkHigh: 0x1
+        FpgaTdcClkLow: 0x1
+      CalPulse:
+        CalPulseWidth: 0x2 
+        Continuous: 0x0 
+      ##########################################################################
+      SlowControl:
+        ########################
+        #general settings:all OFF
+        EN_ck_SRAM[:]: 0x0
+        ON_Ctest[:]: 0x0
+        disable_pa[:]: 0x1
+        ON_discri[:]: 0x0
+        bit_vth_cor[:]: 0x40
+        EN_hyst[:]: 0x1
+        EN_trig_ext[:]: 0x0
+        cBit_f_TOA[:]: 0x0        
+        cBit_s_TOA[:]: 0x0
+        cBit_f_TOT[:]: 0x0
+        cBit_s_TOT[:]: 0x0
+        cBit_c_TOT[:]: 0x0
+        
+        ###################
+        #turn ON single channel
+        EN_ck_SRAM[12]: 0x1
+        ON_Ctest[12]: 0x0
+        disable_pa[12]: 0x0
+        ON_discri[12]: 0x1
+        bit_vth_cor[12]: 64
+        ###################
+        
+        DLL_ALockR_en: 0x1
+        CP_b: 0x4 #5
+        
+        ext_Vcrtlf_en: 0x0 #need to fix value externally
+        ext_Vcrtls_en: 0x0 #need to fix value externally
+        ext_Vcrtlc_en: 0x0 #0
+
+        totf_satovfw: 0x1
+        totc_satovfw: 0x1
+        toa_satovfw: 0x1      
+      
+        SatFVa: 0x4 #3
+        IntFVa: 0x0 #1
+        SatFTz: 0x4 #4
+        IntFTz: 0x1 #1  
+      
+        cBitf: 0x0 #0
+        cBits: 0x0 #f
+        cBitc: 0x0 #f      
+      
+        Rin_Vpa: 0x1 # 1=set to 15k,0=25k
+        Cp_Vpa: 0x0
+      
+        cd[0]: 0x0 #6
+        cd[1]: 0x0 #6
+        cd[2]: 0x0 #6
+   
+        dac_biaspa: 0x1e #30
+        ON_dac_biaspa: 0x1
+        dac_pulser: 12 #7
+      
+        DAC10bit: 415 #dac active channel
+
+        ON_dac_LR: 0x0
+        Ck40_choice: 0x1
+        en_8drivers: 0x1
+
+        PLL: 0x0
+        Shifted_ck40: 0x0
+        #dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
+
+
+      ##########################################################################
+      Readout:
+        ReadoutSize: 0
+        RdIndexLut[0]: 12
+        #####################
+        RstRamPulseWidth: 0xF
+        ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
+        RstPulseWidth: 0xF
+        RstToReadDly: 0x0   # Min. tuned on 18JULY2019:LLR
+        RckHighWidth: 0x2   # Min. tuned on 18JULY2019:LLR
+        RckLowWidth: 0x2    # Min. tuned on 18JULY2019:LLR
+        #####################
+        RestoreProbeConfig: 0x0
+        EnProbeWrite: 0x1
+        OnlySendFirstHit: 0x1
+        #####################
+        #Probe cofiguration
+        EnProbeDigOutDisc: 0x0
+        EnProbeDigSelect: 0x0
+        EnProbeDig: 0x0
+        EnProbePa: 0x0
+
