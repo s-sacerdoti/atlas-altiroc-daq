@@ -132,6 +132,8 @@ class onlineEventDisplay1D(rogue.interfaces.stream.Slave):
                 if pixel.Hit and not pixel.ToaOverflow:
                     toa = pixel.ToaData
                     totc = (pixel.TotData >>  2) & 0x7F
+                    if pixel.PixelIndex > 14:
+                        totc = (pixel.TotData >>  3) & 0x3F
 
                     toa_bin = int( toa * (self.toa_max/len(self.toa_array)) )
                     totc_bin = int( totc * (self.totc_max/len(self.totc_array)) )

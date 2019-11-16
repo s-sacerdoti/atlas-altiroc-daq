@@ -200,7 +200,11 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
             for i in range( len(eventFrame.pixValue) ):
                 pixel = eventFrame.pixValue[i]
                 pixIndex = pixel.PixelIndex
-                
+                auxTOTc = (pixel.TotData >>  2) & 0x7F
+                auxTOTf = (pixel.TotData & 0x3)
+                if pixIndex < 14:
+                    auxTOTc = (pixel.TotData >>  3) & 0x3F
+                    auxTOTf = (pixel.TotData & 0x7)
                 #if pixel.ToaOverflow != 1: #make sure this pixel is worth printing
                 #if (pixel.Hit != 0) and (pixel.ToaData != 0x7F) : #make sure this pixel is worth printing
                 if (pixel.Hit != 0) and ((pixel.ToaData != 0x7F) or (pixel.TotData !=0)): #make sure this pixel is worth printing
@@ -224,8 +228,10 @@ class PrintEventReader(rogue.interfaces.stream.Slave):
                         pixel.ToaData,
                         pixel.Hit,
                         pixel.Sof,
-                        (pixel.TotData >>  2) & 0x7F,
-                        (pixel.TotData & 0x3)) 
+                        #(pixel.TotData >>  2) & 0x7F,
+                        #(pixel.TotData & 0x3)) 
+                        auxTOTc,
+                        auxTOTf) 
                     )
                     
                 # Check if dumping to .CVS file
