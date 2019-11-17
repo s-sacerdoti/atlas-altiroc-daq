@@ -1,0 +1,8 @@
+alias batch_3000='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch7DAC400_ch0_scope.yml config/asic_config_B3_slave_ch7DAC440_ch5.yml --refClkSel ExtSmaClk ExtSmaClk --liveDisplay True'
+alias batch_3010='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch12DAC450_columnON_scope.yml config/asic_config_B3_slave_ch12DAC470_columnON.yml --refClkSel ExtSmaClk ExtSmaClk --liveDisplay True'
+alias batch_3030='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch7DAC400_ch17_scope.yml config/asic_config_B3_slave_ch7DAC440_ch17.yml --refClkSel ExtSmaClk ExtSmaClk --liveDisplay True'
+alias batch_3040='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch7DAC400_CpVPA6_scope.yml config/asic_config_B3_slave_ch7DAC440_CpVPA6.yml --refClkSel ExtSmaClk ExtSmaClk --liveDisplay True'
+alias batch_3041='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch7DAC400_CpVPA3_scope.yml config/asic_config_B3_slave_ch7DAC440_CpVPA3.yml --refClkSel ExtSmaClk ExtSmaClk --liveDisplay True'
+alias batch_3050='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_DAC430_ch12corr45_ch7corr64_scope.yml config/asic_config_B3_slave_DAC470_ch12corr64ch7corr64.yml --refClkSel ExtSmaClk ExtSmaClk --liveDisplay True'
+alias batch_3060='python scripts/DevGui.py --ip $fpga_ab $fpga_ad --userYaml config/asic_config_B13_master_ch7DAC400_hystOFF_scope.yml config/asic_config_B3_slave_ch7DAC440_hystOFF.yml --refClkSel ExtSmaClk ExtSmaClk --liveDisplay True'
+

@@ -1,0 +1,16 @@
+alias batch_903='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch7DAC400_PAprobe_scope.yml --liveDisplay True'
+alias batch_904='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch0DAC420_PAprobe_scope.yml --liveDisplay True'
+alias batch_905='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch1DAC390_PAprobe_scope.yml --liveDisplay True'
+alias batch_906='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch2DAC400_PAprobe_scope.yml --liveDisplay True'
+alias batch_907='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch5DAC530_PAprobe_scope.yml  --liveDisplay True'
+alias batch_908='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch10DAC430_PAprobe_scope.yml --liveDisplay True'
+alias batch_909='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch11DAC440_PAprobe_scope.yml --liveDisplay True'
+alias batch_910='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch12DAC430_PAprobe_scope.yml --liveDisplay True'
+
+
+alias batch_916='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch3DAC380_PAprobe_scope.yml --liveDisplay True'
+alias batch_917='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch4DAC390_PAprobe_scope.yml --liveDisplay True'
+alias batch_918='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch8DAC430_PAprobe_scope.yml --liveDisplay True'
+alias batch_919='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch9DAC380_PAprobe_scope.yml --liveDisplay True'
+alias batch_920='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch13DAC430_PAprobe_scope.yml --liveDisplay True'
+alias batch_921='python scripts/DevGui.py --ip $fpga_ab --userYaml config/asic_config_B13_master_ch14DAC430_PAprobe_scope.yml --liveDisplay True'
