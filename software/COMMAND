@@ -15,7 +15,7 @@ python scripts/measureTimeWalk.py -N 100 --board 2 --checkOFtoa False --checkOFt
 
 python scripts/measureTimeWalk.py --morePointsAtLowQ False --debug False --display True -N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 3 --Cd 0  --QMin 5 --QMax 63 --QStep 5 --out Data/test  --delay 2380  --ch 7  --DAC 340
 
-python scripts/measureTimeWalk.py --morePointsAtLowQ True --debug False --display True -N 200 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 13  --delay 2450  --QMin 3 --QMax 63 --QStep 1 --ch 7  --Cd 0 --DAC 400  --out Data/test
+
 
 python scripts/runTimeWalkScans.py  -b 2  > runTW_B2.sh
 python scripts/runTDCCalib.py  -b 2 --toa  > runTOA_B2.sh
@@ -37,5 +37,8 @@ python scripts/runTDCCalib.py  -b 18 --toa  > runTOA_B18.sh
 python scripts/runTDCCalib.py  -b 18 --tot  > runTOT_B18.sh
 
 
+
+
+python scripts/measureTimeWalk.py --morePointsAtLowQ True --debug False --display True -N 200 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 13  --delay 2450  --QMin 3 --QMax 63 --QStep 1 --ch 7  --Cd 0 --DAC 400  --out Data/TW_B13_ch7_ProbePAOFF
 
 
