@@ -362,6 +362,7 @@ def measureTimeWalk(argsip,
        #print (np.mean(pixel_data['HitDataTOTc'][iQ]),np.std(pixel_data['HitDataTOTc'][iQ]))
        #print (np.mean(pixel_data['HitDataTOTc']),np.std(pixel_data['HitDataTOTc']))
     ff.close()
+    ffData.close()
     #print (QRange)
     #print (TOAMeanArray)
     #print (TOAMeanArray)

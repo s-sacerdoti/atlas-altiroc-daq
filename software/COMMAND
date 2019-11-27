@@ -1,12 +1,10 @@
 #########################################################
-# B2
+# B8
 #########################################################
-python scripts/DevGui.py --ip 192.168.1.10 --userYaml config/config_B2_ch8_probeON_pulserON.py --liveDisplay 1
-python scripts/convertTestbeamData.py --boards 4 --infile testbench.txt
-ls testbench_*txt |awk '{print "python scripts/convertTestbeamData.py --boards 2 --infile " $0}'
 
+python scripts/DevGui.py --ip 192.168.1.10 --userYaml config/config_B2_ch8_probeON_pulserON.yml --liveDisplay 1
 
-python scripts/thresholdScan.py  --checkOFtoa True --checkOFtot True  --board 2 --ch 7 --Cd 0 --delay 2420 --minVth 370 --maxVth 450 --VthStep 10 --Q 13
+python scripts/thresholdScan.py  --checkOFtoa True --checkOFtot True  --board 2  --Cd 0 --delay 2420 --minVth 370 --maxVth 450 --VthStep 10 --ch 7 --Q 13
 
 python scripts/measureTOA.py -N 100 --debug False --display True --checkOFtoa True --checkOFtot False  --board 2 --ch 7 --Cd 0 --DAC 355 --Q 13 --delayMin 2300 --delayMax 2700 --delayStep 20 --out Data/delayScan_B_2_ch_7_13_355
 
@@ -15,14 +13,29 @@ python scripts/measureTOT.py -N 100 --debug False --display True --checkOFtoa Fa
 python scripts/measureTimeWalk.py -N 100 --board 2 --checkOFtoa False --checkOFtot False  --delay 2420 --QMin 5 --QMax 63 --QStep 10 --out Data/NoProbe --ch 7 --Cd 0 --DAC 355
 
 
+python scripts/measureTimeWalk.py --morePointsAtLowQ False --debug False --display True -N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 3 --Cd 0  --QMin 5 --QMax 63 --QStep 5 --out Data/test  --delay 2380  --ch 7  --DAC 340
+
+python scripts/measureTimeWalk.py --morePointsAtLowQ True --debug False --display True -N 200 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 13  --delay 2450  --QMin 3 --QMax 63 --QStep 1 --ch 7  --Cd 0 --DAC 400  --out Data/test
+
 python scripts/runTimeWalkScans.py  -b 2  > runTW_B2.sh
 python scripts/runTDCCalib.py  -b 2 --toa  > runTOA_B2.sh
 python scripts/runTDCCalib.py  -b 2 --tot  > runTOT_B2.sh
 
 
-###########################################
-#
-###########################################
+python scripts/runTimeWalkScans.py  -b 3  > runTW_B3.sh
+python scripts/runTDCCalib.py  -b 3 --toa  > runTOA_B3.sh
+python scripts/runTDCCalib.py  -b 3 --tot  > runTOT_B3.sh
 
-git commit -am "see log file"
-git push origin TestBenchNikola
+
+
+python scripts/runTimeWalkScans.py  -b 13  > runTW_B13.sh
+python scripts/runTDCCalib.py  -b 13 --toa  > runTOA_B13.sh
+python scripts/runTDCCalib.py  -b 13 --tot  > runTOT_B13.sh
+
+python scripts/runTimeWalkScans.py  -b 18  > runTW_B18.sh
+python scripts/runTDCCalib.py  -b 18 --toa  > runTOA_B18.sh
+python scripts/runTDCCalib.py  -b 18 --tot  > runTOT_B18.sh
+
+
+
+

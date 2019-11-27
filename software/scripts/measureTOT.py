@@ -170,6 +170,10 @@ def measureTOT( argsip,
         Configuration_LOAD_file = 'config/asic_config_B3.yml'
     elif board == 2:
         Configuration_LOAD_file = 'config/asic_config_B2.yml'
+    elif board == 13:
+        Configuration_LOAD_file = 'config/asic_config_B13.yml'
+    elif board == 18:
+        Configuration_LOAD_file = 'config/asic_config_B18.yml'
 
     # Setup root class
     top = feb.Top(ip = argsip, userYaml = [Configuration_LOAD_file])

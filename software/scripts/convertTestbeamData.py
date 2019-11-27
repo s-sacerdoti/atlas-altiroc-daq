@@ -41,7 +41,7 @@ def convertTBdata(inFiles):
         #name output equal to input
         output_files = []
         for fpga_index in range(number_of_fpgas):
-            inFile_base = inFile[:inFile.find('.dat')]
+            inFile_base = inFile[:inFile.find('.txt')]
             outFile_base = inFile_base+'_asicB'+str(args.boards[fpga_index])
             if args.suffix != None: outFile_base += '_'+args.suffix
             outFile_base += '.txt'

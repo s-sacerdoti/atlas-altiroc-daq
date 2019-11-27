@@ -45,7 +45,9 @@ from setASICconfig import set_pixel_specific_parameters        ##
                                                                ##
 #################################################################
 def acquire_data(top, useExt, pulserRange): 
-    pixel_stream = feb.PixelReader()    
+    pixel_stream = feb.PixelReader()
+    pixel_stream.checkOFtoa=False
+    pixel_stream.checkOFtot=True
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
     pixel_data = {
         'HitDataTOA' : [],
@@ -124,7 +126,8 @@ def parse_arguments():
     
     
     # Add arguments
-    parser.add_argument( "--ip", nargs ='+', required = False, default = ipIN, help = "List of IP addresses")  
+    parser.add_argument( "--ip", nargs ='+', required = False, default = ipIN, help = "List of IP addresses")
+    parser.add_argument( "--useProbe", type = argBool, required = False, default = False, help = "use probe")
     parser.add_argument( "--board", type = int, required = False, default = 7, help = "Choose board")  
     parser.add_argument( "--cfg", required = False, default = config_file, help = "Select yml configuration file to load")  
     parser.add_argument( "--useExt", type = argBool, required = False, default = False,help = "Use external trigger")
@@ -184,6 +187,11 @@ def measureTW(argsip,
     top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
 
     set_pixel_specific_parameters(top, pixel_number)
+    if not args.useProbe:
+        top.Fpga[0].Asic.Probe.en_probe_pa.set(0) # was bitset
+        top.Fpga[0].Asic.Probe.en_probe_dig.set(0) # was bitset
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x0)
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x0)#change the results!!!!
     
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
