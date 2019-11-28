@@ -98,20 +98,20 @@ if __name__ == "__main__":
         #qStep=5
         #chList=list(range(0,6))+list(range(7,15))
         dacRef={}
-        dacRef[0]=330
-        dacRef[1]=316
-        dacRef[2]=340
-        dacRef[3]=328
-        dacRef[4]=318
-        dacRef[5]=398
+        # dacRef[0]=330
+        # dacRef[1]=316
+        # dacRef[2]=340
+        # dacRef[3]=328
+        # dacRef[4]=318
+        # dacRef[5]=398
         dacRef[7]=322
-        dacRef[8]=350      
-        dacRef[9]=338  
-        dacRef[10]=332
-        dacRef[11]=354
-        dacRef[12]=374
-        dacRef[13]=358
-        dacRef[14]=362
+        # dacRef[8]=350      
+        # dacRef[9]=338  
+        # dacRef[10]=332
+        # dacRef[11]=354
+        # dacRef[12]=374
+        # dacRef[13]=358
+        # dacRef[14]=362
     elif board==18:
         cdList=[0]
         delay=2450
@@ -152,7 +152,7 @@ if __name__ == "__main__":
             #dacList+=[dac+40]
             dacList=list(range(dac,dac+41,8))
             #dacList=[dac]
-                        
+            
             for dac in dacList:                              
                 name='Data/thresscan_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_thres_%d_'%(board,Rin_Vpa,ch,cd,delay,dac)
                 if args.useVthc:

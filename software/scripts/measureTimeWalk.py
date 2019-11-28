@@ -330,15 +330,16 @@ def measureTimeWalk(argsip,
 
 
        okTOA=np.array(pixel_data['HitDataTOA'][iQ])!=127 #used to remove saturated toa
-       print(len(pixel_data['HitDataTOTf'][iQ]),len(pixel_data['HitDataTOTc'][iQ]),len(pixel_data['HitDataTOA'][iQ]),len(okTOA),'toto')
+       okTOTc=np.array(pixel_data['HitDataTOA'][iQ])!=127 #used to remove saturated toa
+
 
 
 
        
        TOAmean=np.mean(np.array(pixel_data['HitDataTOA'][iQ])[okTOA])*args.LSBTOA
        TOArms=np.std(np.array(pixel_data['HitDataTOA'][iQ])[okTOA])*args.LSBTOA
-       TOTcmean=np.mean(np.array(pixel_data['HitDataTOTc'][iQ])[okTOA])
-       TOTcrms=np.std(np.array(pixel_data['HitDataTOTc'][iQ])[okTOA])
+       TOTcmean=np.mean(np.array(pixel_data['HitDataTOTc'][iQ])[okTOTc])
+       TOTcrms=np.std(np.array(pixel_data['HitDataTOTc'][iQ])[okTOTc])
        TOTfmean=np.mean(np.array(pixel_data['HitDataTOTf'][iQ])[okTOA])
        TOTfrms=np.std(np.array(pixel_data['HitDataTOTf'][iQ])[okTOA])
        if args.ch<15:
@@ -351,7 +352,7 @@ def measureTimeWalk(argsip,
        if not math.isnan(TOAmean):TOAMeanArray[iQ]=TOAmean
        if not math.isnan(TOArms):TOARMSArray[iQ]=TOArms
        if not math.isnan(TOTcmean):TOTcMeanArray[iQ]=TOTcmean
-       if not math.isnan(TOTcrms):TOTcRMSArray[iQ]=TOTcrms
+       if not math.isnan(TOTcrms) and  not math.isnan(TOTcmean) and TOTcmean>0:TOTcRMSArray[iQ]=TOTcrms/TOTcmean
        if not math.isnan(TOTmean):TOTMeanArray[iQ]=TOTmean
        if not math.isnan(TOTrms):TOTRMSArray[iQ]=TOTrms
 
@@ -379,7 +380,7 @@ def measureTimeWalk(argsip,
     #################################################################
     #Plotting
     #################################################################
-    if args.display:
+    if True:
 
         QTitle="Q [dac]"
         TOTTitle="TOT [ps]"
@@ -419,21 +420,21 @@ def measureTimeWalk(argsip,
         ax2.set_ylim(bottom = 0, top = np.max(TOARMSArray)*1.1)
        # Plot (1,0) ; bottom left
 
-        ax3.scatter(QArray, TOTMeanArray)
+        ax3.scatter(QArray, TOTcMeanArray)
         ax3.grid(True)
         ax3.set_title('', fontsize = 11)
         ax3.set_xlabel(QTitle, fontsize = 10)
-        ax3.set_ylabel(TOTTitle, fontsize = 10)
+        ax3.set_ylabel(TOTcTitle, fontsize = 10)
         ax3.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
-        ax3.set_ylim(bottom = 0, top = np.max(TOTMeanArray)*1.1)
+        ax3.set_ylim(bottom = 0, top = np.max(TOTcMeanArray)*1.1)
 
-        ax4.scatter( TOTMeanArray, TOAMeanArray)
+        ax4.scatter( QArray, TOTcRMSArray)
         ax4.grid(True)
         ax4.set_title('', fontsize = 11)
-        ax4.set_xlabel(TOTTitle, fontsize = 10)
-        ax4.set_ylabel(TOATitle, fontsize = 10)
-        ax4.set_xlim(left = np.min(TOTMeanArray)*0.9, right = np.max(TOTMeanArray)*1.1)
-        ax4.set_ylim(bottom = 0, top = np.max(TOAMeanArray)*1.1)
+        ax4.set_xlabel(QTitle, fontsize = 10)
+        ax4.set_ylabel("RMS(TOTc)/<TOTc>", fontsize = 10)
+        ax4.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
+        ax4.set_ylim(bottom = 0, top = np.max(TOTcRMSArray)*1.1)
 
         ax5.scatter(QArray, TOAoffracArray)
         ax5.grid(True)
@@ -443,17 +444,25 @@ def measureTimeWalk(argsip,
         ax5.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
         ax5.set_ylim(bottom = 0, top = 1.1)
 
-
-        ax6.scatter(QArray, TOTcMeanArray)
+        ax6.scatter( TOTcMeanArray, TOAMeanArray)
         ax6.grid(True)
         ax6.set_title('', fontsize = 11)
-        ax6.set_xlabel(QTitle, fontsize = 10)
-        ax6.set_ylabel(TOTcTitle, fontsize = 10)
-        ax6.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
-        ax6.set_ylim(bottom = 0, top = np.max(TOTcMeanArray)*1.1)
+        ax6.set_xlabel(TOTcTitle, fontsize = 10)
+        ax6.set_ylabel(TOATitle, fontsize = 10)
+        ax6.set_xlim(left = np.min(TOTMeanArray)*0.9, right = np.max(TOTcMeanArray)*1.1)
+        ax6.set_ylim(bottom = 0, top = np.max(TOAMeanArray)*1.1)
+        
+        # ax6.scatter(QArray, TOTcMeanArray)
+        # ax6.grid(True)
+        # ax6.set_title('', fontsize = 11)
+        # ax6.set_xlabel(QTitle, fontsize = 10)
+        # ax6.set_ylabel(TOTcTitle, fontsize = 10)
+        # ax6.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
+        # ax6.set_ylim(bottom = 0, top = np.max(TOTcMeanArray)*1.1)
 
        #  plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
-        plt.show()
+        plt.savefig(outFile.replace(".csv",".pdf"))
+        if args.display:plt.show()
        #  #################################################################
 
         time.sleep(0.5)
