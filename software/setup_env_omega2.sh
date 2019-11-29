@@ -8,12 +8,13 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-source /home/hgtd-lal/anaconda3/etc/profile.d/conda.sh
 ## Activate Rogue conda Environment
-conda activate rogue_v2
+source /home/hgtd-lal/anaconda3/etc/profile.d/conda.sh
+conda activate rogue_V3
 
 # Python Package directories
 export SURF_DIR=${PWD}/../firmware/submodules/surf/python
 
 # Setup python path
 export PYTHONPATH=${PWD}/python:${SURF_DIR}:${PYTHONPATH}
+#export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3.7/site-packages/
