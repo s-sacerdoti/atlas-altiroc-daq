@@ -149,7 +149,13 @@ def parse_arguments():
 
     # Get the arguments
     args = parser.parse_args()
+    args.out='%sTW_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_thres_%d_'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.delay,args.DAC)
+    print(args.out)
+    print(outFile)
+
+
     return args
+
 
 
 

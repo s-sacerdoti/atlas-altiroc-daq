@@ -7,7 +7,7 @@ Top:
         RSTB_RAM: 0x1
         RST_COUNTER: 0x0
         DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
-        DlyCalPulseReset: 0 # Falling edge of EXT_TRIG
+        DlyCalPulseReset: 0 # Falling edge of EXT_TRIG, keeps ext trig OFF
       TdcClk:
         Tdc40MHzClkSel: Pll
         FpgaTdcClkHigh: 0x1
@@ -23,63 +23,32 @@ Top:
         EnPcieLocalTrig: 0x0
         EnLemoRemoteTrig: 0x0
         MasterModeSel: OR
-        ReadoutStartDly: 0x80
+        ReadoutStartDly: 0x128
         TrigSizeBeforePause: 0x0
         DeadtimeDuration: 0x0
         EnableReadout: 0x1
-      ##########################################################################
+
       SlowControl:
         ########################
         EN_ck_SRAM[:]: 0x1
         ON_Ctest[:]: 0x0
         disable_pa[:]: 0x0
-
-        ########################
-        #Threshold alignment. DAC cor 7 bits 0x40= 64 decimal (mid range) #
-        bit_vth_cor[0]: 64 # B3 HS
-        bit_vth_cor[1]: 45 # 55
-        bit_vth_cor[2]: 89
-        bit_vth_cor[3]: 67
-        bit_vth_cor[4]: 83
-        bit_vth_cor[5]: 53
-        bit_vth_cor[6]: 65
-        bit_vth_cor[7]: 72
-        bit_vth_cor[8]: 61
-        bit_vth_cor[9]: 0x40 # B3 HS
-        bit_vth_cor[10]: 77 #92
-        bit_vth_cor[11]: 55
-        bit_vth_cor[12]: 65
-        bit_vth_cor[13]: 56 #71
-        bit_vth_cor[14]: 51
-
-        bit_vth_cor[15]: 55 #60
-        bit_vth_cor[16]: 66 #71
-        bit_vth_cor[17]: 62 #67
-        bit_vth_cor[18]: 58 #63
-        bit_vth_cor[19]: 47 #51
-        bit_vth_cor[20]: 49 #54
-        bit_vth_cor[21]: 0x40 # B3 HS
-        bit_vth_cor[22]: 60 #63
-        bit_vth_cor[23]: 57 #60
-        bit_vth_cor[24]: 83 #86 
-        ########################
-
-        ########################
+        bit_vth_cor[:]: 0x40
         ON_discri[:]: 0x0
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
-        cBit_f_TOA[:]: 0x0        
+        cBit_f_TOA[:]: 0x0     # increase to 0 to f to reduce LSB while keeping cBit_s_TOA=0   
         cBit_s_TOA[:]: 0x0
         cBit_f_TOT[:]: 0x0
         cBit_s_TOT[:]: 0x0
-        cBit_c_TOT[:]: 0x0
+        cBit_c_TOT[:]: 0xf
         
-        DLL_ALockR_en: 0x1
-        CP_b: 0x5 #5
+        DLL_ALockR_en: 0x0 # should be kept to 1
+        CP_b: 0x5 #5 WO Ileak on Vctrl, Charge pump I only detremines the velocity of DLL locking and not the value to which it locks
         
-        ext_Vcrtlf_en: 0x0 # B3 Strap not needed
-        ext_Vcrtls_en: 0x1 # B3 strap needed
-        ext_Vcrtlc_en: 0x1 # B3 strap needed
+        ext_Vcrtlf_en: 0x0 # strap needed but en can be set to 0 (initial value obtained on rstb_dll), 28 oct strap not needed since 100 nF removed??
+        ext_Vcrtls_en: 0x0 # strap needed but en can be set to 0 (initial value obtained on rstb_dll) 28 oct strap not needed since 100 nF removed??
+        ext_Vcrtlc_en: 0x0 # strap not needed. en can be set to 0 (initial value obtained on rstb_dll)
 
         totf_satovfw: 0x1
         totc_satovfw: 0x1
@@ -90,22 +59,22 @@ Top:
         SatFTz: 0x4 #4
         IntFTz: 0x1 #1  
       
-        cBitf: 0x0 #0
+        cBitf: 0x0 #0 # decrease from f to 0 to reduce LSB while increasing cBits to f 
         cBits: 0x0 #f
         cBitc: 0x0 #f      
       
-        Rin_Vpa: 0x0 #0
+        Rin_Vpa: 0x0 #0 0 => 25K, 1 => 15K. Set to 1 to avoid couplings with TOA busyb (sensor)
         Cp_Vpa: 0x0
       
-        cd[0]: 0x0
-        cd[1]: 0x0 
-        cd[2]: 0x0 
+        cd[0]: 0x0 #6
+        cd[1]: 0x0 #6
+        cd[2]: 0x0 #6
    
-        dac_biaspa: 30 #10
+        dac_biaspa: 0x1e #10
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 310 #173 / 183
+        #DAC10bit: 310 #173 / 183
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1
@@ -115,7 +84,7 @@ Top:
         Shifted_ck40: 0x0
         #dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
 
-
+      
       ##########################################################################
       Readout:
         #####################
@@ -126,10 +95,9 @@ Top:
         RckHighWidth: 0x2   # Min. tuned on 18JULY2019:LLR
         RckLowWidth: 0x2    # Min. tuned on 18JULY2019:LLR
         #####################
-        RestoreProbeConfig: 0x1
+        RestoreProbeConfig: 0x1 #1 sets probe in previous config
         EnProbeWrite: 0x1
         OnlySendFirstHit: 0x1
-        #####################
         #Probe cofiguration
         EnProbeDigOutDisc: 0x0
         EnProbeDigSelect: 0x0
