@@ -42,14 +42,14 @@ if __name__ == "__main__":
     qStep=1
     board=args.board
     N=100
-    Rin_Vpa=0
+    Rin_Vpa=1
     delay=2450
     chList=None
     dacList=None
     
 
     if board==2:
-        chList=list(range(15,25))+[5,6,7,8,10,12,13,14]
+        chList=[5,6,7,8,10,12,13,14]#list(range(15,25))+
         dacList=range(300,440,10)
         dacRef={}
         dacRef[5]=354
@@ -86,7 +86,8 @@ if __name__ == "__main__":
         dacRef[9]=297
         dacRef[14]=309
     elif board==13:
-        #chList=list(range(0,6))+list(range(7,15))
+        chList=list(range(0,6))+list(range(7,15))
+        dacList=range(300,440,10)
         dacRef={}
         dacRef[0]=330
         dacRef[1]=310
