@@ -43,37 +43,41 @@ if __name__ == "__main__":
     qStep=1
     board=args.board
     NTOA=100
-    NTOT=100
+    NTOT=50
     totDelayMin=700
     totDelayMax=3000
-    totDelayStep=1   #Need 1 for TOTf
-    
-    if board==8:
+    totDelayStep=10   #Need 1 for TOTf
+    chList=list(range(0,25))
+        
+    toaDelayStep=1
+    if board==2:
+        toaDelayMin=1800
+        toaDelayMax=2300
+        #chList=[7,8,6,10,12,13,14,5]
+    elif board==3:
         toaDelayMin=1900
         toaDelayMax=2300
-        chList=[4,9,14]
-    elif board==2:
-        toaDelayMin=1800
+        #chList=list(range(2,9))+list(range(10,15))+[1]
+    elif board==8:
+        toaDelayMin=1900
         toaDelayMax=2300
-        chList=[7,8,6,10,12,13,14,5]
-    elif board==3:
-        toaDelayMin=1800
-        toaDelayMax=2300
-        chList=list(range(2,9))+list(range(10,15))+[1]
+        #chList=[4,9,14]
     elif board==13:
-        toaDelayMin=1850
+        toaDelayMin=1900
+        toaDelayMax=2300
+    elif board==15:
+        toaDelayMin=1900
         toaDelayMax=2350
-        chList=list(range(0,25))
     elif board==18:
         toaDelayMin=1900
         toaDelayMax=2350
-        chList=[0,1,2,3,5,9,10,11,12,13,14]
+        #chList=[0,1,2,3,5,9,10,11,12,13,14]
     
 
     for ch in chList:
         if args.toa:
             nameTOA='Data/delayScanTrigExt_B_%d_ch_%d_'%(board,ch)
-            cmdTOA="python scripts/measureTOA.py -N %s --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --ch %d --useExt True --delayMin %d --delayMax %d --delayStep 1  --out %s"%(NTOA,board,ch,toaDelayMin,toaDelayMax,nameTOA)
+            cmdTOA="python scripts/measureTOA.py -N %s --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --ch %d --useExt True --delayMin %d --delayMax %d --delayStep %d  --out %s"%(NTOA,board,ch,toaDelayMin,toaDelayMax,toaDelayStep,nameTOA)
             print(cmdTOA)
             print("sleep 5")
 

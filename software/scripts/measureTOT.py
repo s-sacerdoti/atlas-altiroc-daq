@@ -62,6 +62,7 @@ def acquire_data(top, pulser, PulserRange, using_TZ_TOT):
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
     pixel_data = {
         'allTOTdata' : [],
+        'HitDataTOA': [],
         'HitDataTOTf': [],
         'HitDataTOTc': [],
         'HitDataTOTc_int1': []
@@ -80,7 +81,9 @@ def acquire_data(top, pulser, PulserRange, using_TZ_TOT):
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
 
+        pixel_data['HitDataTOA'].append( pixel_stream.HitDataTOA.copy() )
         if using_TZ_TOT:
+            pixel_data['allTOTdata'].append( pixel_stream.HitDataTOT.copy() )
             pixel_data['HitDataTOTf'].append( pixel_stream.HitDataTOTf_tz.copy() )
             pixel_data['HitDataTOTc'].append( pixel_stream.HitDataTOTc_tz.copy() )
             pixel_data['HitDataTOTc_int1'].append( pixel_stream.HitDataTOTc_int1_tz.copy() )
@@ -121,7 +124,6 @@ def parse_arguments():
     parser.add_argument( "--display", type = argBool, required = False, default = True, help = "show plots")
     parser.add_argument( "--debug", type = argBool, required = False, default = True, help = "debug")
     parser.add_argument( "--useProbePA", type = argBool, required = False, default = False, help = "use probe PA")
-
     parser.add_argument( "--checkOFtoa", type = argBool, required = False, default = True, help = "check TOA overflow")
     parser.add_argument( "--checkOFtot", type = argBool, required = False, default = True, help = "check TOT overflow")
     parser.add_argument( "--useProbeDiscri", type = argBool, required = False, default = False, help = "use probe Discri")
@@ -132,7 +134,7 @@ def parse_arguments():
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
     parser.add_argument("--DAC", type = int, required = False, default = DAC_Vth, help = "DAC vth")
-    parser.add_argument("--useTZ", type = argBool, required = False, default = using_TZ_tot, help = "TOT TDC Processing")
+    #parser.add_argument("--useTZ", type = argBool, required = False, default = using_TZ_tot, help = "TOT TDC Processing")
     parser.add_argument("--pulserMin",  type = int, required = False, default = pulserMin,  help = "pulser start")
     parser.add_argument("--pulserMax",  type = int, required = False, default = pulserMax,  help = "pulser stop")
     parser.add_argument("--pulserStep", type = int, required = False, default = pulserStep, help = "pulser step")
@@ -172,6 +174,8 @@ def measureTOT( argsip,
         Configuration_LOAD_file = 'config/asic_config_B2.yml'
     elif board == 13:
         Configuration_LOAD_file = 'config/asic_config_B13.yml'
+    elif board == 15:
+        Configuration_LOAD_file = 'config/asic_config_B15.yml'
     elif board == 18:
         Configuration_LOAD_file = 'config/asic_config_B18.yml'
 
@@ -349,6 +353,7 @@ def measureTOT( argsip,
       print (pulser,pulser-fallEdge,len(pixel_data['HitDataTOTc'][ipuls]))
       for itot in range(len(pixel_data['HitDataTOTc'][ipuls])):
         ff.write(str(pulser)+' '+str(pixel_data['allTOTdata'][ipuls][itot])+' '+str(pixel_data['HitDataTOTc'][ipuls][itot])+' '+str(pixel_data['HitDataTOTf'][ipuls][itot])+'\n')
+        #print(str(pixel_data['HitDataTOTc'][ipuls][itot]), str(pixel_data['HitDataTOA'][ipuls][itot]))
     #ff.write('TOAvalues = '+str(HitDataTOT)+'\n')
     ff.close()
     
@@ -375,79 +380,81 @@ def measureTOT( argsip,
         linear_fit_slope = np.polyfit(fit_x_values, fit_y_values, 1)[0]
         slope = DelayStep/abs(linear_fit_slope)
     
-    if args.display:
-        #################################################################
-        # Plot Data
 
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
+    #################################################################
+    # Plot Data
 
-        # Plot (0,0) ; top left
-        ax1.plot(PulserRange, DataMeanTOT)
-        ax1.grid(True)
-        ax1.set_title('TOT Measurment VS Injected Charge', fontsize = 11)
-        ax1.set_xlabel('Pulser DAC Value', fontsize = 10)
-        ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
-        ax1.legend(['slope: %f ' % slope],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-        ax1.set_xlim(left = PulserRange.start, right = PulserRange.stop)
-        ax1.set_ylim(bottom = 0, top = np.max(DataMeanTOT)*1.1)
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
 
-        # Plot (0,1) ; top right
-        if PlotValidCnt == 0:
-            ax2.scatter(PulserRange, DataStdevTOT)
-            ax2.grid(True)
-            ax2.set_title('TOT Jitter VS Injected Charge', fontsize = 11)
-            ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
-            ax2.set_ylabel('Std. Dev. [ps]', fontsize = 10)
-            ax2.legend(['Average Std. Dev. = %f ps' % MeanDataStdevTOT], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-            ax2.set_xlim(left = PulserRange.start, right = PulserRange.stop)
-            ax2.set_ylim(bottom = 0, top = np.max(DataStdevTOT)*1.1)
-        else:
-            ax2.plot(PulserRange, ValidTOTCnt)
-            ax2.grid(True)
-            ax2.set_title('TOT Valid Counts VS Injected Charge', fontsize = 11)
-            ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
-            ax2.set_ylabel('Valid Measurements', fontsize = 10)
-            ax2.set_xlim(left = PulserRange.start, right = PulserRange.stop)
-            ax2.set_ylim(bottom = 0, top = np.max(ValidTOTCnt)*1.1)
+    # Plot (0,0) ; top left
+    ax1.plot(PulserRange, DataMeanTOT)
+    ax1.grid(True)
+    ax1.set_title('TOT Measurment VS Injected Charge', fontsize = 11)
+    ax1.set_xlabel('Pulser DAC Value', fontsize = 10)
+    ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
+    ax1.legend(['slope: %f ' % slope],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+    ax1.set_xlim(left = PulserRange.start, right = PulserRange.stop)
+    ax1.set_ylim(bottom = 0, top = np.max(DataMeanTOT)*1.1)
 
-        # Plot (1,0)
+    # Plot (0,1) ; top right
+    if PlotValidCnt == 0:
+        ax2.scatter(PulserRange, DataStdevTOT)
+        ax2.grid(True)
+        ax2.set_title('TOT Jitter VS Injected Charge', fontsize = 11)
+        ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
+        ax2.set_ylabel('Std. Dev. [ps]', fontsize = 10)
+        ax2.legend(['Average Std. Dev. = %f ps' % MeanDataStdevTOT], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+        ax2.set_xlim(left = PulserRange.start, right = PulserRange.stop)
+        ax2.set_ylim(bottom = 0, top = np.max(DataStdevTOT)*1.1)
+    else:
+        ax2.plot(PulserRange, ValidTOTCnt)
+        ax2.grid(True)
+        ax2.set_title('TOT Valid Counts VS Injected Charge', fontsize = 11)
+        ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
+        ax2.set_ylabel('Valid Measurements', fontsize = 10)
+        ax2.set_xlim(left = PulserRange.start, right = PulserRange.stop)
+        ax2.set_ylim(bottom = 0, top = np.max(ValidTOTCnt)*1.1)
 
-        TOT_index_to_plot = -1
-        for pulse_index, pulse_value in enumerate(PulserRange): #find a good delay value to plot
-            #I'd say having 80% of hits come back is good enough to plot
-            if ValidTOTCnt[pulse_index] > args.N * 0.8:
-                TOT_index_to_plot = pulse_index
-                break
+    # Plot (1,0)
 
-        HitDataTOTf = pixel_data['HitDataTOTf'][TOT_index_to_plot]
-        HitDataTOTc = pixel_data['HitDataTOTc'][TOT_index_to_plot]
-        HitDataTOT = HitDataTOT_list[TOT_index_to_plot]
+    TOT_index_to_plot = -1
+    for pulse_index, pulse_value in enumerate(PulserRange): #find a good delay value to plot
+        #I'd say having 80% of hits come back is good enough to plot
+        if ValidTOTCnt[pulse_index] > args.N * 0.8:
+            TOT_index_to_plot = pulse_index
+            break
 
-        if TOT_index_to_plot != -1:
-            if TOTf_hist:
-                ax3.hist(HitDataTOTf, bins = np.arange(9), align = 'left', edgecolor = 'k', color = 'royalblue')
-                ax3.set_xlim(left = -1, right = 8)
-            elif TOTc_hist:
-                ax3.hist(HitDataTOTc, bins = np.arange(129), align = 'left', edgecolor = 'k', color = 'royalblue')
-                ax3.set_xlim(left = -1, right = 128)
-            elif len(HitDataTOT) > 1:
-                ax3.hist(HitDataTOT, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')
-                ax3.set_xlim(left = np.min(HitDataTOT)-10*LSB_TOTf_mean, right = np.max(HitDataTOT)+10*LSB_TOTf_mean)
-            ax3.set_title('TOT Measurment for Pulser = %d' % TOT_index_to_plot, fontsize = 11)
-            ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
-            ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[TOT_index_to_plot], DataStdevTOT[TOT_index_to_plot], ValidTOTCnt[TOT_index_to_plot])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-            ax3.set_ylabel('N of Measrements', fontsize = 10)
+    HitDataTOTf = pixel_data['HitDataTOTf'][TOT_index_to_plot]
+    HitDataTOTc = pixel_data['HitDataTOTc'][TOT_index_to_plot]
+    HitDataTOT = HitDataTOT_list[TOT_index_to_plot]
 
-        # Plot (1,1)
-        ax4.hist(HitDataTOTf_cumulative, bins = np.arange(9), edgecolor = 'k', color = 'royalblue')
-        ax4.set_xlim(left = -1, right = 8)
-        ax4.grid(True)
-        ax4.set_title('TOT Fine Interpolation Linearity', fontsize = 11)
-        ax4.set_xlabel('TOT Fine Code', fontsize = 10)
-        ax4.set_ylabel('N of Measrements', fontsize = 10)
+    if TOT_index_to_plot != -1:
+        if TOTf_hist:
+            ax3.hist(HitDataTOTf, bins = np.arange(9), align = 'left', edgecolor = 'k', color = 'royalblue')
+            ax3.set_xlim(left = -1, right = 8)
+        elif TOTc_hist:
+            ax3.hist(HitDataTOTc, bins = np.arange(129), align = 'left', edgecolor = 'k', color = 'royalblue')
+            ax3.set_xlim(left = -1, right = 128)
+        elif len(HitDataTOT) > 1:
+            ax3.hist(HitDataTOT, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')
+            ax3.set_xlim(left = np.min(HitDataTOT)-10*LSB_TOTf_mean, right = np.max(HitDataTOT)+10*LSB_TOTf_mean)
+        ax3.set_title('TOT Measurment for Pulser = %d' % TOT_index_to_plot, fontsize = 11)
+        ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
+        ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[TOT_index_to_plot], DataStdevTOT[TOT_index_to_plot], ValidTOTCnt[TOT_index_to_plot])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+        ax3.set_ylabel('N of Measrements', fontsize = 10)
 
-        plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
-        plt.show()
+    # Plot (1,1)
+    ax4.hist(HitDataTOTf_cumulative, bins = np.arange(9), edgecolor = 'k', color = 'royalblue')
+    ax4.set_xlim(left = -1, right = 8)
+    ax4.grid(True)
+    ax4.set_title('TOT Fine Interpolation Linearity', fontsize = 11)
+    ax4.set_xlabel('TOT Fine Code', fontsize = 10)
+    ax4.set_ylabel('N of Measrements', fontsize = 10)
+
+    plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
+
+    plt.savefig(outFile+".pdf")
+    if args.display:plt.show()
     #################################################################
     
     time.sleep(0.5)
@@ -460,4 +467,7 @@ if __name__ == "__main__":
     args = parse_arguments()
     print(args)
 
-    measureTOT(args.ip, args.board, args.useExt, args.cfg, args.ch, args.Q, args.DAC, args.useTZ, args.pulserMin, args.pulserMax, args.pulserStep, args.out)
+    useTZ=False
+    if int(args.ch)>=15:
+        useTZ=True
+    measureTOT(args.ip, args.board, args.useExt, args.cfg, args.ch, args.Q, args.DAC, useTZ, args.pulserMin, args.pulserMax, args.pulserStep, args.out)
