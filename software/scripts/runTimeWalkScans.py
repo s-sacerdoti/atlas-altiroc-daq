@@ -36,8 +36,9 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
 
+
     cdList=[0]
-    qMin=3
+    qMin=2
     qMax=63
     qStep=1
     board=args.board
@@ -46,19 +47,20 @@ if __name__ == "__main__":
     delay=2450
     chList=None
     dacList=None
-    
 
+    f=open("runTW_B"+str(board)+".sh","w")
+    
     if board==2:
         chList=[5,6,7,8,10,12,13,14]#list(range(15,25))+
-        dacList=range(300,440,10)
+        #dacList=range(300,440,10)
         dacRef={}
-        dacRef[5]=354
-        dacRef[6]=362
+        dacRef[5]=350
+        dacRef[6]=360
         dacRef[7]=350
-        dacRef[8]=326
-        dacRef[10]=378
-        dacRef[12]=322
-        dacRef[13]=346
+        dacRef[8]=330
+        dacRef[10]=380
+        dacRef[12]=320
+        dacRef[13]=340
         dacRef[14]=330
     elif board==3:
         #chList=list(range(1,9))+list(range(10,15))
@@ -78,13 +80,33 @@ if __name__ == "__main__":
         dacRef[13]=382
         dacRef[14]=418        
     elif board==8:
-        chList=[4,9,14]
-        cdList=[4,7]
+        chList=[4,9,14];
+        cdList=[4]
+        #chList=[4];cdList=range(0,8)
+        #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
+        cdList=[0];chList=list(range(0,15));
+        #chList=list(range(0,25))
         delay=2500
         dacRef={}
-        dacRef[4]=347
-        dacRef[9]=297
-        dacRef[14]=309
+        # dacRef[4]=350#347
+        # dacRef[9]=300#297
+        # dacRef[14]=310#309
+        dacRef[0]=   350 
+        dacRef[1]=   340  
+        dacRef[2]=   300
+        dacRef[3]=   350
+        dacRef[4]=   350
+        dacRef[5]=   350
+        dacRef[6]=   340#TOAfrac=0.2
+        dacRef[7]=   310#TOAfrac=0.2
+        dacRef[8]=   340
+        dacRef[9]=   300 
+        dacRef[10]=  370
+        dacRef[11]=  360
+        dacRef[12]=  340 
+        dacRef[13]=  380
+        dacRef[14]=  310#cd4 310  cd 0 320
+        
     elif board==13:
         #chList=list(range(0,6))+list(range(7,15))
         #chList=[7,12,21]
@@ -183,14 +205,16 @@ if __name__ == "__main__":
             else:
                 #dac list
                 dac=dacRef[ch]        
-                dacListLocal=list(range(dac,dac+41,8))
-                dacListLocal=list(range(dac-20,dac+21,10))
-                dacListLocal=[dac+40]
+                #dacListLocal=list(range(dac,dac+41,8))
+                #dacListLocal=list(range(dac-20,dac+21,10))
+                #dacListLocal=list(range(dac-8,dac+1,2))
+                dacListLocal=list(range(dac-10,dac+11,10))
+                dacListLocal=[dac]
                 #dacList=range(300,420,10)
             #print("============",ch,dacListLocal,dac)
 
 
-            
+            print(ch,cd,dacListLocal)
             for dac in dacListLocal:                              
                 #name='Data/thresscan_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_thres_%d_'%(board,Rin_Vpa,ch,cd,delay,dac)
                 name="Data/thresscan"
@@ -199,7 +223,9 @@ if __name__ == "__main__":
                 cmd="python scripts/measureTimeWalk.py --skipExistingFile True --morePointsAtLowQ False --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
                 if args.useVthc:
                    cmd+=" --Vthc %d" %dacCor[ch]
-                print(cmd)
-                print("sleep 5")
+                f.write(cmd+"\n")
+                f.write("sleep 5 \n")
+                #print(cmd)
+                #print("sleep 5")
                 #print dacList
                 
