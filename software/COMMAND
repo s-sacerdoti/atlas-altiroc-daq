@@ -17,29 +17,29 @@ python scripts/measureTimeWalk.py --morePointsAtLowQ False --debug False --displ
 
 
 
-python scripts/runTimeWalkScans.py  -b 2  > runTW_B2.sh
+python scripts/runTimeWalkScans.py  -b 2  
 python scripts/runTDCCalib.py  -b 2 --toa  > runTOA_B2.sh
 python scripts/runTDCCalib.py  -b 2 --tot  > runTOT_B2.sh
 
 
-python scripts/runTimeWalkScans.py  -b 3  > runTW_B3.sh
+python scripts/runTimeWalkScans.py  -b 3  
 python scripts/runTDCCalib.py  -b 3 --toa  > runTOA_B3.sh
 python scripts/runTDCCalib.py  -b 3 --tot  > runTOT_B3.sh
 
-python scripts/runTimeWalkScans.py  -b 8  > runTW_B8.sh
+python scripts/runTimeWalkScans.py  -b 8  
 python scripts/runTDCCalib.py  -b 8 --toa  > runTOA_B8.sh
 python scripts/runTDCCalib.py  -b 8 --tot  > runTOT_B8.sh
 
 
-python scripts/runTimeWalkScans.py  -b 15  > runTW_B15.sh
+python scripts/runTimeWalkScans.py  -b 15  
 python scripts/runTDCCalib.py  -b 15 --toa  > runTOA_B15.sh
 python scripts/runTDCCalib.py  -b 15 --tot  > runTOT_B15.sh
 
-python scripts/runTimeWalkScans.py  -b 13  > runTW_B13.sh
+python scripts/runTimeWalkScans.py  -b 13  
 python scripts/runTDCCalib.py  -b 13 --toa  > runTOA_B13.sh
 python scripts/runTDCCalib.py  -b 13 --tot  > runTOT_B13.sh
 
-python scripts/runTimeWalkScans.py  -b 18  > runTW_B18.sh
+python scripts/runTimeWalkScans.py  -b 18  
 python scripts/runTDCCalib.py  -b 18 --toa  > runTOA_B18.sh
 python scripts/runTDCCalib.py  -b 18 --tot  > runTOT_B18.sh
 

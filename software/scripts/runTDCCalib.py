@@ -48,7 +48,7 @@ if __name__ == "__main__":
     totDelayMax=3000
     totDelayStep=10   #Need 1 for TOTf
     chList=list(range(0,25))
-        
+    
     toaDelayStep=1
     if board==2:
         toaDelayMin=1800
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     elif board==8:
         toaDelayMin=1900
         toaDelayMax=2300
-        #chList=[4,9,14]
+        chList=[4,9,14,0,1,2,3,5,8]
     elif board==13:
         toaDelayMin=1900
         toaDelayMax=2300
@@ -72,19 +72,19 @@ if __name__ == "__main__":
         toaDelayMin=1900
         toaDelayMax=2350
         #chList=[0,1,2,3,5,9,10,11,12,13,14]
-    
+
 
     for ch in chList:
         if args.toa:
             nameTOA='Data/delayScanTrigExt_B_%d_ch_%d_'%(board,ch)
-            cmdTOA="python scripts/measureTOA.py -N %s --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --ch %d --useExt True --delayMin %d --delayMax %d --delayStep %d  --out %s"%(NTOA,board,ch,toaDelayMin,toaDelayMax,toaDelayStep,nameTOA)
+            cmdTOA="python scripts/measureTOA.py --skipExistingFile True -N %s --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --ch %d --useExt True --delayMin %d --delayMax %d --delayStep %d  --out %s"%(NTOA,board,ch,toaDelayMin,toaDelayMax,toaDelayStep,nameTOA)
             print(cmdTOA)
             print("sleep 5")
 
 
         if args.tot:
             nameTOT='Data/widthScanTrigExt_B_%d_ch_%d_'%(board,ch)
-            cmdTOT="python scripts/measureTOT.py -N %s --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --ch %d --useExt True --pulserMin %d --pulserMax %d --pulserStep %s --out %s"%(NTOT,board,ch,totDelayMin,totDelayMax,totDelayStep,nameTOT)
+            cmdTOT="python scripts/measureTOT.py --skipExistingFile True  -N %s --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --ch %d --useExt True --pulserMin %d --pulserMax %d --pulserStep %s --out %s"%(NTOT,board,ch,totDelayMin,totDelayMax,totDelayStep,nameTOT)
             print(cmdTOT)
             print("sleep 5")
 

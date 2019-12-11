@@ -119,6 +119,7 @@ def parse_arguments():
     
     
     # Add arguments
+    parser.add_argument( "--skipExistingFile", type = argBool, required = False, default = False, help = "")
     parser.add_argument( "--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP addresses")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
     parser.add_argument( "--display", type = argBool, required = False, default = True, help = "show plots")
@@ -161,7 +162,13 @@ def measureTOT( argsip,
 
     args = parse_arguments()
     PulserRange = range( pulserMin, pulserMax, pulserStep )
-   
+
+    if args.skipExistingFile and os.path.exists(outFile+'.txt'):
+        print ('output file already exist. Skip......')
+        sys.exit()
+
+
+    
     #choose config file:
     Configuration_LOAD_file = 'config/asic_config_B7.yml'
     if board == 8:
