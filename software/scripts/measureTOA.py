@@ -77,7 +77,6 @@ def parse_arguments():
     #default parameters
     pixel_number = 4
     DAC_Vth = 320
-    Qinj = 13 #10fc
     dlyMin = 2300 
     dlyMax = 2700 
     dlyStep = 10
@@ -88,6 +87,7 @@ def parse_arguments():
     
     # Add arguments
     parser.add_argument( "--skipExistingFile", type = argBool, required = False, default = False, help = "")
+    parser.add_argument("--Rin_Vpa", type = int, required = False, default = 0, help = "RinVpa")
     parser.add_argument( "--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP addresses")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
     parser.add_argument( "--display", type = argBool, required = False, default = True, help = "show plots")
@@ -101,15 +101,20 @@ def parse_arguments():
     parser.add_argument( "--useExt", type = argBool, required = False, default = False,help = "Use external trigger")
     parser.add_argument( "--cfg", type = str, required = False, default = config_file, help = "Select yml configuration file to load")  
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
-    parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
+    parser.add_argument("--Q", type = int, required = False, default = -1, help = "injected charge DAC")
     parser.add_argument("--DAC", type = int, required = False, default = DAC_Vth, help = "DAC vth")
     parser.add_argument("--delayMin", type = int, required = False, default = dlyMin, help = "scan start")
     parser.add_argument("--delayMax", type = int, required = False, default = dlyMax, help = "scan stop")
     parser.add_argument("--delayStep", type = int, required = False, default = dlyStep, help = "scan step")
     parser.add_argument("--out", type = str, required = False, default = outFile, help = "output file")
 
-    # Get the arguments
+        # Get the arguments
     args = parser.parse_args()
+    if args.useExt:
+        args.Q=-1
+    args.out='%sTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d_'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.Q,args.DAC)
+        
+
     return args
 #################################################################
 

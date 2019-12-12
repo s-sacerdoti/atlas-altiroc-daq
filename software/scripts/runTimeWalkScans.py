@@ -83,13 +83,13 @@ if __name__ == "__main__":
         qMin=1
         #chList=[4,9,14];
         #cdList=[4]
-        #chList=[4];cdList=range(0,8)
+        cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
-        cdList=[0];chList=list(range(0,15));dacList=range(360,400,20)#dacList=range(400,500,20)
+        #cdList=[0];chList=list(range(0,15));#dacList=range(360,400,20)#dacList=range(400,500,20)
         #cdList=[0,4];chList=[4]
         #chList=list(range(0,25))
         delayList=[2500]
-        #delayList=range(2475,2525+1,5)
+        #delayList=range(2450,2550+1,20)
         dacRef={}
         # dacRef[4]=350#347
         # dacRef[9]=300#297
@@ -203,23 +203,32 @@ if __name__ == "__main__":
         
     for ch in chList:
         for cd in cdList:
-            for delay in delayList:
-                if dacList is not None:
-                    dacListLocal=dacList
-                else:
-                    #dac list
-                    dac=dacRef[ch]        
-                    #dacListLocal=list(range(dac,dac+41,8))
-                    #dacListLocal=list(range(dac-20,dac+21,10))
-                    #dacListLocal=list(range(dac-8,dac+1,2))
-                    dacListLocal=list(range(dac-10,dac+11,10))
-                    dacListLocal=[dac]
-                    #dacList=range(300,420,10)
+            if dacList is not None:
+                dacListLocal=dacList
+            else:
+                #dac list
+                dac=dacRef[ch]        
+                #dacListLocal=list(range(dac,dac+41,8))
+                #dacListLocal=list(range(dac-20,dac+21,10))
+                #dacListLocal=list(range(dac-8,dac+1,2))
+                dacListLocal=list(range(dac-10,dac+11,10))
+                dacListLocal=[dac]
+                #dacList=range(300,420,10)
                 #print("============",ch,dacListLocal,dac)
 
+            print(ch,cd,delayList,dacListLocal)
+            
+            for dac in dacListLocal:   
 
-                print(ch,cd,delay,dacListLocal)
-                for dac in dacListLocal:                              
+                #for Q in range(3,22,1):
+                for Q in [6,8,10]:#,8,10,14,16,18,20,22]:
+                #for Q in [4,5,16,8,10,14,18,20,22]:
+                #for Q in [3,7,9,11,13,15,17,19,21]:
+                    cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin 2300 --delayMax 2700 --delayStep 10 --out Data/delay"%(cd,ch,board,dac,Q)
+                    f.write(cmd+"\n sleep 5 \n")
+
+                
+                for delay in delayList:
                     #name='Data/thresscan_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_thres_%d_'%(board,Rin_Vpa,ch,cd,delay,dac)
                     name="Data/thresscan"
                     if args.useVthc:
@@ -227,9 +236,8 @@ if __name__ == "__main__":
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --morePointsAtLowQ False --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
                     if args.useVthc:
                        cmd+=" --Vthc %d" %dacCor[ch]
-                    f.write(cmd+"\n")
-                    f.write("sleep 5 \n")
-                    #print(cmd)
-                    #print("sleep 5")
-                    #print dacList
+                    #f.write(cmd+"\n sleep 5 \n")
 
+
+
+            

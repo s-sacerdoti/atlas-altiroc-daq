@@ -49,10 +49,6 @@ python scripts/runTDCCalib.py  -b 18 --tot  > runTOT_B18.sh
 
 
 
-python scripts/measureTimeWalk.py --morePointsAtLowQ False --debug False --display False -N 1000 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 13  --delay 2450  --QMin 3 --QMax 63 --QStep 1 --out Data/thresscan_B_13_rin_0_ch_7_cd_0_delay_2450_thres_360_  --ch 7  --Cd 0 --DAC 360 --Rin_Vpa 0
-python scripts/measureTimeWalk.py --morePointsAtLowQ False --debug False --display False -N 1000 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 13  --delay 2450  --QMin 3 --QMax 63 --QStep 1 --out Data/thresscan_B_13_rin_0_ch_7_cd_0_delay_2450_thres_380_  --ch 7  --Cd 0 --DAC 380 --Rin_Vpa 0
-python scripts/measureTimeWalk.py --morePointsAtLowQ False --debug False --display False -N 1000 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 13  --delay 2450  --QMin 3 --QMax 63 --QStep 1 --out Data/thresscan_B_13_rin_0_ch_7_cd_0_delay_2450_thres_400_  --ch 7  --Cd 0 --DAC 400 --Rin_Vpa 0
-python scripts/measureTimeWalk.py --morePointsAtLowQ False --debug False --display False -N 1000 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 13  --delay 2450  --QMin 3 --QMax 63 --QStep 1 --out Data/thresscan_B_13_rin_0_ch_7_cd_0_delay_2450_thres_420_  --ch 7  --Cd 0 --DAC 420 --Rin_Vpa 0
-python scripts/measureTimeWalk.py --morePointsAtLowQ False --debug False --display False -N 1000 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 13  --delay 2450  --QMin 3 --QMax 63 --QStep 1 --out Data/thresscan_B_13_rin_0_ch_12_cd_0_delay_2450_thres_430_  --ch 12  --Cd 0 --DAC 430 --Rin_Vpa 0
-python scripts/measureTimeWalk.py --morePointsAtLowQ False --debug False --display False -N 1000 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 13  --delay 2450  --QMin 3 --QMax 63 --QStep 1 --out Data/thresscan_B_13_rin_0_ch_12_cd_0_delay_2450_thres_450_  --ch 12  --Cd 0 --DAC 450 --Rin_Vpa 0
-python scripts/measureTimeWalk.py --morePointsAtLowQ False --debug False --display False -N 1000 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 13  --delay 2450  --QMin 3 --QMax 63 --QStep 1 --out Data/thresscan_B_13_rin_0_ch_21_cd_0_delay_2450_thres_380_  --ch 21  --Cd 0 --DAC 380 --Rin_Vpa 0
+
+python scripts/measureTOA.py --skipExistingFile False -N 500 --debug False --display False --checkOFtoa False --checkOFtot False --ch 1 --board 8 --DAC 450 --Q 13 --delayMin 2350 --delayMax 2650 --out Data/delayPulser_B_8_ch_24_
+

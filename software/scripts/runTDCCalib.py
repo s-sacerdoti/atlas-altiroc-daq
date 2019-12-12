@@ -42,7 +42,7 @@ if __name__ == "__main__":
     qMax=63
     qStep=1
     board=args.board
-    NTOA=100
+    NTOA=500
     NTOT=50
     totDelayMin=700
     totDelayMax=3000
@@ -59,9 +59,9 @@ if __name__ == "__main__":
         toaDelayMax=2300
         #chList=list(range(2,9))+list(range(10,15))+[1]
     elif board==8:
-        toaDelayMin=1900
+        toaDelayMin=1950
         toaDelayMax=2300
-        chList=[4,9,14,0,1,2,3,5,8]
+        #chList=[4,9,14]
     elif board==13:
         toaDelayMin=1900
         toaDelayMax=2300
