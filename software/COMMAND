@@ -5,6 +5,7 @@
 python scripts/DevGui.py --ip 192.168.1.10 --userYaml config/config_B2_ch8_probeON_pulserON.yml --liveDisplay 1
 
 python scripts/thresholdScan.py  --checkOFtoa True --checkOFtot True  --board 2  --Cd 0 --delay 2420 --minVth 370 --maxVth 450 --VthStep 10 --ch 7 --Q 13
+python scripts/thresholdScan.py  --checkOFtoa True --checkOFtot True  --board 8  --Cd 4 --delay 2420 --minVth 300 --maxVth 450 --VthStep 5 --ch 4 --Q 4
 
 python scripts/measureTOA.py -N 100 --debug False --display True --checkOFtoa True --checkOFtot False  --board 2 --ch 7 --Cd 0 --DAC 355 --Q 13 --delayMin 2300 --delayMax 2700 --delayStep 20 --out Data/delayScan_B_2_ch_7_13_355
 
