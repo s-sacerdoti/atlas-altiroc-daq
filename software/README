@@ -1,0 +1,13 @@
+B2: bias voltage -70V
+
+source runTW_B2.sh
+
+B8:
+
+source runTW_B8.sh
+
+
+
+
+
+Les data se trouvent dans Data/

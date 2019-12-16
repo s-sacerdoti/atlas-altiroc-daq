@@ -82,7 +82,7 @@ if __name__ == "__main__":
     elif board==8:
         qMin=1
         #chList=[4,9,14];
-        cdList=[4];chList=[4]#,9,14];
+        #cdList=[4];chList=[4]#,9,14];
         #cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
         #cdList=[0];chList=list(range(0,15));#dacList=range(360,400,20)#dacList=range(400,500,20)
@@ -220,10 +220,8 @@ if __name__ == "__main__":
             
             for dac in dacListLocal:   
 
-                for Q in range(3,27,1):
-                #for Q in [6,8,10]:#,8,10,14,16,18,20,22]:
-                #for Q in [4,5,16,8,10,14,18,20,22]:
-                #for Q in [3,7,9,11,13,15,17,19,21]:
+                #for Q in range(3,27,1):
+                for Q in [6,8]:#,8,10,14,16,18,20,22]:
                     cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin 2200 --delayMax 2700 --delayStep 1 --out Data/delay"%(cd,ch,board,dac,Q)
                     f.write(cmd+"\n sleep 5 \n")
 
