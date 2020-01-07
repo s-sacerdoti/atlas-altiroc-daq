@@ -24,7 +24,7 @@ fallEdge = 3000
 TOTf_hist = True
 TOTc_hist = True
 Plot_TOTf_lin = 1
-PlotValidCnt = 1
+
 
 TOT_f_Calibration_SAVE_file = 'TestData/TOT_fine_calibration2.txt'  # <= Path to the File where TOT Fine-Interpolation Calibration Data are Saved
 
@@ -52,6 +52,21 @@ from setASICconfig import set_pixel_specific_parameters        ##
 #################################################################
 
 
+
+def getSlope(PulserRange,DataMeanTOT,DelayStep):
+    
+    nonzero = DataMeanTOT != 0
+    safety_bound = 2 #so we don't measure too close to the edges of the pulse 
+    Delay = np.array(PulserRange)
+    fit_x_values = Delay[nonzero][safety_bound:-safety_bound]
+    fit_y_values = DataMeanTOT[nonzero][safety_bound:-safety_bound]
+    if len(fit_x_values) == 0: 
+        slope = 99999
+    else:
+        linear_fit_slope = np.polyfit(fit_x_values, fit_y_values, 1)[0]
+        slope = DelayStep/abs(linear_fit_slope)
+    return slope
+    
 def acquire_data(top, pulser, PulserRange, using_TZ_TOT): 
     pixel_stream = feb.PixelReader()
     pixel_stream.checkOFtoa=args.checkOFtoa
@@ -143,6 +158,7 @@ def parse_arguments():
 
     # Get the arguments
     args = parser.parse_args()
+    args.out='%sTOT_B_%d_ch_%d_'%(args.out,args.board,args.ch)
     return args
 #################################################################
 
@@ -237,13 +253,10 @@ def measureTOT( argsip,
         top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x1)
         top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x0)
         pulser = top.Fpga[0].Asic.Gpio.DlyCalPulseSet
-
-    #scan changing Qinj
     else:
-        top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x0)
-        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(riseEdge)
-        top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0)
-        pulser = top.Fpga[0].Asic.SlowControl.dac_pulser
+        print ("--useExt should be set to True")
+        print ("exit...")
+        sys.exit()
         
     #overright Cd
     if args.Cd>=0:
@@ -285,6 +298,7 @@ def measureTOT( argsip,
     #################################################################
     # Data Processing TOT
     ValidTOTCnt = []
+    DataMeanTOTc = np.zeros( len(PulserRange) )
     DataMeanTOT = np.zeros( len(PulserRange) )
     DataStdevTOT = np.zeros( len(PulserRange) )
 
@@ -296,33 +310,15 @@ def measureTOT( argsip,
         HitDataTOTf = np.asarray( pixel_data['HitDataTOTf'][pulser_index] )
         HitDataTOTc = np.asarray( pixel_data['HitDataTOTc'][pulser_index] )
         HitDataTOTc_int1 = np.asarray( pixel_data['HitDataTOTc_int1'][pulser_index] )
-        ValidTOTCnt.append(len(HitDataTOTf))
-        LSB_TOTf_mean = TOTf_bin[16]*2*LSB_TOTc
-   
-        def calibration_correction(f,c):
-            if f > 3 and c == 0:
-                return 2
-            else:
-                if f == 0 and c == 1:
-                    return -TOTf_bin[0]*2
-                else:
-                    return 0   
-        IntFVa = 0
+        ValidTOTCnt.append(len(HitDataTOTc))
+        #print (pulser_index,HitDataTOTc)
+        LSB_TOTf_mean = TOTf_bin[16]*2*LSB_TOTc 
+
         HitDataTOT = []
         if len(HitDataTOTf) > 0:
-            if IntFVa == 1:
-                HitDataTOT = list((np.asarray(HitDataTOTc_int1)*2 + 1 - np.asarray(list(map(lambda x: TOTf_bin[x], np.asarray(HitDataTOTf, dtype=np.int))))*2)*LSB_TOTc)
-                HitDataTOT = list(HitDataTOT + np.asarray(list(map(calibration_correction, HitDataTOTf, list(map(lambda x: x&1, np.asarray(HitDataTOTc))))))*LSB_TOTc)
+            HitDataTOT = list( (1 + HitDataTOTc - HitDataTOTf/4) * LSB_TOTc )  # compute TOT
 
-                #for f, c, int1 in zip(HitDataTOTf, HitDataTOTc, HitDataTOTc_int1):
-                #    pre_correction = 2 * ( int1*2+1-TOTf_bin[f] ) * c
-                #    if f > 3 and (c&1) == 0: correction = 2
-                #    elif f == 0 and (c&1) == 1: correction = -TOTf_bin[0]*2
-                #    else: correction = 0
-                #    HitDataTOT.append(pre_correction + correction*LSB_TOTc)
-            else:
-                HitDataTOT = list( (1 + HitDataTOTc - HitDataTOTf/4) * LSB_TOTc )
-    
+            DataMeanTOTc[pulser_index] = np.mean(HitDataTOTc, dtype=np.float64)
             DataMeanTOT[pulser_index] = np.mean(HitDataTOT, dtype=np.float64)
             DataStdevTOT[pulser_index] = math.sqrt(math.pow(np.std(HitDataTOT, dtype=np.float64),2) + math.pow(LSB_TOTf_mean,2)/12)
         HitDataTOT_list.append(HitDataTOT)
@@ -375,19 +371,7 @@ def measureTOT( argsip,
     print ("-------------------------------------------------------")
 
     
-    #################################################################
-    # fit slopes removes 0
-    nonzero = DataMeanTOT != 0
-    safety_bound = 2 #so we don't measure too close to the edges of the pulse 
-    Delay = np.array(PulserRange)
-    fit_x_values = Delay[nonzero][safety_bound:-safety_bound]
-    fit_y_values = DataMeanTOT[nonzero][safety_bound:-safety_bound]
-    if len(fit_x_values) == 0: 
-        slope = 99999
-    else:
-        linear_fit_slope = np.polyfit(fit_x_values, fit_y_values, 1)[0]
-        slope = DelayStep/abs(linear_fit_slope)
-    
+    widthRange=fallEdge-np.array(PulserRange)
 
     #################################################################
     # Plot Data
@@ -395,70 +379,60 @@ def measureTOT( argsip,
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
 
     # Plot (0,0) ; top left
-    ax1.plot(PulserRange, DataMeanTOT)
+    ax1.plot(widthRange, DataMeanTOT)
     ax1.grid(True)
-    ax1.set_title('TOT Measurment VS Injected Charge', fontsize = 11)
-    ax1.set_xlabel('Pulser DAC Value', fontsize = 10)
+    ax1.set_title('(1 + TOTc - TOTf/4) * 160 ) ', fontsize = 11)
+    ax1.set_xlabel('Width', fontsize = 10)
     ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
+    slope=getSlope(widthRange,DataMeanTOT,DelayStep)
     ax1.legend(['slope: %f ' % slope],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-    ax1.set_xlim(left = PulserRange.start, right = PulserRange.stop)
+    ax1.set_xlim(left = np.min(widthRange), right = np.max(widthRange))
     ax1.set_ylim(bottom = 0, top = np.max(DataMeanTOT)*1.1)
 
-    # Plot (0,1) ; top right
-    if PlotValidCnt == 0:
-        ax2.scatter(PulserRange, DataStdevTOT)
-        ax2.grid(True)
-        ax2.set_title('TOT Jitter VS Injected Charge', fontsize = 11)
-        ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
-        ax2.set_ylabel('Std. Dev. [ps]', fontsize = 10)
-        ax2.legend(['Average Std. Dev. = %f ps' % MeanDataStdevTOT], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-        ax2.set_xlim(left = PulserRange.start, right = PulserRange.stop)
-        ax2.set_ylim(bottom = 0, top = np.max(DataStdevTOT)*1.1)
-    else:
-        ax2.plot(PulserRange, ValidTOTCnt)
-        ax2.grid(True)
-        ax2.set_title('TOT Valid Counts VS Injected Charge', fontsize = 11)
-        ax2.set_xlabel('Pulser DAC Value', fontsize = 10)
-        ax2.set_ylabel('Valid Measurements', fontsize = 10)
-        ax2.set_xlim(left = PulserRange.start, right = PulserRange.stop)
-        ax2.set_ylim(bottom = 0, top = np.max(ValidTOTCnt)*1.1)
 
-    # Plot (1,0)
+    print (DataMeanTOTc)
+    
+    ax2.plot(widthRange, DataMeanTOTc)
+    ax2.grid(True)
+    ax2.set_title('TOTc', fontsize = 11)
+    ax2.set_xlabel('width', fontsize = 10)
+    ax2.set_ylabel('Mean Value', fontsize = 10)
+    LSBTOTc=getSlope(widthRange,DataMeanTOTc,DelayStep)
+    ax2.legend(['slope: %f ' % LSBTOTc],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+    ax2.set_xlim(left = np.min(widthRange), right = np.max(widthRange))
+    ax2.set_ylim(bottom = 0, top = np.max(DataMeanTOTc)*1.1)
 
-    TOT_index_to_plot = -1
-    for pulse_index, pulse_value in enumerate(PulserRange): #find a good delay value to plot
-        #I'd say having 80% of hits come back is good enough to plot
-        if ValidTOTCnt[pulse_index] > args.N * 0.8:
-            TOT_index_to_plot = pulse_index
-            break
+    
+    # ax3.scatter(PulserRange, DataStdevTOT)
+    # ax3.grid(True)
+    # ax3.set_title('TOT rms vs Injected Charge', fontsize = 11)
+    # ax3.set_xlabel('Pulser DAC Value', fontsize = 10)
+    # ax3.set_ylabel('Std. Dev. [ps]', fontsize = 10)
+    # ax3.legend(['Average Std. Dev. = %f ps' % MeanDataStdevTOT], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+    # ax3.set_xlim(left = PulserRange.start, right = PulserRange.stop)
+    # ax3.set_ylim(bottom = 0, top = np.max(DataStdevTOT)*1.1)
 
-    HitDataTOTf = pixel_data['HitDataTOTf'][TOT_index_to_plot]
-    HitDataTOTc = pixel_data['HitDataTOTc'][TOT_index_to_plot]
-    HitDataTOT = HitDataTOT_list[TOT_index_to_plot]
 
-    if TOT_index_to_plot != -1:
-        if TOTf_hist:
-            ax3.hist(HitDataTOTf, bins = np.arange(9), align = 'left', edgecolor = 'k', color = 'royalblue')
-            ax3.set_xlim(left = -1, right = 8)
-        elif TOTc_hist:
-            ax3.hist(HitDataTOTc, bins = np.arange(129), align = 'left', edgecolor = 'k', color = 'royalblue')
-            ax3.set_xlim(left = -1, right = 128)
-        elif len(HitDataTOT) > 1:
-            ax3.hist(HitDataTOT, bins = np.multiply(np.arange(512),LSB_TOTf_mean), align = 'left', edgecolor = 'k', color = 'royalblue')
-            ax3.set_xlim(left = np.min(HitDataTOT)-10*LSB_TOTf_mean, right = np.max(HitDataTOT)+10*LSB_TOTf_mean)
-        ax3.set_title('TOT Measurment for Pulser = %d' % TOT_index_to_plot, fontsize = 11)
-        ax3.set_xlabel('TOT Measurement [ps]', fontsize = 10)
-        ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMeanTOT[TOT_index_to_plot], DataStdevTOT[TOT_index_to_plot], ValidTOTCnt[TOT_index_to_plot])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-        ax3.set_ylabel('N of Measrements', fontsize = 10)
 
-    # Plot (1,1)
-    ax4.hist(HitDataTOTf_cumulative, bins = np.arange(9), edgecolor = 'k', color = 'royalblue')
-    ax4.set_xlim(left = -1, right = 8)
+    #Plot (1,1)
+    ax3.hist(HitDataTOTf_cumulative, bins = np.arange(9), edgecolor = 'k', color = 'royalblue')
+    ax3.set_xlim(left = -1, right = 8)
+    ax3.grid(True)
+    ax3.set_title('TOT Fine Interpolation Linearity', fontsize = 11)
+    ax3.set_xlabel('TOT Fine Code', fontsize = 10)
+    ax3.set_ylabel('N of Measrements', fontsize = 10)
+
+
+    ax4.plot(PulserRange, ValidTOTCnt)
     ax4.grid(True)
-    ax4.set_title('TOT Fine Interpolation Linearity', fontsize = 11)
-    ax4.set_xlabel('TOT Fine Code', fontsize = 10)
-    ax4.set_ylabel('N of Measrements', fontsize = 10)
+    ax4.set_title('TOT Valid Counts VS Injected Charge', fontsize = 11)
+    ax4.set_xlabel('Pulser DAC Value', fontsize = 10)
+    ax4.set_ylabel('Valid Measurements', fontsize = 10)
+    ax4.set_xlim(left = PulserRange.start, right = PulserRange.stop)
+    ax4.set_ylim(bottom = 0, top = np.max(ValidTOTCnt)*1.1)
 
+
+    
     plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
 
     plt.savefig(outFile+".pdf")

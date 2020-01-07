@@ -1,4 +1,18 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Setup
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+git clone  --recursive https://github.com/s-sacerdoti/atlas-altiroc-daq.git atlas-altiroc-daq-testbench
+cd atlas-altiroc-daq-testbench
+git checkout dev_testbench_timing_nikola
+
+cd firmware/submodules/ruckus
+git status
+git checkout 74289de
+cd ../../../software/
+
+source setup_env_lal2.sh
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % firmware/submodules version
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ruckus: HEAD detached at 74289de
@@ -19,36 +33,30 @@ see also scripts/setASICconfig.py called in all scripts
 % measurements
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%% Threshold scan
+====> Threshold scan
 switch 18 of the IB should be OFF
 
 python scripts/thresholdScan.py  --useProbePA False --useProbeDiscri False --debug False --checkOFtoa True --checkOFtot False  --out Data/ThresScan_B2_ch5_cd_0.txt --delay 2450 --board 2 --Cd 0  --minVth 330 --maxVth 370 --VthStep 2 --ch 5 --Q 5
 
-%%%%%% Charge scan
+====> Charge scan
 switch 18 of the IB should be OFF
 
 python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 2 --Cd 0  --QMin 3 --QMax 63 --QStep 1 --out Data/  --delay 2450  --ch 5  --DAC 350
 
 
-%%%%%% Delay scan with using external trigger
+====> Delay scan using external trigger
 switch 18 of the IB should be ON
 
-python scripts/measureTOA.py --N 500 --debug False --checkOFtoa False --checkOFtot False  --board 2 --ch 5 --useExt True --delayMin 1950 --delayMax 2300 --delayStep 10  --out Data/
+python scripts/measureTOA.py --N 500 --debug False --checkOFtoa True --checkOFtot False  --board 2 --ch 5 --useExt True --delayMin 1800 --delayMax 2300 --delayStep 10  --out Data/
+
+====> Delay scan using pulser
+switch 18 of the IB should be OFF
+
+python scripts/measureTOA.py --N 500 --debug False --checkOFtoa True --checkOFtot False  --board 2 --ch 5 --useExt False --delayMin 1800 --delayMax 2300 --delayStep 10  --out Data/
 
 
+====> Width scan using external trigger
+switch 18 of the IB should be ON
 
+python scripts/measureTOT.py --N 50 --debug False --checkOFtoa False --checkOFtot True  --board 2 --ch 6 --useExt True --pulserMin 700 --pulserMax 3000 --pulserStep 10 --out Data/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-python scripts/measureTOA.py --N 100 --debug False --display False --Cd 0 --checkOFtoa False --checkOFtot False --ch 5 --board 2 --DAC 350 --Q 5 --delayMin 2200 --delayMax 2700 --delayStep 1 --out Data/delay
