@@ -1,13 +1,54 @@
-B2: bias voltage -70V
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% firmware/submodules version
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ruckus: HEAD detached at 74289de
+surf: HEAD detached at 8f3d65fb9
 
-source runTW_B2.sh
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% configuration:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-B8:
+For all script, the file config/asic_config_BX.yml will be used
+by default for the configuration with X being the board number
+A different file can be used with the following option
+--cfg config/asic_config_BLABLA.yml 
+Additionnal parameters are set in
+see also scripts/setASICconfig.py called in all scripts
 
-source runTW_B8.sh
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% measurements
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%% Threshold scan
+switch 18 of the IB should be OFF
+
+python scripts/thresholdScan.py  --useProbePA False --useProbeDiscri False --debug False --checkOFtoa True --checkOFtot False  --out Data/ThresScan_B2_ch5_cd_0.txt --delay 2450 --board 2 --Cd 0  --minVth 330 --maxVth 370 --VthStep 2 --ch 5 --Q 5
+
+%%%%%% Charge scan
+switch 18 of the IB should be OFF
+
+python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 2 --Cd 0  --QMin 3 --QMax 63 --QStep 1 --out Data/  --delay 2450  --ch 5  --DAC 350
+
+
+%%%%%% Delay scan with using external trigger
+switch 18 of the IB should be ON
+
+python scripts/measureTOA.py --N 500 --debug False --checkOFtoa False --checkOFtot False  --board 2 --ch 5 --useExt True --delayMin 1950 --delayMax 2300 --delayStep 10  --out Data/
 
 
 
 
 
-Les data se trouvent dans Data/
+
+
+
+
+
+
+
+
+
+
+
+
+python scripts/measureTOA.py --N 100 --debug False --display False --Cd 0 --checkOFtoa False --checkOFtot False --ch 5 --board 2 --DAC 350 --Q 5 --delayMin 2200 --delayMax 2700 --delayStep 1 --out Data/delay

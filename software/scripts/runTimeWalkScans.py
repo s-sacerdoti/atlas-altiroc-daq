@@ -45,6 +45,7 @@ if __name__ == "__main__":
     N=100
     Rin_Vpa=0
     delayList=[2450]
+    #delayList=range(2450,2550+1,20) 
     chList=None
     dacList=None
 
@@ -82,19 +83,12 @@ if __name__ == "__main__":
         dacRef[14]=418        
     elif board==8:
         qMin=1
-        cdList=[4];chList=[9,14,4];
         #cdList=[4];chList=[4,9,14];
         #cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
-        #cdList=[0];chList=list(range(0,15));#dacList=range(360,400,20)#dacList=range(400,500,20)
-        #cdList=[0,4];chList=[4]
         #chList=list(range(0,25))
         delayList=[2500]
-        #delayList=range(2450,2550+1,20)
         dacRef={}
-        # dacRef[4]=350#347
-        # dacRef[9]=300#297
-        # dacRef[14]=310#309
         dacRef[0]=   350 
         dacRef[1]=   340  
         dacRef[2]=   300
@@ -109,7 +103,7 @@ if __name__ == "__main__":
         dacRef[11]=  360
         dacRef[12]=  340 
         dacRef[13]=  380
-        dacRef[14]=  320#cd4 310  cd 0 320
+        dacRef[14]=  320#cd4310 cd 0 320
 
 
 
@@ -226,9 +220,15 @@ if __name__ == "__main__":
                 #for Q in range(4,20,1):
                 #for Q in list(range(3,13,1))+list(range(13,27,2)):
                 #for Q in [5,8]:#,8,10,14,16,18,20,22]:
-                for Q in [6,7]:#,8,10,14,16,18,20,22]:
+                for Q in [5,7,26]:#5,26]:#,8,10,14,16,18,20,22]:
                 #for Q in [8,11]:#,8,10,14,16,18,20,22]:
-                    cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin 2200 --delayMax 2700 --delayStep 1 --out Data/delay"%(cd,ch,board,dac,Q)
+                    delayMin=2200
+                    delayMax=2700
+                    # if board==8:
+                    #     delayMin=2350
+                    #     delayMax=2700
+                        
+                    cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep 1 --out Data/delay"%(cd,ch,board,dac,Q,delayMin,delayMax)
                     f.write(cmd+"\n sleep 5 \n")
 
                 

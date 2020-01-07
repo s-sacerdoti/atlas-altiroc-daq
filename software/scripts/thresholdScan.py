@@ -69,8 +69,11 @@ def parse_arguments():
     parser.add_argument("--VthStep", type = int, required = False, default = DACstep, help = "scan step")
     parser.add_argument("--out", type = str, required = False, default = 'testThreshold.txt', help = "output file name")  
 
+
+    
     # Get the arguments
     args = parser.parse_args()
+    args.out='%sThresScan_B_%d_ch_%d_cd_%d_delay_%d_Q_%d'%(args.out,args.board,args.ch,args.Cd,args.delay,args.Q)
     return args
 
 ##############################################################################
@@ -168,6 +171,7 @@ def thresholdScan(argip,
     top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0)
     top.Fpga[0].Asic.CalPulse.CalPulseDelay.set(5000)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
+    #top.Fpga[0].Asic.Gpio.CalPulseWidth.set(0x12)
     #if not checkOvF:
     #    top.Fpga[0].Asic.Readout.OnlySendFirstHit.set(0)
 
@@ -293,30 +297,32 @@ def thresholdScan(argip,
     #################################################################
     #################################################################
     ## Plot Data
+
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
+
+    #plot N events vs threshold
+    ax1.plot(dacScan,HitCnt)
+    #ax1.scatter(dacScan,HitCnt)
+    ax1.set_title('Number of hits vs Threshold', fontsize = 11)
+    ax1.set_xlabel('Threshold DAC', fontsize = 10)
+    ax1.set_ylabel('Number of TOA hits', fontsize = 10)
+
+    #plot TOA vs threshold
+    ax2.scatter(dacScan,TOAmean_ps)
+    ax2.set_title('Mean TOA vs Threshold', fontsize = 11)
+    ax2.set_xlabel('Threshold DAC', fontsize = 10)
+    ax2.set_ylabel('Mean TOA value [ps]', fontsize = 10)
+
+    #plot jitter vs Threshold
+    ax3.scatter(dacScan,TOAjit_ps)
+    ax3.set_title('Jitter TOA vs Threshold', fontsize = 11)
+    ax3.legend(['Average Std. Dev. = %f ps' % (jitterMean*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+    ax3.set_xlabel('Threshold DAC', fontsize = 10)
+    ax3.set_ylabel('Mean TOA Jitter', fontsize = 10)
+
+    plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
+    plt.savefig(outFile+".pdf")
     if args.display:
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
-
-        #plot N events vs threshold
-        ax1.plot(dacScan,HitCnt)
-        #ax1.scatter(dacScan,HitCnt)
-        ax1.set_title('Number of hits vs Threshold', fontsize = 11)
-        ax1.set_xlabel('Threshold DAC', fontsize = 10)
-        ax1.set_ylabel('Number of TOA hits', fontsize = 10)
-
-        #plot TOA vs threshold
-        ax2.scatter(dacScan,TOAmean_ps)
-        ax2.set_title('Mean TOA vs Threshold', fontsize = 11)
-        ax2.set_xlabel('Threshold DAC', fontsize = 10)
-        ax2.set_ylabel('Mean TOA value [ps]', fontsize = 10)
-
-        #plot jitter vs Threshold
-        ax3.scatter(dacScan,TOAjit_ps)
-        ax3.set_title('Jitter TOA vs Threshold', fontsize = 11)
-        ax3.legend(['Average Std. Dev. = %f ps' % (jitterMean*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
-        ax3.set_xlabel('Threshold DAC', fontsize = 10)
-        ax3.set_ylabel('Mean TOA Jitter', fontsize = 10)
-
-        plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
         plt.show()
     #################################################################
     

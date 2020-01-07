@@ -48,6 +48,7 @@ def acquire_data(top, useExt, DelayRange):
 
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
     pixel_data = []
+    top.Fpga[0].Asic.CalPulse.CalPulseWidth.set(0x12)
     pulser = top.Fpga[0].Asic.Gpio.DlyCalPulseSet #rising edge of pulser and extTrig
 
     for delay_value in DelayRange:
@@ -96,7 +97,7 @@ def parse_arguments():
     parser.add_argument( "--checkOFtoa", type = argBool, required = False, default = True, help = "check TOA overflow")
     parser.add_argument( "--checkOFtot", type = argBool, required = False, default = True, help = "check TOT overflow")
     parser.add_argument( "--useProbeDiscri", type = argBool, required = False, default = False, help = "use probe Discri")
-    parser.add_argument("-N", type = int, required = False, default = 50, help = "Nb of events")
+    parser.add_argument("-N","--N", type = int, required = False, default = 50, help = "Nb of events")
     parser.add_argument("--Cd", type = int, required = False, default = -1, help = "Cd")
     parser.add_argument( "--useExt", type = argBool, required = False, default = False,help = "Use external trigger")
     parser.add_argument( "--cfg", type = str, required = False, default = config_file, help = "Select yml configuration file to load")  

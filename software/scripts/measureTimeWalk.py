@@ -134,7 +134,7 @@ def parse_arguments():
     parser.add_argument( "--useExt", type = argBool, required = False, default = False,help = "Use external trigger")
     parser.add_argument( "--cfg", type = str, required = False, default = None, help = "Select yml configuration file to load")  
     parser.add_argument("--ch", type = int, required = False, default = pixel_number, help = "channel")
-    parser.add_argument("-N", type = int, required = False, default = 50, help = "Nb of events")
+    parser.add_argument("-N","--N", type = int, required = False, default = 50, help = "Nb of events")
     parser.add_argument("--Cd", type = int, required = False, default = -1, help = "Cd")
     parser.add_argument("--DAC", type = int, required = False, default = DAC_Vth, help = "DAC vth")
     parser.add_argument("--delay", type = int, required = False, default = dly, help = "scan start")
@@ -257,6 +257,7 @@ def measureTimeWalk(argsip,
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(QMin)
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay)
+    top.Fpga[0].Asic.CalPulse.CalPulseWidth.set(0x12)#New
 
     # Data Acquisition for TOA with external
     if useExt:

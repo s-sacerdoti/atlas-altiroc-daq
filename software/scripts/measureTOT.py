@@ -128,7 +128,7 @@ def parse_arguments():
     parser.add_argument( "--checkOFtoa", type = argBool, required = False, default = True, help = "check TOA overflow")
     parser.add_argument( "--checkOFtot", type = argBool, required = False, default = True, help = "check TOT overflow")
     parser.add_argument( "--useProbeDiscri", type = argBool, required = False, default = False, help = "use probe Discri")
-    parser.add_argument("-N", type = int, required = False, default = 50, help = "Nb of events")
+    parser.add_argument("-N","--N", type = int, required = False, default = 50, help = "Nb of events")
     parser.add_argument("--Cd", type = int, required = False, default = -1, help = "Cd")
     parser.add_argument( "--useExt", type = argBool, required = False, default = False,help = "Use external trigger")
     parser.add_argument( "--cfg", type = str, required = False, default = config_file, help = "Select yml configuration file to load")  
@@ -228,6 +228,7 @@ def measureTOT( argsip,
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
     top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(fallEdge)
+    top.Fpga[0].Asic.CalPulse.CalPulseWidth.set(0x12)#New
 
     if useExt: #scan with external trigger
         print("Will use external trigger")
