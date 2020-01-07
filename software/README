@@ -36,29 +36,44 @@ see also scripts/setASICconfig.py called in all scripts
 %%%%%%%%%  Threshold scan
 switch 18 of the IB should be OFF
 
-python scripts/thresholdScan.py  --useProbePA False --useProbeDiscri False --debug False --checkOFtoa True --checkOFtot False  --out Data/ThresScan_B2_ch5_cd_0.txt --delay 2450 --board 2 --Cd 0  --minVth 330 --maxVth 370 --VthStep 2 --ch 5 --Q 5
+python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot False  --out Data/ --delay 2450 --board 2 --Cd 0  --minVth 330 --maxVth 370 --VthStep 2 --ch 5 --Q 5
+
+python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot False  --out Data/ --delay 2450 --board 8 --Cd 4  --minVth 330 --maxVth 390 --VthStep 2 --ch 4 --Q 5
+
+
 
 %%%%%%%%%  Charge scan
 switch 18 of the IB should be OFF
 
 python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 2 --Cd 0  --QMin 3 --QMax 63 --QStep 1 --out Data/  --delay 2450  --ch 5  --DAC 350
 
+python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 8 --Cd 4  --QMin 3 --QMax 63 --QStep 1 --out Data/  --delay 2450  --ch 4  --DAC 350
+
+
 
 %%%%%%%%%  Delay scan using external trigger
 switch 18 of the IB should be ON
 
-python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False  --board 2 --ch 5 --useExt True --delayMin 1800 --delayMax 2300 --delayStep 1  --out Data/ --DAC 350 --Q 26
+python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False  --board 2 --ch 5 --useExt True --delayMin 1800 --delayMax 2300 --delayStep 1  --out Data/
+
+python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False  --board 8 --ch 4 --useExt True --delayMin 1800 --delayMax 2300 --delayStep 1  --out Data/ 
+
+
 
 %%%%%%%%%  Delay scan using pulser
 switch 18 of the IB should be OFF
 
 python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False --ch 5  --Cd 0  --board 2 --DAC 350 --Q 26 --delayMin 2200 --delayMax 2700 --delayStep 1 --out Data/
 
+python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False --ch 4  --Cd 4  --board 8 --DAC 350 --Q 26 --delayMin 2200 --delayMax 2700 --delayStep 1 --out Data/
+
 
 
 %%%%%%%%%  Width scan using external trigger
 switch 18 of the IB should be ON
+fallEdge is hardcoded and is equal to 3000
 
 python scripts/measureTOT.py --N 50 --debug False --checkOFtoa False --checkOFtot True  --board 2 --ch 6 --useExt True --riseEdgeMin 700 --riseEdgeMax 3000 --riseEdgeStep 10 --out Data/
 
-fallEdge is hardcoded and is equal to 3000
+python scripts/measureTOT.py --N 50 --debug False --checkOFtoa False --checkOFtot True  --board 8 --ch 4 --useExt True --riseEdgeMin 700 --riseEdgeMax 3000 --riseEdgeStep 10 --out Data/
+
