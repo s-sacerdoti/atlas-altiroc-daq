@@ -37,7 +37,6 @@ see also scripts/setASICconfig.py called in all scripts
 switch 18 of the IB should be OFF
 
 python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot False  --out Data/ --delay 2450 --board 2 --Cd 0  --minVth 330 --maxVth 370 --VthStep 2 --ch 5 --Q 5
-
 python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot False  --out Data/ --delay 2450 --board 8 --Cd 4  --minVth 330 --maxVth 390 --VthStep 2 --ch 4 --Q 5
 
 
@@ -55,7 +54,6 @@ python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --use
 switch 18 of the IB should be ON
 
 python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False  --board 2 --ch 5 --useExt True --delayMin 1800 --delayMax 2300 --delayStep 1  --out Data/
-
 python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False  --board 8 --ch 4 --useExt True --delayMin 1800 --delayMax 2300 --delayStep 1  --out Data/ 
 
 
@@ -74,6 +72,15 @@ switch 18 of the IB should be ON
 fallEdge is hardcoded and is equal to 3000
 
 python scripts/measureTOT.py --N 50 --debug False --checkOFtoa False --checkOFtot True  --board 2 --ch 6 --useExt True --riseEdgeMin 700 --riseEdgeMax 3000 --riseEdgeStep 10 --out Data/
-
 python scripts/measureTOT.py --N 50 --debug False --checkOFtoa False --checkOFtot True  --board 8 --ch 4 --useExt True --riseEdgeMin 700 --riseEdgeMax 3000 --riseEdgeStep 10 --out Data/
 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DevGui
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+python scripts/DevGui.py --ip 192.168.1.10 --userYaml config/config_B2_ch8_probeON_pulserON.yml --liveDisplay 1
+
+python scripts/DevGui.py --ip 192.168.1.10 --userYaml config/config_B8_ch4_probeOFF_pulserON.yml --liveDisplay 1
