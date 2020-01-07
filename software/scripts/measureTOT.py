@@ -10,7 +10,7 @@
 ##############################################################################
 
 ##############################################################################
-# Script Settings
+# Script Settings%
 # POST TB
 
 asicVersion = 1 # <= Select either V1 or V2 of the ASIC
@@ -126,9 +126,9 @@ def parse_arguments():
     DAC_Vth = 320
     Qinj = 13 #10fc
     config_file = None#'config/asic_config_B8.yml'
-    pulserMin = 0
-    pulserMax = 20
-    pulserStep = 1
+    riseEdgeMin = 0
+    riseEdgeMax = 20
+    riseEdgeStep = 1
     using_TZ_tot = False # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT)
     outFile = 'TestData/TOTmeasurement'
     
@@ -151,9 +151,9 @@ def parse_arguments():
     parser.add_argument("--Q", type = int, required = False, default = Qinj, help = "injected charge DAC")
     parser.add_argument("--DAC", type = int, required = False, default = DAC_Vth, help = "DAC vth")
     #parser.add_argument("--useTZ", type = argBool, required = False, default = using_TZ_tot, help = "TOT TDC Processing")
-    parser.add_argument("--pulserMin",  type = int, required = False, default = pulserMin,  help = "pulser start")
-    parser.add_argument("--pulserMax",  type = int, required = False, default = pulserMax,  help = "pulser stop")
-    parser.add_argument("--pulserStep", type = int, required = False, default = pulserStep, help = "pulser step")
+    parser.add_argument("--riseEdgeMin",  type = int, required = False, default = riseEdgeMin,  help = "pulser start")
+    parser.add_argument("--riseEdgeMax",  type = int, required = False, default = riseEdgeMax,  help = "pulser stop")
+    parser.add_argument("--riseEdgeStep", type = int, required = False, default = riseEdgeStep, help = "pulser step")
     parser.add_argument("--out", type = str, required = False, default = outFile, help = "output file")
 
     # Get the arguments
@@ -171,13 +171,13 @@ def measureTOT( argsip,
       Qinj,
       DAC,
       using_TZ_TOT,
-      pulserMin,
-      pulserMax,
-      pulserStep,
+      riseEdgeMin,
+      riseEdgeMax,
+      riseEdgeStep,
       outFile):
 
     args = parse_arguments()
-    PulserRange = range( pulserMin, pulserMax, pulserStep )
+    PulserRange = range( riseEdgeMin, riseEdgeMax, riseEdgeStep )
 
     if args.skipExistingFile and os.path.exists(outFile+'.txt'):
         print ('output file already exist. Skip......')
@@ -354,7 +354,6 @@ def measureTOT( argsip,
     ff.write('Pulse width   TOT   TOTc   TOTf'+'\n')
     for ipuls, pulser in enumerate(PulserRange):
       pulser = pulser-fallEdge
-      print (pulser,pulser-fallEdge,len(pixel_data['HitDataTOTc'][ipuls]))
       for itot in range(len(pixel_data['HitDataTOTc'][ipuls])):
         ff.write(str(pulser)+' '+str(pixel_data['allTOTdata'][ipuls][itot])+' '+str(pixel_data['HitDataTOTc'][ipuls][itot])+' '+str(pixel_data['HitDataTOTf'][ipuls][itot])+'\n')
         #print(str(pixel_data['HitDataTOTc'][ipuls][itot]), str(pixel_data['HitDataTOA'][ipuls][itot]))
@@ -389,8 +388,6 @@ def measureTOT( argsip,
     ax1.set_xlim(left = np.min(widthRange), right = np.max(widthRange))
     ax1.set_ylim(bottom = 0, top = np.max(DataMeanTOT)*1.1)
 
-
-    print (DataMeanTOTc)
     
     ax2.plot(widthRange, DataMeanTOTc)
     ax2.grid(True)
@@ -452,4 +449,4 @@ if __name__ == "__main__":
     useTZ=False
     if int(args.ch)>=15:
         useTZ=True
-    measureTOT(args.ip, args.board, args.useExt, args.cfg, args.ch, args.Q, args.DAC, useTZ, args.pulserMin, args.pulserMax, args.pulserStep, args.out)
+    measureTOT(args.ip, args.board, args.useExt, args.cfg, args.ch, args.Q, args.DAC, useTZ, args.riseEdgeMin, args.riseEdgeMax, args.riseEdgeStep, args.out)
