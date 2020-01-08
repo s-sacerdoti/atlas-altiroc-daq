@@ -15,7 +15,7 @@
 #DebugPrint = True
 #NofIterationsTOA = 50  # <= Number of Iterations for each Delay value
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
-pulseWidth = 300
+pulseWidth = 300    # for external trigger
 
 #################################################################
                                                                ##
@@ -45,19 +45,18 @@ def acquire_data(top, useExt, DelayRange):
     # pixel_stream.checkOFtot=False
     pixel_stream.checkOFtoa=args.checkOFtoa
     pixel_stream.checkOFtot=args.checkOFtot
-
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
     pixel_data = []
-    top.Fpga[0].Asic.CalPulse.CalPulseWidth.set(0x12)
-    pulser = top.Fpga[0].Asic.Gpio.DlyCalPulseSet #rising edge of pulser and extTrig
+
+    #pulser = top.Fpga[0].Asic.Gpio.DlyCalPulseSet #rising edge of pulser and extTrig
 
     for delay_value in DelayRange:
         print('Testing delay value ' + str(delay_value) )
-        pulser.set(delay_value)
+        top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay_value)
         if useExt:
             top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(delay_value+pulseWidth)
 
-
+        top.initialize()
         for pulse_iteration in range(args.N):
             top.Fpga[0].Asic.CalPulse.Start()
             time.sleep(0.001)
@@ -89,6 +88,7 @@ def parse_arguments():
     # Add arguments
     parser.add_argument( "--skipExistingFile", type = argBool, required = False, default = False, help = "")
     parser.add_argument("--Rin_Vpa", type = int, required = False, default = 0, help = "RinVpa")
+    parser.add_argument("--Vthc", type = int, required = False, default = 0x40, help = "Vth cor")
     parser.add_argument( "--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP addresses")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
     parser.add_argument( "--display", type = argBool, required = False, default = True, help = "show plots")
@@ -133,33 +133,21 @@ def measureTOA(argsip,
       outFile):
 
 
-
     if args.skipExistingFile and os.path.exists(outFile+'.txt'):
         print ('output file already exist. Skip......')
         sys.exit()
-
+        
+    #list of delay for looping
     DelayRange = range( delayMin, delayMax, delayStep )
 
-    #choose config file:
-    Configuration_LOAD_file = 'config/asic_config_B7.yml'
-    if board == 8:
-        Configuration_LOAD_file = 'config/asic_config_B8.yml'
-    elif board == 4:
-        Configuration_LOAD_file = 'config/asic_config_B4.yml'
-    elif board == 3:
-        Configuration_LOAD_file = 'config/asic_config_B3.yml'
-    elif board == 2:
-        Configuration_LOAD_file = 'config/asic_config_B2.yml'
-    elif board == 13:
-        Configuration_LOAD_file = 'config/asic_config_B13.yml'
-    elif board == 15:
-        Configuration_LOAD_file = 'config/asic_config_B15.yml'
-    elif board == 18:
-        Configuration_LOAD_file = 'config/asic_config_B18.yml'
+    # choose config fileif not specified:
+    if args.cfg==None:
+        Configuration_LOAD_file = 'config/asic_config_B'+str(board)+'.yml'
 
     # Setup root class
     top = feb.Top(ip = argsip, userYaml = [Configuration_LOAD_file])
-    
+
+    # debug print
     if args.debug:
         top.Fpga[0].AxiVersion.printStatus()
         # Tap the streaming data interface (same interface that writes to file)
@@ -175,6 +163,7 @@ def measureTOA(argsip,
     time.sleep(0.001)
     top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
 
+    # Set parameters
     set_pixel_specific_parameters(top, pixel_number)
     if pixel_number in range(0, 5): bitset=0x1
     if pixel_number in range(5, 10): bitset=0x2
@@ -198,7 +187,8 @@ def measureTOA(argsip,
 
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
-
+    top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delayMin)
+    top.Fpga[0].Asic.CalPulse.CalPulseWidth.set(0x12)
 
     
     # Data Acquisition for TOA
@@ -215,7 +205,10 @@ def measureTOA(argsip,
         for i in range(5):
             top.Fpga[0].Asic.SlowControl.cd[i].set(args.Cd)  
 
-
+    #additionnal parameters
+    #top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(args.Rin_Vpa)
+    top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(args.Vthc) # alignment
+    
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
 
@@ -232,14 +225,19 @@ def measureTOA(argsip,
     DataMean = np.zeros(num_valid_TOA_reads)
     DataStdev = np.zeros(num_valid_TOA_reads)
     allTOAdata = []
+
+
     
     for delay_index, delay_value in enumerate(DelayRange):
-        HitDataTOA = pixel_data[delay_index]
+        okTOA=np.array(pixel_data[delay_index])!=127 #used to remove saturated toa
+        print(okTOA)
+        HitDataTOA = np.array(pixel_data[delay_index])[okTOA]
         HitCnt.append(len(HitDataTOA))
         allTOAdata.append(HitDataTOA)
-        if len(HitDataTOA) > 0:
+        if len(HitDataTOA) > 0.5*args.N:
             DataMean[delay_index] = np.mean(HitDataTOA, dtype=np.float64)
             DataStdev[delay_index] = math.sqrt(math.pow(np.std(HitDataTOA, dtype=np.float64),2)+1/12)
+        print (delay_value,HitDataTOA,DataStdev[delay_index])
     
     # The following calculations ignore points with no data (i.e. Std.Dev = 0)
     nonzero = DataMean != 0

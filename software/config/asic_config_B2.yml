@@ -64,7 +64,7 @@ Top:
         cBits: 0x0 #
         cBitc: 0 # With Pull R 12, with R dividers 0     
       
-        Rin_Vpa: 0x1 #0 0 => 25K, 1 => 15K. Set to 1 to avoid couplings with TOA busyb (sensor)
+        Rin_Vpa: 0x0 #0 0 => 25K, 1 => 15K. Set to 1 to avoid couplings with TOA busyb (sensor)
         Cp_Vpa: 0x0
         Ccomp_TZ: 0x0 #0
       

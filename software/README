@@ -82,5 +82,3 @@ python scripts/measureTOT.py --N 50 --debug False --checkOFtoa False --checkOFto
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 python scripts/DevGui.py --ip 192.168.1.10 --userYaml config/config_B2_ch8_probeON_pulserON.yml --liveDisplay 1
-
-python scripts/DevGui.py --ip 192.168.1.10 --userYaml config/config_B8_ch4_probeOFF_pulserON.yml --liveDisplay 1

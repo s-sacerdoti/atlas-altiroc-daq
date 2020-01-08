@@ -126,16 +126,16 @@ if __name__ == "__main__":
         dacRef[12]=370
         dacRef[13]=360
         dacRef[14]=360
-        dacRef[15]=300
-        dacRef[16]=380
-        dacRef[17]=330
-        dacRef[18]=390
-        dacRef[19]=370      
-        dacRef[20]=350
-        dacRef[21]=340
-        dacRef[22]=430
-        dacRef[23]=400
-        dacRef[24]=360
+        # dacRef[15]=300
+        # dacRef[16]=380
+        # dacRef[17]=330
+        # dacRef[18]=390
+        # dacRef[19]=370      
+        # dacRef[20]=350
+        # dacRef[21]=340
+        # dacRef[22]=430
+        # dacRef[23]=400
+        # dacRef[24]=360
     elif board==15:
         chList=[4,9,14,19,24]
         cdList=[0,4]
@@ -208,7 +208,7 @@ if __name__ == "__main__":
                 #dacListLocal=list(range(dac,dac+41,8))
                 #dacListLocal=list(range(dac-20,dac+21,10))
                 #dacListLocal=list(range(dac-8,dac+1,2))
-                dacListLocal=list(range(dac-10,dac+11,10))
+                #dacListLocal=list(range(dac-10,dac+11,10))
                 dacListLocal=[dac]
                 #dacList=range(300,420,10)
                 #print("============",ch,dacListLocal,dac)
@@ -217,11 +217,10 @@ if __name__ == "__main__":
             
             for dac in dacListLocal:   
 
-                #for Q in range(4,20,1):
+                #for Q in range(3,20,1):
                 #for Q in list(range(3,13,1))+list(range(13,27,2)):
-                #for Q in [5,8]:#,8,10,14,16,18,20,22]:
-                for Q in [5,7,26]:#5,26]:#,8,10,14,16,18,20,22]:
-                #for Q in [8,11]:#,8,10,14,16,18,20,22]:
+                for Q in [6,8]:#5,26]:#,8,10,14,16,18,20,22]:
+                #for Q in [18]:#5,26]:#,8,10,14,16,18,20,22]:
                     delayMin=2200
                     delayMax=2700
                     # if board==8:
@@ -240,7 +239,7 @@ if __name__ == "__main__":
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --morePointsAtLowQ False --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
                     if args.useVthc:
                        cmd+=" --Vthc %d" %dacCor[ch]
-                    #f.write(cmd+"\n sleep 5 \n")
+                    f.write(cmd+"\n sleep 5 \n")
 
 
 

@@ -12,7 +12,7 @@
 ##############################################################################
 # Script Settings
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
-pulseWidth = 300
+pulseWidth = 300  # for external trigger
 
 #################################################################
                                                                ##
@@ -189,8 +189,6 @@ def measureTimeWalk(argsip,
         sys.exit()
 
 
-
-    
     #list of charge for looping
     QRange = list(range( QMin, QMax, QStep ))
     if args.morePointsAtLowQ:
@@ -213,9 +211,6 @@ def measureTimeWalk(argsip,
     top = feb.Top(ip = argsip, userYaml = [Configuration_LOAD_file])
 
 
-   
-
-    
     # debug print
     if args.debug:
         top.Fpga[0].AxiVersion.printStatus()
@@ -272,6 +267,7 @@ def measureTimeWalk(argsip,
         for i in range(5):
             top.Fpga[0].Asic.SlowControl.cd[i].set(args.Cd)  
 
+    #additionnal parameters
     top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(args.Rin_Vpa)
     top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(args.Vthc) # alignment
 

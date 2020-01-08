@@ -1200,10 +1200,10 @@ Top:
         RestoreProbeConfig: 0x0
         EnProbeWrite: 0x1
         OnlySendFirstHit: 0x1
-        EnProbeDigOutDisc: 0x0
-        EnProbeDigSelect: 0x0
-        EnProbeDig: 0x0
-        EnProbePa: 0x0
+        EnProbeDigOutDisc: 0x1
+        EnProbeDigSelect: 0x1
+        EnProbeDig: 0x1
+        EnProbePa: 0x1
         RdIndexLut[0]: 4
         ReadoutSize: 0
   LiveDisplayRst: 0
