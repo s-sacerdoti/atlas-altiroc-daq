@@ -39,7 +39,7 @@ see also scripts/setASICconfig.py called in all scripts
 switch 18 of the IB should be OFF
 
 python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot False  --out Data/ --delay 2450 --board 2 --Cd 0  --minVth 330 --maxVth 370 --VthStep 2 --ch 5 --Q 5
-python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot False  --out Data/ --delay 2450 --board 8 --Cd 4  --minVth 330 --maxVth 390 --VthStep 2 --ch 4 --Q 5
+python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot False  --out Data/ --delay 2500 --board 8 --Cd 4  --minVth 330 --maxVth 390 --VthStep 2 --ch 4 --Q 5
 python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot False  --out Data/ --delay 2450 --board 18 --Cd 0  --minVth 330 --maxVth 370 --VthStep 2 --ch 0 --Q 5
 
 
@@ -49,7 +49,7 @@ python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot Fa
 switch 18 of the IB should be OFF
 
 python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 2 --Cd 0  --QMin 3 --QMax 63 --QStep 1 --out Data/  --delay 2450  --ch 5  --DAC 350
-python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 8 --Cd 4  --QMin 3 --QMax 63 --QStep 1 --out Data/  --delay 2450  --ch 4  --DAC 350
+python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 8 --Cd 4  --QMin 3 --QMax 63 --QStep 1 --out Data/  --delay 2500  --ch 4  --DAC 350
 python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 18 --Cd 0 --QMin 3 --QMax 63 --QStep 1 --out Data/  --delay 2450   --ch 0 --DAC 350
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
