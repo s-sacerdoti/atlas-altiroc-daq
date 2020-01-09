@@ -124,15 +124,8 @@ def thresholdScan(argip,
     dacScan = range(minDAC,maxDAC,DACstep)
 
     #choose config file:
-    Configuration_LOAD_file = 'config/asic_config_B7.yml'
-    if board == 8:
-        Configuration_LOAD_file = 'config/asic_config_B8.yml'
-    elif board == 4:
-        Configuration_LOAD_file = 'config/asic_config_B4.yml'
-    elif board == 3:
-        Configuration_LOAD_file = 'config/asic_config_B3.yml'
-    elif board == 2:
-        Configuration_LOAD_file = 'config/asic_config_B2.yml'
+    if args.cfg==None:
+        Configuration_LOAD_file = 'config/asic_config_B'+str(board)+'.yml'
 
 
     # Setup root class
