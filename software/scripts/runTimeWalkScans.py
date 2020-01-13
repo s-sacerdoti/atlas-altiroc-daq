@@ -87,13 +87,14 @@ if __name__ == "__main__":
         #cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
+        chList=[4];cdList=[4];#TDR
         delayList=[2500]
         dacRef={}
         dacRef[0]=   350 
         dacRef[1]=   340  
         dacRef[2]=   300
         dacRef[3]=   350
-        dacRef[4]=   350
+        dacRef[4]=   345
         dacRef[5]=   350
         dacRef[6]=   340#TOAfrac=0.2
         dacRef[7]=   310#TOAfrac=0.2
@@ -111,22 +112,22 @@ if __name__ == "__main__":
         #chList=list(range(0,6))+list(range(7,15))
         #chList=[3]#,12,21]
         #dacList=[380,400]#range(300,440,10)
-        chList=[0]#list(range(15,25))+
+        chList=[1]#list(range(15,25))+
         dacRef={}
-        dacRef[0]=330
-        dacRef[1]=310
-        dacRef[2]=340
-        dacRef[3]=330
-        dacRef[4]=320
-        dacRef[5]=400
-        dacRef[7]=320
-        dacRef[8]=350      
-        dacRef[9]=340  
-        dacRef[10]=330
-        dacRef[11]=350
-        dacRef[12]=370
-        dacRef[13]=360
-        dacRef[14]=360
+        dacRef[0]=320
+        dacRef[1]=305
+        dacRef[2]=330
+        dacRef[3]=315
+        dacRef[4]=305
+        dacRef[5]=385
+        dacRef[7]=310
+        dacRef[8]=335      
+        dacRef[9]=325  
+        dacRef[10]=320
+        dacRef[11]=345
+        dacRef[12]=365
+        dacRef[13]=345
+        dacRef[14]=350
         # dacRef[15]=300
         # dacRef[16]=380
         # dacRef[17]=330
@@ -209,29 +210,17 @@ if __name__ == "__main__":
                 #dacListLocal=list(range(dac,dac+41,8))
                 #dacListLocal=list(range(dac-20,dac+21,10))
                 #dacListLocal=list(range(dac-8,dac+1,2))
-                dacListLocal=list(range(dac-10,dac+1,10))
-                #dacListLocal=[dac]
-                #dacList=range(300,420,10)
+                #dacListLocal=list(range(dac-20,dac+1,10))
+                dacListLocal=[dac]
                 #print("============",ch,dacListLocal,dac)
 
             print(ch,cd,delayList,dacListLocal)
             
             for dac in dacListLocal:   
 
-                for Q in range(4,27,1):
-                #for Q in list(range(3,13,1))+list(range(13,27,2)):
-                #for Q in [6,8]:#5,26]:#,8,10,14,16,18,20,22]:
-                #for Q in [5]:#5,26]:#,8,10,14,16,18,20,22]:                
-                    delayMin=2200
-                    delayMax=2700
-                    # if board==8:
-                    #     delayMin=2350
-                    #     delayMax=2700
-                        
-                    cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep 1 --out Data/delay"%(cd,ch,board,dac,Q,delayMin,delayMax)
-                    #f.write(cmd+"\n sleep 5 \n")
-
-                
+                ###############################
+                #Delay scan
+                ###############################
                 for delay in delayList:
                     #name='Data/thresscan_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_thres_%d_'%(board,Rin_Vpa,ch,cd,delay,dac)
                     name="Data/thresscan"
@@ -242,6 +231,21 @@ if __name__ == "__main__":
                        cmd+=" --Vthc %d" %dacCor[ch]
                     f.write(cmd+"\n sleep 5 \n")
                     
+                ###############################
+                #charge scan
+                ###############################
+                for Q in range(3,27,1):
+                #for Q in list(range(3,13,1))+list(range(13,27,2)):
+                #for Q in [6,8]:#5,26]:#,8,10,14,16,18,20,22]:
+                #for Q in [5,8,26]:#5,26]:#,8,10,14,16,18,20,22]:                
+                    delayMin=2200
+                    delayMax=2700
+                    # if board==8:
+                    #     delayMin=2350
+                    #     delayMax=2700
+                        
+                    cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep 1 --out Data/delay"%(cd,ch,board,dac,Q,delayMin,delayMax)
+                    f.write(cmd+"\n sleep 5 \n")
 
 
             
