@@ -112,7 +112,7 @@ if __name__ == "__main__":
         #chList=list(range(0,6))+list(range(7,15))
         #chList=[3]#,12,21]
         #dacList=[380,400]#range(300,440,10)
-        chList=[1]#list(range(15,25))+
+        #chList=[1]#list(range(15,25))+
         dacRef={}
         dacRef[0]=320
         dacRef[1]=305
@@ -219,7 +219,7 @@ if __name__ == "__main__":
             for dac in dacListLocal:   
 
                 ###############################
-                #Delay scan
+                # measure TW
                 ###############################
                 for delay in delayList:
                     #name='Data/thresscan_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_thres_%d_'%(board,Rin_Vpa,ch,cd,delay,dac)
@@ -229,15 +229,15 @@ if __name__ == "__main__":
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --morePointsAtLowQ False --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
                     if args.useVthc:
                        cmd+=" --Vthc %d" %dacCor[ch]
-                    f.write(cmd+"\n sleep 5 \n")
+                    #f.write(cmd+"\n sleep 5 \n")
                     
                 ###############################
-                #charge scan
+                # measure TOA
                 ###############################
-                for Q in range(3,27,1):
+                #for Q in range(3,22,1):
                 #for Q in list(range(3,13,1))+list(range(13,27,2)):
                 #for Q in [6,8]:#5,26]:#,8,10,14,16,18,20,22]:
-                #for Q in [5,8,26]:#5,26]:#,8,10,14,16,18,20,22]:                
+                for Q in [26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:                
                     delayMin=2200
                     delayMax=2700
                     # if board==8:
