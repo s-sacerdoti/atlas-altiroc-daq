@@ -47,7 +47,7 @@ if __name__ == "__main__":
     totDelayMin=700
     totDelayMax=3000
     totDelayStep=10   #Need 1 for TOTf
-    chList=list(range(0,25))
+    chList=list(range(0,15))
     
     toaDelayStep=1
     if board==2:
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
         if args.tot:
             nameTOT='Data/widthScanTrigExt_B_%d_ch_%d_'%(board,ch)
-            cmdTOT="python scripts/measureTOT.py --skipExistingFile True  -N %s --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --ch %d --useExt True --pulserMin %d --pulserMax %d --pulserStep %s --out %s"%(NTOT,board,ch,totDelayMin,totDelayMax,totDelayStep,nameTOT)
+            cmdTOT="python scripts/measureTOT.py --skipExistingFile True  -N %s --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --ch %d --useExt True --riseEdgeMin %d --riseEdgeMax %d --riseEdgeStep %s --out %s"%(NTOT,board,ch,totDelayMin,totDelayMax,totDelayStep,nameTOT)
             print(cmdTOT)
             print("sleep 5")
 

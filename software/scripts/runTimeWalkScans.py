@@ -84,27 +84,28 @@ if __name__ == "__main__":
     elif board==8:
         qMin=1
         #cdList=[4];chList=[4,9,14];
+        chList=[4];cdList=[4];#TDR
+        #cdList=[0];
         #cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
-        chList=[4];cdList=[4];#TDR
         delayList=[2500]
         dacRef={}
-        dacRef[0]=   350 
-        dacRef[1]=   340  
-        dacRef[2]=   300
-        dacRef[3]=   350
+        dacRef[0]=   345 
+        dacRef[1]=   335  
+        dacRef[2]=   290
+        dacRef[3]=   340
         dacRef[4]=   345
-        dacRef[5]=   350
-        dacRef[6]=   340#TOAfrac=0.2
-        dacRef[7]=   310#TOAfrac=0.2
-        dacRef[8]=   340
-        dacRef[9]=   300 
-        dacRef[10]=  370
-        dacRef[11]=  360
-        dacRef[12]=  340 
-        dacRef[13]=  380
-        dacRef[14]=  320#cd4310 cd 0 320
+        dacRef[5]=   340
+        dacRef[6]=   335#TOAfrac=0.2
+        dacRef[7]=   305#TOAfrac=0.2
+        dacRef[8]=   330
+        dacRef[9]=   295 
+        dacRef[10]=  365
+        dacRef[11]=  355
+        dacRef[12]=  330 
+        dacRef[13]=  360
+        dacRef[14]=  310
 
 
 
@@ -210,7 +211,7 @@ if __name__ == "__main__":
                 #dacListLocal=list(range(dac,dac+41,8))
                 #dacListLocal=list(range(dac-20,dac+21,10))
                 #dacListLocal=list(range(dac-8,dac+1,2))
-                #dacListLocal=list(range(dac-20,dac+1,10))
+                dacListLocal=list(range(dac-15,dac+1,5))
                 dacListLocal=[dac]
                 #print("============",ch,dacListLocal,dac)
 
@@ -229,7 +230,7 @@ if __name__ == "__main__":
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --morePointsAtLowQ False --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
                     if args.useVthc:
                        cmd+=" --Vthc %d" %dacCor[ch]
-                    #f.write(cmd+"\n sleep 5 \n")
+                    f.write(cmd+"\n sleep 5 \n")
                     
                 ###############################
                 # measure TOA
@@ -237,7 +238,7 @@ if __name__ == "__main__":
                 #for Q in range(3,22,1):
                 #for Q in list(range(3,13,1))+list(range(13,27,2)):
                 #for Q in [6,8]:#5,26]:#,8,10,14,16,18,20,22]:
-                for Q in [26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:                
+                for Q in [5,6,7,26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:                
                     delayMin=2200
                     delayMax=2700
                     # if board==8:
