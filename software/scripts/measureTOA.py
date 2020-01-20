@@ -339,15 +339,16 @@ def measureTOA(argsip,
     ax2.legend(['Average Std. Dev. = %f ps' % (MeanDataStdev*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     ax2.set_xlim(left = np.min(Delay), right = np.max(Delay))
     ax2.set_ylim(bottom = 0, top = np.max(np.multiply(DataStdev,LSBest))+20)
+    ax2.set_ylim(bottom = 0, top = 100)
 
     # Plot (1,0) ; bottom left
 
-    delay_index_to_plot = -1
-    for delay_index, delay_value in enumerate(DelayRange): #find a good delay value to plot
-        #I'd say having 80% of hits come back is good enough to plot
-        if HitCnt[delay_index] > args.N * 0.8:
-            delay_index_to_plot = delay_index
-            break
+    delay_index_to_plot = int(len(DelayRange)/2)
+    # for delay_index, delay_value in enumerate(DelayRange): #find a good delay value to plot
+    #     #I'd say having 80% of hits come back is good enough to plot
+    #     if HitCnt[delay_index] > args.N * 0.8:
+    #         delay_index_to_plot = delay_index+10
+    #         break
 
     if delay_index_to_plot != -1:
         hist_range = 10
