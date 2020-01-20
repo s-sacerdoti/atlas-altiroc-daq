@@ -7,7 +7,16 @@ def set_pixel_specific_parameters(top, pixel_number):
         top.Fpga[0].Asic.SlowControl.ON_discri[ipix].set(0x0)
         top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x0)#New
         top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].set(0x0)
-        
+
+    #Add some channels on
+    for ipix in range(25):
+        #top.Fpga[0].Asic.SlowControl.disable_pa[ipix].set(0x0)	
+        #top.Fpga[0].Asic.SlowControl.ON_discri[ipix].set(0x1)
+        #top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[pixel_number].set(0x1)#New
+        #top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].set(0x1)
+        #top.Fpga[0].Asic.SlowControl.EN_trig_ext[ipix].set(0x1)
+        pass
+    
     #turn on only one channel
     top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x1)
     top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x0)
