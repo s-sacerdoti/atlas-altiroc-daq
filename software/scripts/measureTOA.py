@@ -39,8 +39,10 @@ import matplotlib.pyplot as plt                                ##
 from setASICconfig import set_pixel_specific_parameters        ##
                                                                ##
 #################################################################
-def acquire_data(top, useExt, DelayRange): 
-    pixel_stream = feb.PixelReader()    
+def acquire_data(top, useExt, DelayRange,chNb): 
+    pixel_stream = feb.PixelReader()
+    pixel_stream.channelNumber=chNb
+    pixel_stream.doPrint=True
     # pixel_stream.checkOFtoa=False
     # pixel_stream.checkOFtot=False
     pixel_stream.checkOFtoa=args.checkOFtoa
@@ -57,11 +59,15 @@ def acquire_data(top, useExt, DelayRange):
             top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(delay_value+pulseWidth)
 
         top.initialize()
-        for pulse_iteration in range(args.N):
+        for pulse_iteration in range(args.N):#Nikola
+            #print ("iter",pulse_iteration)
             top.Fpga[0].Asic.CalPulse.Start()
-            time.sleep(0.001)
+            time.sleep(0.01)#was 0.001
+        #print (type(pixel_stream.HitDataTOA.copy()),len(pixel_stream.HitDataTOA.copy()),pixel_stream.HitDataTOA.copy())
         pixel_data.append( pixel_stream.HitDataTOA.copy() )
-        while pixel_stream.count < args.N: pass
+        while pixel_stream.count < args.N:
+            #print (pixel_stream.count,args.N)
+            pass
         pixel_stream.clear()
 
     return pixel_data
@@ -163,7 +169,7 @@ def measureTOA(argsip,
     time.sleep(0.001)
     top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
 
-    # Set parameters
+    # Set parameters for probes
     set_pixel_specific_parameters(top, pixel_number)
     if pixel_number in range(0, 5): bitset=0x1
     if pixel_number in range(5, 10): bitset=0x2
@@ -185,10 +191,11 @@ def measureTOA(argsip,
         top.Fpga[0].Asic.Probe.en_probe_dig.set(bitset) 
         top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)
 
+    #more parameters
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delayMin)
-    top.Fpga[0].Asic.CalPulse.CalPulseWidth.set(0x12)
+    top.Fpga[0].Asic.CalPulse.CalPulseWidth.set(0x12)#was 0x2
 
     
     # Data Acquisition for TOA
@@ -212,7 +219,7 @@ def measureTOA(argsip,
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
 
-    pixel_data = acquire_data(top, useExt, DelayRange)
+    pixel_data = acquire_data(top, useExt, DelayRange,args.ch)
     
     #######################
     # Data Processing TOA #
@@ -230,14 +237,14 @@ def measureTOA(argsip,
     
     for delay_index, delay_value in enumerate(DelayRange):
         okTOA=np.array(pixel_data[delay_index])!=127 #used to remove saturated toa
-        print(okTOA)
+        #print(okTOA)
         HitDataTOA = np.array(pixel_data[delay_index])[okTOA]
         HitCnt.append(len(HitDataTOA))
         allTOAdata.append(HitDataTOA)
         if len(HitDataTOA) > 0.5*args.N:
             DataMean[delay_index] = np.mean(HitDataTOA, dtype=np.float64)
             DataStdev[delay_index] = math.sqrt(math.pow(np.std(HitDataTOA, dtype=np.float64),2)+1/12)
-        print (delay_value,HitDataTOA,DataStdev[delay_index])
+        #print (delay_value,HitDataTOA,DataStdev[delay_index])
     
     # The following calculations ignore points with no data (i.e. Std.Dev = 0)
     nonzero = DataMean != 0
@@ -264,8 +271,8 @@ def measureTOA(argsip,
     
     #################################################################
     # Print Data
-    for delay_index, delay_value in enumerate(DelayRange):
-        print('Delay = %d, HitCnt = %d, DataMean = %f LSB, DataStDev = %f LSB / %f ps' % (delay_value, HitCnt[delay_index], DataMean[delay_index], DataStdev[delay_index], DataStdev[delay_index]*LSBest))
+    #for delay_index, delay_value in enumerate(DelayRange):
+    #    print('Delay = %d, HitCnt = %d, DataMean = %f LSB, DataStDev = %f LSB / %f ps' % (delay_value, HitCnt[delay_index], DataMean[delay_index], DataStdev[delay_index], DataStdev[delay_index]*LSBest))
     print('Maximum Measured TOA = %f LSB / %f ps' % ( np.max(DataMean), (np.max(DataMean)*LSBest) ) )
     print('Mean Std Dev = %f LSB / %f ps' % ( MeanDataStdev, (MeanDataStdev*LSBest) ) )
     print('Average LSB estimate: %f ps' % LSBest)

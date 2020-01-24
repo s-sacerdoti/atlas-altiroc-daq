@@ -42,9 +42,10 @@ from setASICconfig import set_pixel_specific_parameters        ##
 #################################################################
 # 
 #################################################################
-def acquire_data(top, useExt,QRange): 
+def acquire_data(top, useExt,QRange,chNb): 
     pixel_stream = feb.PixelReader()
-    #pixel_stream.checkOFtoa=False
+    #pixel_stream.channelNumber=chNb #Only when you read all channels
+    pixel_stream.doPrint=False#Nikola
     #pixel_stream.checkOFtot=True   
     pixel_stream.checkOFtoa=args.checkOFtoa
     pixel_stream.checkOFtot=args.checkOFtot 
@@ -74,7 +75,7 @@ def acquire_data(top, useExt,QRange):
             Nevts*=5
         for pulse_iteration in range(Nevts):
             top.Fpga[0].Asic.CalPulse.Start()
-            time.sleep(0.001)
+            time.sleep(0.01)
 
             
         pixel_data['HitDataTOA'].append( pixel_stream.HitDataTOA.copy() )
@@ -110,12 +111,12 @@ def parse_arguments():
     Qinj = 13 #10fc
     dly = 2450 
     outFile = 'TestData/TimeWalk'
-    Vthc=0x40   
+    #Vthc=-1
     Rin_Vpa=0 # 0 => 25K, 1 => 15 K
 
 
     # Add arguments
-    parser.add_argument("--Vthc", type = int, required = False, default = Vthc, help = "Vth cor")
+    #parser.add_argument("--Vthc", type = int, required = False, default = Vthc, help = "Vth cor")
     parser.add_argument("--Rin_Vpa", type = int, required = False, default = Rin_Vpa, help = "RinVpa")
 
     parser.add_argument( "--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP addresses")
@@ -248,6 +249,10 @@ def measureTimeWalk(argsip,
     else:
         top.Fpga[0].Asic.Probe.en_probe_dig.set(bitset) 
         top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)
+
+    #TO BE REMOVED: add probe for tests
+    #top.Fpga[0].Asic.Probe.en_probe_dig.set(0x2) 
+    #top.Fpga[0].Asic.Probe.pix[7].probe_dig_out_disc.set(0x1)
         
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(QMin)
@@ -269,13 +274,14 @@ def measureTimeWalk(argsip,
 
     #additionnal parameters
     top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(args.Rin_Vpa)
-    top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(args.Vthc) # alignment
+    #if args.Vthc>0:
+    #    top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(args.Vthc) # alignment
 
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
 
     # get data
-    pixel_data = acquire_data(top, useExt,QRange)
+    pixel_data = acquire_data(top, useExt,QRange,args.ch)
     if len(pixel_data) == 0 : raise ValueError('No hits were detected during delay sweep. Aborting!')    
 
 

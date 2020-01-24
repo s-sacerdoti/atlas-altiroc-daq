@@ -32,9 +32,40 @@ Top:
         ########################
         EN_ck_SRAM[:]: 0x1
         ON_Ctest[:]: 0x0
-        disable_pa[:]: 0x0
-        bit_vth_cor[:]: 0x40
-        ON_discri[:]: 0x0
+        disable_pa[:]: 0x0 #0 => ON
+       
+
+ ########################
+        #Threshold alignment. DAC cor 7 bits 0x40= 64 decimal (mid range) #
+        bit_vth_cor[0]: 64 # 
+        bit_vth_cor[1]: 64 # 
+        bit_vth_cor[2]: 40 #
+        bit_vth_cor[3]: 64 #
+        bit_vth_cor[4]: 64 #
+        bit_vth_cor[5]: 64 #
+        bit_vth_cor[6]: 64 #
+        bit_vth_cor[7]: 40 #
+        bit_vth_cor[8]: 50 #
+        bit_vth_cor[9]: 45 # 
+        bit_vth_cor[10]: 35 #
+        bit_vth_cor[11]: 40 #
+        bit_vth_cor[12]: 50 #
+        bit_vth_cor[13]: 40 #
+        bit_vth_cor[14]: 50 #
+
+        bit_vth_cor[15]: 64 #
+        bit_vth_cor[16]: 64 #
+        bit_vth_cor[17]: 64 #
+        bit_vth_cor[18]: 64 #
+        bit_vth_cor[19]: 64 #
+        bit_vth_cor[20]: 64 #
+        bit_vth_cor[21]: 64 # 
+        bit_vth_cor[22]: 64 #
+        bit_vth_cor[23]: 64 #
+        bit_vth_cor[24]: 64 #
+        ########################
+
+        ON_discri[:]: 0x1
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
         cBit_f_TOA[:]: 0x0     # increase to 0 to f to reduce LSB while keeping cBit_s_TOA=0   
@@ -46,9 +77,9 @@ Top:
         DLL_ALockR_en: 0x0 # should be kept to 1
         CP_b: 0x5 #5 WO Ileak on Vctrl, Charge pump I only detremines the velocity of DLL locking and not the value to which it locks
         
-        ext_Vcrtlf_en: 0x0 # strap needed but en can be set to 0 (initial value obtained on rstb_dll), 28 oct strap not needed since 100 nF removed??
-        ext_Vcrtls_en: 0x0 # strap needed but en can be set to 0 (initial value obtained on rstb_dll) 28 oct strap not needed since 100 nF removed??
-        ext_Vcrtlc_en: 0x0 # strap not needed. en can be set to 0 (initial value obtained on rstb_dll)
+        ext_Vcrtlf_en: 0x1 # Jan 2020 strap and en=1....In 2019:strap needed but en can be set to 0 (initial value obtained on rstb_dll), 28 oct strap not needed since 100 nF removed??
+        ext_Vcrtls_en: 0x1 # Jan 2020 strap and en=1....In 2019:strap needed but en can be set to 0 (initial value obtained on rstb_dll) 28 oct strap not needed since 100 nF removed??
+        ext_Vcrtlc_en: 0x1 # Jan 2020 strap and en=1....In 2019:strap not needed. en can be set to 0 (initial value obtained on rstb_dll)
 
         totf_satovfw: 0x1
         totc_satovfw: 0x1
