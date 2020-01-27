@@ -41,7 +41,7 @@ from setASICconfig import set_pixel_specific_parameters        ##
 #################################################################
 def acquire_data(top, useExt, DelayRange,chNb): 
     pixel_stream = feb.PixelReader()
-    pixel_stream.channelNumber=chNb
+    #pixel_stream.channelNumber=chNb
     pixel_stream.doPrint=True
     # pixel_stream.checkOFtoa=False
     # pixel_stream.checkOFtot=False
@@ -94,7 +94,7 @@ def parse_arguments():
     # Add arguments
     parser.add_argument( "--skipExistingFile", type = argBool, required = False, default = False, help = "")
     parser.add_argument("--Rin_Vpa", type = int, required = False, default = 0, help = "RinVpa")
-    parser.add_argument("--Vthc", type = int, required = False, default = 0x40, help = "Vth cor")
+    parser.add_argument("--Vthc", type = int, required = False, default = -1, help = "Vth cor")
     parser.add_argument( "--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP addresses")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
     parser.add_argument( "--display", type = argBool, required = False, default = True, help = "show plots")
@@ -214,7 +214,8 @@ def measureTOA(argsip,
 
     #additionnal parameters
     #top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(args.Rin_Vpa)
-    top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(args.Vthc) # alignment
+    if args.Vthc>0:
+        top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(args.Vthc) # alignment
     
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
