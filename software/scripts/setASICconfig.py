@@ -1,6 +1,5 @@
 def set_pixel_specific_parameters(top, pixel_number):
 
-
     #Ctest,discri,PA,SRAM off for all channels
     for ipix in range(25):
         top.Fpga[0].Asic.SlowControl.disable_pa[ipix].set(0x1)	
@@ -10,11 +9,12 @@ def set_pixel_specific_parameters(top, pixel_number):
         top.Fpga[0].Asic.SlowControl.EN_trig_ext[ipix].set(0x0)
         
     #Add some channels ON
-    #for ipix in range(0,15):
-    for ipix in [0,1,2,3,4,5,8,9,10,11,12,14]:
-    #for ipix in [0,1,2,3]:
-        top.Fpga[0].Asic.SlowControl.disable_pa[ipix].set(0x0)	
-        top.Fpga[0].Asic.SlowControl.ON_discri[ipix].set(0x1)
+    for ipix in range(0,15):
+    #for ipix in [0]:
+    #for ipix in [0,1,2,3,4,5,9,10,11,12,14]:
+    #for ipix in [0]:
+        #top.Fpga[0].Asic.SlowControl.disable_pa[ipix].set(0x0)	
+        #top.Fpga[0].Asic.SlowControl.ON_discri[ipix].set(0x1)
         #top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[ipix].set(0x1)#New
         #top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].set(0x1)
         #top.Fpga[0].Asic.SlowControl.EN_trig_ext[ipix].set(0x1)

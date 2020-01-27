@@ -75,7 +75,7 @@ def acquire_data(top, useExt,QRange,chNb):
             Nevts*=5
         for pulse_iteration in range(Nevts):
             top.Fpga[0].Asic.CalPulse.Start()
-            time.sleep(0.01)
+            time.sleep(0.001)
 
             
         pixel_data['HitDataTOA'].append( pixel_stream.HitDataTOA.copy() )
@@ -111,12 +111,12 @@ def parse_arguments():
     Qinj = 13 #10fc
     dly = 2450 
     outFile = 'TestData/TimeWalk'
-    #Vthc=-1
+    Vthc=-1
     Rin_Vpa=0 # 0 => 25K, 1 => 15 K
 
 
     # Add arguments
-    #parser.add_argument("--Vthc", type = int, required = False, default = Vthc, help = "Vth cor")
+    parser.add_argument("--Vthc", type = int, required = False, default = Vthc, help = "Vth cor")
     parser.add_argument("--Rin_Vpa", type = int, required = False, default = Rin_Vpa, help = "RinVpa")
 
     parser.add_argument( "--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP addresses")
@@ -274,8 +274,8 @@ def measureTimeWalk(argsip,
 
     #additionnal parameters
     top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(args.Rin_Vpa)
-    #if args.Vthc>0:
-    #    top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(args.Vthc) # alignment
+    if args.Vthc>0:
+        top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(args.Vthc) # alignment
 
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
@@ -426,7 +426,8 @@ def measureTimeWalk(argsip,
         ax2.set_xlabel(QTitle, fontsize = 10)
         ax2.set_ylabel(jitterTitle, fontsize = 10)
         ax2.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
-        ax2.set_ylim(bottom = 0, top = np.max(TOARMSArray)*1.1)
+        #ax2.set_ylim(bottom = 0, top = np.max(TOARMSArray)*1.1)
+        ax2.set_ylim(bottom = 0, top = 100)
        # Plot (1,0) ; bottom left
 
         ax3.scatter(QArray, TOTcMeanArray)

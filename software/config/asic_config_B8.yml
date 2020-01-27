@@ -35,8 +35,8 @@ Top:
         disable_pa[:]: 0x1
         bit_vth_cor[:]: 0x40
 
-        bit_vth_cor[0]: 64 # 
-        bit_vth_cor[0]: 36 
+        
+        bit_vth_cor[0]: 36
         bit_vth_cor[1]: 41
         bit_vth_cor[2]: 64
         bit_vth_cor[3]: 39

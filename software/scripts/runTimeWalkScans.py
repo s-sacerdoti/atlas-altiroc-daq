@@ -36,10 +36,9 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
 
-
     cdList=[0]
     qMin=2
-    qMax=26#63#63
+    qMax=63#63#63
     qStep=1
     board=args.board
     N=100
@@ -55,168 +54,162 @@ if __name__ == "__main__":
         #####chList=[5,6,7,8,10,12,13,14]#list(range(15,25))+
         chList=[5]#list(range(15,25))+
         #dacList=range(300,440,10)
-        dacRef={}
-        dacRef[5]=350
-        dacRef[6]=360
-        dacRef[7]=350
-        dacRef[8]=330
-        dacRef[10]=380
-        dacRef[12]=320
-        dacRef[13]=340
-        dacRef[14]=330
+        dacList={}
+        dacList[5]=350
+        dacList[6]=360
+        dacList[7]=350
+        dacList[8]=330
+        dacList[10]=380
+        dacList[12]=320
+        dacList[13]=340
+        dacList[14]=330
     elif board==3:
         #chList=list(range(1,9))+list(range(10,15))
         #dacList=range(300,380,10)
-        dacRef={}
-        dacRef[1]=408
-        dacRef[2]=310
-        dacRef[3]=348
-        dacRef[4]=334
-        dacRef[5]=374
-        dacRef[6]=362
-        dacRef[7]=344
-        dacRef[8]=356      
-        dacRef[10]=340
-        dacRef[11]=374
-        dacRef[12]=360
-        dacRef[13]=382
-        dacRef[14]=418        
+        dacList={}
+        dacList[1]=408
+        dacList[2]=310
+        dacList[3]=348
+        dacList[4]=334
+        dacList[5]=374
+        dacList[6]=362
+        dacList[7]=344
+        dacList[8]=356      
+        dacList[10]=340
+        dacList[11]=374
+        dacList[12]=360
+        dacList[13]=382
+        dacList[14]=418        
     elif board==8:
         qMin=1
         #cdList=[4];chList=[4,9,14];
-        chList=[4];cdList=[4];#TDR
-        #cdList=[0];
+        #chList=[4];cdList=[4];#TDR
+        cdList=[4];
         #cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
         delayList=[2500]
-        dacRef={}
-        dacRef[0]=   345 
-        dacRef[1]=   335  
-        dacRef[2]=   290
-        dacRef[3]=   340
-        dacRef[4]=   345
-        dacRef[5]=   340
-        dacRef[6]=   335#TOAfrac=0.2
-        dacRef[7]=   305#TOAfrac=0.2
-        dacRef[8]=   330
-        dacRef[9]=   295 
-        dacRef[10]=  365
-        dacRef[11]=  355
-        dacRef[12]=  330 
-        dacRef[13]=  360
-        dacRef[14]=  310
-
-
-
+        dacRef=290#Vthcor computed for this value
+        dacList={}
+        dacList[0]=   345 
+        dacList[1]=   335  
+        dacList[2]=   290
+        dacList[3]=   340
+        dacList[4]=   345
+        dacList[5]=   340
+        dacList[6]=   335#TOAfrac=0.2
+        dacList[7]=   305#TOAfrac=0.2
+        dacList[8]=   330
+        dacList[9]=   295 
+        dacList[10]=  365
+        dacList[11]=  355
+        dacList[12]=  330 
+        dacList[13]=  360
+        dacList[14]=  310
     elif board==13:
         #chList=list(range(0,6))+list(range(7,15))
         #chList=[3]#,12,21]
         #dacList=[380,400]#range(300,440,10)
         #chList=[1]#list(range(15,25))+
-        dacRef={}
-        dacRef[0]=320
-        dacRef[1]=305
-        dacRef[2]=330
-        dacRef[3]=315
-        dacRef[4]=305
-        dacRef[5]=385
-        dacRef[7]=310
-        dacRef[8]=335      
-        dacRef[9]=325  
-        dacRef[10]=320
-        dacRef[11]=345
-        dacRef[12]=365
-        dacRef[13]=345
-        dacRef[14]=350
-        # dacRef[15]=300
-        # dacRef[16]=380
-        # dacRef[17]=330
-        # dacRef[18]=390
-        # dacRef[19]=370      
-        # dacRef[20]=350
-        # dacRef[21]=340
-        # dacRef[22]=430
-        # dacRef[23]=400
-        # dacRef[24]=360
+        dacList={}
+        dacList[0]=320
+        dacList[1]=305
+        dacList[2]=330
+        dacList[3]=315
+        dacList[4]=305
+        dacList[5]=385
+        dacList[7]=310
+        dacList[8]=335      
+        dacList[9]=325  
+        dacList[10]=320
+        dacList[11]=345
+        dacList[12]=365
+        dacList[13]=345
+        dacList[14]=350
+        # dacList[15]=300
+        # dacList[16]=380
+        # dacList[17]=330
+        # dacList[18]=390
+        # dacList[19]=370      
+        # dacList[20]=350
+        # dacList[21]=340
+        # dacList[22]=430
+        # dacList[23]=400
+        # dacList[24]=360
     elif board==15:
         chList=[4,9,14,19,24]
         cdList=[0,4]
         dacList=range(300,410,10)
-        dacRef={}
-        dacRef[0]=330
-        dacRef[1]=310
-        dacRef[2]=340
-        dacRef[3]=330
-        dacRef[4]=320
-        dacRef[5]=400
-        dacRef[7]=320
-        dacRef[8]=350      
-        dacRef[9]=340  
-        dacRef[10]=330
-        dacRef[11]=350
-        dacRef[12]=370
-        dacRef[13]=360
-        dacRef[14]=360
-        dacRef[15]=300
-        dacRef[16]=380
-        dacRef[17]=330
-        dacRef[18]=390
-        dacRef[19]=370      
-        dacRef[20]=350
-        dacRef[21]=340
-        dacRef[22]=430
-        dacRef[23]=400
-        dacRef[24]=360        
+        dacList={}
+        dacList[0]=330
+        dacList[1]=310
+        dacList[2]=340
+        dacList[3]=330
+        dacList[4]=320
+        dacList[5]=400
+        dacList[7]=320
+        dacList[8]=350      
+        dacList[9]=340  
+        dacList[10]=330
+        dacList[11]=350
+        dacList[12]=370
+        dacList[13]=360
+        dacList[14]=360
+        dacList[15]=300
+        dacList[16]=380
+        dacList[17]=330
+        dacList[18]=390
+        dacList[19]=370      
+        dacList[20]=350
+        dacList[21]=340
+        dacList[22]=430
+        dacList[23]=400
+        dacList[24]=360        
     elif board==18:
-        dacRef={}
-        dacRef[0]=360
-        dacRef[1]=390
-        dacRef[2]=406
-        dacRef[3]=340
-        #dacRef[4]=440
-        dacRef[5]=360
-        #dacRef[6]=
-        #dacRef[7]=
-        #dacRef[8]=      
-        dacRef[9]=356  
-        dacRef[10]=344
-        dacRef[11]=336
-        dacRef[12]=326
-        dacRef[13]=376
-        dacRef[14]=376
+        dacList={}
+        dacList[0]=360
+        dacList[1]=390
+        dacList[2]=406
+        dacList[3]=340
+        #dacList[4]=440
+        dacList[5]=360
+        #dacList[6]=
+        #dacList[7]=
+        #dacList[8]=      
+        dacList[9]=356  
+        dacList[10]=344
+        dacList[11]=336
+        dacList[12]=326
+        dacList[13]=376
+        dacList[14]=376
 
     dacCor={}
-    dacRefNew={}
+    dacListNew={}
     if args.useVthc:
-       meanDac=np.mean(dacRef.values())
-       for ch in dacRef.keys():
-           dacCor[ch]=int(64+(meanDac-dacRef[ch])*(0.4/0.8))
-           dacRefNew[ch]=int(meanDac)
-       dacRef=dacRefNew
+       meanDac=np.mean(dacList.values())
+       for ch in dacList.keys():
+           dacCor[ch]=int(64+(meanDac-dacList[ch])*(0.4/0.8))
+           dacListNew[ch]=int(meanDac)
+       dacList=dacListNew
 
 
     if chList==None:
-        chList=dacRef.keys()
+        chList=dacList.keys()
         #chList=list(range(15,25))+list(range(0,15))
 
         
     for ch in chList:
         for cd in cdList:
-            if dacList is not None:
-                dacListLocal=dacList
-            else:
-                #dac list
-                dac=dacRef[ch]        
-                #dacListLocal=list(range(dac,dac+41,8))
-                #dacListLocal=list(range(dac-20,dac+21,10))
-                #dacListLocal=list(range(dac-8,dac+1,2))
-                dacListLocal=list(range(dac-15,dac+1,5))
-                dacListLocal=[dac]
-                #print("============",ch,dacListLocal,dac)
+            #dac list
+            dac=dacList[ch]        
+            #dacListLocal=list(range(dac,dac+41,8))
+            #dacListLocal=list(range(dac-20,dac+21,10))
+            #dacListLocal=list(range(dac-8,dac+1,2))
+            #dacListLocal=list(range(dac-15,dac+1,5))
+            #dacListLocal=[dac]
+            dacListLocal=[dacRef]
 
-            print(ch,cd,delayList,dacListLocal)
-            
+            print(ch,cd,delayList,dacListLocal)            
             for dac in dacListLocal:   
 
                 ###############################
@@ -246,7 +239,7 @@ if __name__ == "__main__":
                     #     delayMax=2700
                         
                     cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep 1 --out Data/delay"%(cd,ch,board,dac,Q,delayMin,delayMax)
-                    f.write(cmd+"\n sleep 5 \n")
+                    #f.write(cmd+"\n sleep 5 \n")
 
 
             
