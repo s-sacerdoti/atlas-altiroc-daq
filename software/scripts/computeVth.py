@@ -14,26 +14,44 @@ import math                                                    ##
 
 
 dacList={}
-dacList[0]=   345 
-dacList[1]=   335  
-dacList[2]=   290
-dacList[3]=   340
-dacList[4]=   345
-dacList[5]=   340
-dacList[6]=   335#TOAfrac=0.2
-dacList[7]=   305#TOAfrac=0.2
-dacList[8]=   330
-dacList[9]=   295 
-dacList[10]=  365
-dacList[11]=  355
-dacList[12]=  330 
-dacList[13]=  360
-dacList[14]=  310
+
+#B8
+# dacList[0]=   345 
+# dacList[1]=   335  
+# dacList[2]=   290
+# dacList[3]=   340
+# dacList[4]=   345
+# dacList[5]=   340
+# dacList[6]=   335#TOAfrac=0.2
+# dacList[7]=   305#TOAfrac=0.2
+# dacList[8]=   330
+# dacList[9]=   295 
+# dacList[10]=  365
+# dacList[11]=  355
+# dacList[12]=  330 
+# dacList[13]=  360
+# dacList[14]=  310
+
+#B13
+dacList[0]=320
+dacList[1]=305
+dacList[2]=330
+dacList[3]=315
+dacList[4]=305
+dacList[5]=385
+dacList[7]=310
+dacList[8]=335      
+dacList[9]=325  
+dacList[10]=320
+dacList[11]=345
+dacList[12]=365
+dacList[13]=345
+dacList[14]=350
 
 
 
-dacRef=290
-
+dacRef=min(dacList.values())
+print (dacRef)
 i=0
 for i,d in dacList.items():
 
@@ -41,4 +59,4 @@ for i,d in dacList.items():
 
 
     
-    print ("bit_vth_cor["+str(i)+"]:"+str(vthc))
+    print ("        bit_vth_cor["+str(i)+"]: "+str(vthc))

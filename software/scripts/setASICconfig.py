@@ -10,7 +10,8 @@ def set_pixel_specific_parameters(top, pixel_number):
         
     #Add some channels ON
     for ipix in range(0,15):
-    #for ipix in [0]:
+    #for ipix in list(range(0,1)):#+list(range(7,15)):
+    #for ipix in [1]:
     #for ipix in [0,1,2,3,4,5,9,10,11,12,14]:
     #for ipix in [0]:
         #top.Fpga[0].Asic.SlowControl.disable_pa[ipix].set(0x0)	

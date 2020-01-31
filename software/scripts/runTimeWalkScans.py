@@ -25,7 +25,7 @@ def parse_arguments():
     # Add arguments
     parser.add_argument("-b", "--board", type = int, required = False, default = 8,help = "Choose board")
     parser.add_argument("-c","--ch", type = int, required = False, default = 4, help = "channel")
-    #parser.add_argument("--useVthc", type = bool, required = False, default = False)
+    parser.add_argument("--Vthc", type = argBool, required = False, default = False)
     # Get the arguments
     args = parser.parse_args()
     return args
@@ -82,10 +82,10 @@ if __name__ == "__main__":
         dacList[14]=418        
     elif board==8:
         qMin=1
-        #cdList=[4];chList=[4,9,14];
+        cdList=[4];chList=[4,9,14];
         #chList=[4];cdList=[4];#TDR
         cdList=[4];
-        chList=[0,4]
+        #chList=[0,4]
         #cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
@@ -112,6 +112,7 @@ if __name__ == "__main__":
         #chList=[3]#,12,21]
         #dacList=[380,400]#range(300,440,10)
         #chList=[1]#list(range(15,25))+
+        dacRef=305#Vthcor computed for this value
         dacList={}
         dacList[0]=320
         dacList[1]=305
@@ -184,14 +185,6 @@ if __name__ == "__main__":
         dacList[13]=376
         dacList[14]=376
 
-    # dacCor={}
-    # dacListNew={}
-    # if args.useVthc:
-    #    meanDac=np.mean(dacList.values())
-    #    for ch in dacList.keys():
-    #        dacCor[ch]=int(64+(meanDac-dacList[ch])*(0.4/0.8))
-    #        dacListNew[ch]=int(meanDac)
-    #    dacList=dacListNew
 
 
     if chList==None:
@@ -207,9 +200,10 @@ if __name__ == "__main__":
             #dacListLocal=list(range(dac-20,dac+21,10))
             #dacListLocal=list(range(dac-8,dac+1,2))
             #dacListLocal=list(range(dac-15,dac+1,5))
-            #dacListLocal=[dac]
+            dacListLocal=[dac]
             dacListLocal=[dacRef]
-
+            #dacListLocal=list(range(dacRef,dacRef+21,10))
+            
             print(ch,cd,delayList,dacListLocal)            
             for dac in dacListLocal:   
 
@@ -220,21 +214,19 @@ if __name__ == "__main__":
                     #name='Data/thresscan_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_thres_%d_'%(board,Rin_Vpa,ch,cd,delay,dac)
                     name="Data/thresscan"
                     name="Data/"
-                    #if args.useVthc:
-                    #   name+='corr_%d_' %dacCor[ch]
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --morePointsAtLowQ False --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
-                    #if args.useVthc:
-                    #   cmd+=" --Vthc %d" %dacCor[ch]
+                    #if args.noVthc:
+                    #    cmd+=" --Vthc 64"
                     f.write(cmd+"\n sleep 5 \n")
                     
                 ###############################
                 # measure TOA
                 ###############################
                 #for Q in range(3,22,1):
-                #for Q in list(range(3,13,1))+list(range(13,27,2)):
+                for Q in list(range(3,10,1))+list(range(10,27,2)):
                 #for Q in [6,8]:#5,26]:#,8,10,14,16,18,20,22]:
                 #for Q in [5,6,7,26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:
-                for Q in [26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:                
+                #for Q in [26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:                
                     delayMin=2200
                     delayMax=2700
                     # if board==8:
@@ -242,7 +234,7 @@ if __name__ == "__main__":
                     #     delayMax=2700
                         
                     cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep 1 --out Data/delay"%(cd,ch,board,dac,Q,delayMin,delayMax)
-                    f.write(cmd+"\n sleep 5 \n")
+                    #f.write(cmd+"\n sleep 5 \n")
 
 
             
