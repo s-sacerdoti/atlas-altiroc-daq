@@ -52,7 +52,7 @@ if __name__ == "__main__":
     
     if board==2:
         #####chList=[5,6,7,8,10,12,13,14]#list(range(15,25))+
-        chList=[5]#list(range(15,25))+
+        #chList=[5]#list(range(15,25))+
         #dacList=range(300,440,10)
         dacList={}
         dacList[5]=350
