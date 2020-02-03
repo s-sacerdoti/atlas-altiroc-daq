@@ -25,7 +25,9 @@ def parse_arguments():
     # Add arguments
     parser.add_argument("-b", "--board", type = int, required = False, default = 8,help = "Choose board")
     parser.add_argument("-c","--ch", type = int, required = False, default = 4, help = "channel")
-    parser.add_argument("--vthc64", type = argBool, required = False, default = True)
+    parser.add_argument("--vthc64", type = argBool, required = False, default = False)
+    parser.add_argument("--cfg", required = False, default = None)
+    #parser.add_argument("--dacRef", required = False, default = None)
     # Get the arguments
     args = parser.parse_args()
     return args
@@ -37,9 +39,9 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     cdList=[0]
-    qMin=13
+    qMin=2
     qMax=63#63#63
-    qStep=6
+    qStep=1
     board=args.board
     N=100
     Rin_Vpa=0
@@ -202,7 +204,7 @@ if __name__ == "__main__":
             #dacListLocal=list(range(dac-15,dac+1,5))
             dacListLocal=[dac]
             #dacListLocal=[dacRef]
-            dacListLocal=list(range(dac-20,dac+510,5))
+            #dacListLocal=list(range(dac-20,dac+510,5))
             
             print(ch,cd,delayList,dacListLocal)            
             for dac in dacListLocal:   
@@ -217,6 +219,10 @@ if __name__ == "__main__":
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --morePointsAtLowQ False --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
                     if args.vthc64:
                         cmd+=" --Vthc 64"
+                    if args.cfg is not None:
+                        cmd+=" --cfg "+args.cfg
+
+                        
                     f.write(cmd+"\n sleep 5 \n")
                     
                 ###############################
