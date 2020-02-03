@@ -25,7 +25,7 @@ def parse_arguments():
     # Add arguments
     parser.add_argument("-b", "--board", type = int, required = False, default = 8,help = "Choose board")
     parser.add_argument("-c","--ch", type = int, required = False, default = 4, help = "channel")
-    parser.add_argument("--Vthc", type = argBool, required = False, default = False)
+    parser.add_argument("--vthc64", type = argBool, required = False, default = True)
     # Get the arguments
     args = parser.parse_args()
     return args
@@ -37,9 +37,9 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     cdList=[0]
-    qMin=2
+    qMin=13
     qMax=63#63#63
-    qStep=1
+    qStep=6
     board=args.board
     N=100
     Rin_Vpa=0
@@ -85,7 +85,7 @@ if __name__ == "__main__":
         cdList=[4];chList=[4,9,14];
         #chList=[4];cdList=[4];#TDR
         cdList=[4];
-        #chList=[0,4]
+        chList=[14]
         #cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
@@ -201,8 +201,8 @@ if __name__ == "__main__":
             #dacListLocal=list(range(dac-8,dac+1,2))
             #dacListLocal=list(range(dac-15,dac+1,5))
             dacListLocal=[dac]
-            dacListLocal=[dacRef]
-            #dacListLocal=list(range(dacRef,dacRef+21,10))
+            #dacListLocal=[dacRef]
+            dacListLocal=list(range(dac-20,dac+510,5))
             
             print(ch,cd,delayList,dacListLocal)            
             for dac in dacListLocal:   
@@ -215,8 +215,8 @@ if __name__ == "__main__":
                     name="Data/thresscan"
                     name="Data/"
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --morePointsAtLowQ False --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
-                    #if args.noVthc:
-                    #    cmd+=" --Vthc 64"
+                    if args.vthc64:
+                        cmd+=" --Vthc 64"
                     f.write(cmd+"\n sleep 5 \n")
                     
                 ###############################
