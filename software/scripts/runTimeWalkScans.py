@@ -39,9 +39,9 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     cdList=[0]
-    qMin=2
+    qMin=1
     qMax=63#63#63
-    qStep=1
+    qStep=6
     board=args.board
     N=100
     Rin_Vpa=0
@@ -54,8 +54,9 @@ if __name__ == "__main__":
     
     if board==2:
         #####chList=[5,6,7,8,10,12,13,14]#list(range(15,25))+
-        #chList=[5]#list(range(15,25))+
+        chList=[10]#list(range(15,25))+
         #dacList=range(300,440,10)
+        dacRef=320#Vthcor computed for this value
         dacList={}
         dacList[5]=350
         dacList[6]=360
@@ -203,8 +204,9 @@ if __name__ == "__main__":
             #dacListLocal=list(range(dac-8,dac+1,2))
             #dacListLocal=list(range(dac-15,dac+1,5))
             dacListLocal=[dac]
-            #dacListLocal=[dacRef]
-            #dacListLocal=list(range(dac-20,dac+510,5))
+            dacListLocal=[dacRef]
+            dacListLocal=list(range(dacRef-20,dacRef+100,5))+list(range(dacRef+100,dacRef+250,10))#B8
+            #dacListLocal=list(range(dacRef-40,dacRef+250,5))#B2
             
             print(ch,cd,delayList,dacListLocal)            
             for dac in dacListLocal:   

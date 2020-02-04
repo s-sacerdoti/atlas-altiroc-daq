@@ -33,22 +33,43 @@ Top:
         EN_ck_SRAM[:]: 0x1
         ON_Ctest[:]: 0x0
         disable_pa[:]: 0x0
+
+ ########################
+
+#Threshold alignment. DAC cor 7 bits 0x40= 64 decimal (mid range) 
+# B13: alignment for Vth =320 (Q=2-3) #
+        bit_vth_cor[0]: 64 # 
+        bit_vth_cor[1]: 74 # 
+        bit_vth_cor[2]: 64 #
+        bit_vth_cor[3]: 72 #
+        bit_vth_cor[4]: 74 #
+        bit_vth_cor[5]: 64 # B13: hs?
+        bit_vth_cor[6]: 64 # B13: HS?
+        bit_vth_cor[7]: 74 #
+        bit_vth_cor[8]: 62 #
+        bit_vth_cor[9]: 67 # 
+        bit_vth_cor[10]: 69 #
+        bit_vth_cor[11]: 58 #
+        bit_vth_cor[12]: 49 #
+        bit_vth_cor[13]: 56 #
+        bit_vth_cor[14]: 54 #
+
+        bit_vth_cor[15]: 64 #
+        bit_vth_cor[16]: 64 #
+        bit_vth_cor[17]: 64 #
+        bit_vth_cor[18]: 64 #
+        bit_vth_cor[19]: 64 #
+        bit_vth_cor[20]: 64 #
+        bit_vth_cor[21]: 64 # 
+        bit_vth_cor[22]: 64 #
+        bit_vth_cor[23]: 64 #
+        bit_vth_cor[24]: 64 #
+
+########################
+
+
+
         ON_discri[:]: 0x0
-        bit_vth_cor[:]: 0x40
-        bit_vth_cor[0]: 56
-        bit_vth_cor[1]: 64
-        bit_vth_cor[2]: 51
-        bit_vth_cor[3]: 59
-        bit_vth_cor[4]: 64
-        bit_vth_cor[5]: 24
-        bit_vth_cor[7]: 61
-        bit_vth_cor[8]: 49
-        bit_vth_cor[9]: 54
-        bit_vth_cor[10]: 56
-        bit_vth_cor[11]: 44
-        bit_vth_cor[12]: 34
-        bit_vth_cor[13]: 44
-        bit_vth_cor[14]: 41
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
         cBit_f_TOA[:]: 0x0   # increase to 0 to f to reduce LSB while keeping cBit_s_TOA=0        
@@ -91,7 +112,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 305 #average
+        DAC10bit: 451 #average
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1

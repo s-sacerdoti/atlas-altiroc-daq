@@ -35,6 +35,14 @@ Top:
         disable_pa[:]: 0x0
         ON_discri[:]: 0x0
         bit_vth_cor[:]: 0x40
+        bit_vth_cor[5]: 49
+        bit_vth_cor[6]: 44
+        bit_vth_cor[7]: 49
+        bit_vth_cor[8]: 59
+        bit_vth_cor[10]: 34
+        bit_vth_cor[12]: 64
+        bit_vth_cor[13]: 54
+        bit_vth_cor[14]: 59	
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
         cBit_f_TOA[:]: 0x0   # increase to 0 to f to reduce LSB while keeping cBit_s_TOA=0        
@@ -76,7 +84,7 @@ Top:
         ON_dac_biaspa: 0x1
         dac_pulser: 12 #7
       
-        DAC10bit: 451 #average
+        DAC10bit: 320
 
         ON_dac_LR: 0x0
         Ck40_choice: 0x1

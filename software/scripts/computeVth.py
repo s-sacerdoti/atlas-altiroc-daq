@@ -33,20 +33,30 @@ dacList={}
 # dacList[14]=  310
 
 #B13
-dacList[0]=320
-dacList[1]=305
-dacList[2]=330
-dacList[3]=315
-dacList[4]=305
-dacList[5]=385
-dacList[7]=310
-dacList[8]=335      
-dacList[9]=325  
-dacList[10]=320
-dacList[11]=345
-dacList[12]=365
-dacList[13]=345
-dacList[14]=350
+# dacList[0]=320
+# dacList[1]=305
+# dacList[2]=330
+# dacList[3]=315
+# dacList[4]=305
+# dacList[5]=385
+# dacList[7]=310
+# dacList[8]=335      
+# dacList[9]=325  
+# dacList[10]=320
+# dacList[11]=345
+# dacList[12]=365
+# dacList[13]=345
+# dacList[14]=350
+
+#B2
+dacList[5]=350
+dacList[6]=360
+dacList[7]=350
+dacList[8]=330
+dacList[10]=380
+dacList[12]=320
+dacList[13]=340
+dacList[14]=330
 
 
 
