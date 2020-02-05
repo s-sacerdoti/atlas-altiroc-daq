@@ -41,7 +41,7 @@ if __name__ == "__main__":
     cdList=[0]
     qMin=1
     qMax=63#63#63
-    qStep=6
+    qStep=1
     board=args.board
     N=100
     Rin_Vpa=0
@@ -86,9 +86,9 @@ if __name__ == "__main__":
     elif board==8:
         qMin=1
         cdList=[4];chList=[4,9,14];
-        #chList=[4];cdList=[4];#TDR
-        cdList=[4];
-        chList=[14]
+        chList=[4,9];cdList=[4];#TDR
+        #cdList=[4];
+        #chList=[14]
         #cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
@@ -204,8 +204,9 @@ if __name__ == "__main__":
             #dacListLocal=list(range(dac-8,dac+1,2))
             #dacListLocal=list(range(dac-15,dac+1,5))
             dacListLocal=[dac]
+            dacListLocal=[dacRef,dacRef+20]
             dacListLocal=[dacRef]
-            dacListLocal=list(range(dacRef-20,dacRef+100,5))+list(range(dacRef+100,dacRef+250,10))#B8
+            #dacListLocal=list(range(dacRef-20,dacRef+100,5))+list(range(dacRef+100,dacRef+250,10))#B8
             #dacListLocal=list(range(dacRef-40,dacRef+250,5))#B2
             
             print(ch,cd,delayList,dacListLocal)            
@@ -231,18 +232,18 @@ if __name__ == "__main__":
                 # measure TOA
                 ###############################
                 #for Q in range(3,22,1):
-                for Q in list(range(3,10,1))+list(range(10,27,2)):
+                #for Q in list(range(3,10,1))+list(range(10,27,4)):
                 #for Q in [6,8]:#5,26]:#,8,10,14,16,18,20,22]:
                 #for Q in [5,6,7,26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:
-                #for Q in [26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:                
+                for Q in [20,40]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:                
                     delayMin=2200
                     delayMax=2700
                     # if board==8:
                     #     delayMin=2350
                     #     delayMax=2700
-                        
-                    cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep 1 --out Data/delay"%(cd,ch,board,dac,Q,delayMin,delayMax)
-                    #f.write(cmd+"\n sleep 5 \n")
+                    logName='Data/delayTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d.log'%(board,Rin_Vpa,ch,cd,Q,dac)
+                    cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep 1 --out Data/delay |& tee %s"%(cd,ch,board,dac,Q,delayMin,delayMax,logName)
+                    f.write(cmd+"\n sleep 5 \n")
 
 
             
