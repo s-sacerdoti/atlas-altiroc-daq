@@ -41,8 +41,10 @@ from setASICconfig import set_pixel_specific_parameters        ##
 #################################################################
 def acquire_data(top, useExt, DelayRange,chNb): 
     pixel_stream = feb.PixelReader()
-    #pixel_stream.channelNumber=chNb #ALLDATA
-    #pixel_stream.doPrint=True #ALLDATA
+    readAllData=False
+    if readAllData:
+        pixel_stream.channelNumber=chNb #ALLDATA
+        pixel_stream.doPrint=True #ALLDATA
     pixel_stream.checkOFtoa=args.checkOFtoa
     pixel_stream.checkOFtot=args.checkOFtot
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
@@ -61,7 +63,7 @@ def acquire_data(top, useExt, DelayRange,chNb):
             #print ("iter",pulse_iteration)
             top.Fpga[0].Asic.CalPulse.Start()
             time.sleep(0.001)
-            #time.sleep(0.009)#ALLDATA
+            if readAllData:time.sleep(0.009)#ALLDATA
             
         #print (type(pixel_stream.HitDataTOA.copy()),len(pixel_stream.HitDataTOA.copy()),pixel_stream.HitDataTOA.copy())
         pixel_data.append( pixel_stream.HitDataTOA.copy() )

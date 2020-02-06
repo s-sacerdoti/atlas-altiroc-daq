@@ -205,7 +205,7 @@ if __name__ == "__main__":
             #dacListLocal=list(range(dac-8,dac+1,2))
             #dacListLocal=list(range(dac-15,dac+1,5))
             dacListLocal=[dac]
-            dacListLocal=[dacRef+20,dacRef+50]
+            dacListLocal=[dacRef+20,dacRef+50,dacRef+80]
 
             #dacListLocal=list(range(dacRef-20,dacRef+100,5))+list(range(dacRef+100,dacRef+400,10))#B8
 
@@ -228,7 +228,7 @@ if __name__ == "__main__":
                         cmd+=" --cfg "+args.cfg
                         pass
                         
-                    #f.write(cmd+"\n sleep 5 \n")
+                    f.write(cmd+"\n sleep 5 \n")
                     
                 ###############################
                 # measure TOA
@@ -237,7 +237,7 @@ if __name__ == "__main__":
                 #for Q in list(range(3,10,1))+list(range(10,27,4)):
                 #for Q in [6,8]:#5,26]:#,8,10,14,16,18,20,22]:
                 #for Q in [5,6,7,26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:
-                for Q in [-1]:#ATT TRIG EXT
+                for Q in [20,40]:#ATT TRIG EXT
                     delayMin=2200
                     delayMax=2700
                     if Q<0:                        
