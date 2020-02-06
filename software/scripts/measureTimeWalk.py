@@ -76,6 +76,7 @@ def acquire_data(top, useExt,QRange,chNb):
         for pulse_iteration in range(Nevts):
             top.Fpga[0].Asic.CalPulse.Start()
             time.sleep(0.001)
+            #time.sleep(0.009)#ALLDATA
 
             
         pixel_data['HitDataTOA'].append( pixel_stream.HitDataTOA.copy() )

@@ -114,7 +114,8 @@ if __name__ == "__main__":
         #chList=list(range(0,6))+list(range(7,15))
         #chList=[3]#,12,21]
         #dacList=[380,400]#range(300,440,10)
-        #chList=[1]#list(range(15,25))+
+        chList=[0]#TDR
+        #chList=list(range(0,2))+[7]
         dacRef=305#Vthcor computed for this value
         dacList={}
         dacList[0]=320
@@ -204,10 +205,10 @@ if __name__ == "__main__":
             #dacListLocal=list(range(dac-8,dac+1,2))
             #dacListLocal=list(range(dac-15,dac+1,5))
             dacListLocal=[dac]
-            dacListLocal=[dacRef,dacRef+20]
-            dacListLocal=[dacRef]
-            #dacListLocal=list(range(dacRef-20,dacRef+100,5))+list(range(dacRef+100,dacRef+250,10))#B8
-            #dacListLocal=list(range(dacRef-40,dacRef+250,5))#B2
+            dacListLocal=[dacRef+20,dacRef+50]
+
+            #dacListLocal=list(range(dacRef-20,dacRef+100,5))+list(range(dacRef+100,dacRef+400,10))#B8
+
             
             print(ch,cd,delayList,dacListLocal)            
             for dac in dacListLocal:   
@@ -222,9 +223,10 @@ if __name__ == "__main__":
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --morePointsAtLowQ False --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
                     if args.vthc64:
                         cmd+=" --Vthc 64"
+                        pass
                     if args.cfg is not None:
                         cmd+=" --cfg "+args.cfg
-
+                        pass
                         
                     f.write(cmd+"\n sleep 5 \n")
                     
@@ -235,15 +237,12 @@ if __name__ == "__main__":
                 #for Q in list(range(3,10,1))+list(range(10,27,4)):
                 #for Q in [6,8]:#5,26]:#,8,10,14,16,18,20,22]:
                 #for Q in [5,6,7,26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:
-                for Q in [20,40]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:                
+                for Q in [20]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:                
                     delayMin=2200
                     delayMax=2700
                     # if board==8:
                     #     delayMin=2350
                     #     delayMax=2700
                     logName='Data/delayTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d.log'%(board,Rin_Vpa,ch,cd,Q,dac)
-                    cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep 1 --out Data/delay |& tee %s"%(cd,ch,board,dac,Q,delayMin,delayMax,logName)
+                    cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep 2 --out Data/delay >& %s"%(cd,ch,board,dac,Q,delayMin,delayMax,logName)
                     f.write(cmd+"\n sleep 5 \n")
-
-
-            
