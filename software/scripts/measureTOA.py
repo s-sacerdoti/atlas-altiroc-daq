@@ -43,8 +43,6 @@ def acquire_data(top, useExt, DelayRange,chNb):
     pixel_stream = feb.PixelReader()
     #pixel_stream.channelNumber=chNb #ALLDATA
     #pixel_stream.doPrint=True #ALLDATA
-    # pixel_stream.checkOFtoa=False
-    # pixel_stream.checkOFtot=False
     pixel_stream.checkOFtoa=args.checkOFtoa
     pixel_stream.checkOFtot=args.checkOFtot
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA
