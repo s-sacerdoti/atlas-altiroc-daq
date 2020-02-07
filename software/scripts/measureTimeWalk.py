@@ -42,10 +42,13 @@ from setASICconfig import set_pixel_specific_parameters        ##
 #################################################################
 # 
 #################################################################
-def acquire_data(top, useExt,QRange,chNb): 
+def acquire_data(top, useExt,QRange,chNb,readAllData=False): 
     pixel_stream = feb.PixelReader()
     #pixel_stream.channelNumber=chNb #Only when you read all channels
-    pixel_stream.doPrint=False#Nikola
+    if readAllData:
+        pixel_stream.channelNumber=chNb #ALLDATA
+        pixel_stream.doPrint=True #ALLDATA
+
     #pixel_stream.checkOFtot=True   
     pixel_stream.checkOFtoa=args.checkOFtoa
     pixel_stream.checkOFtot=args.checkOFtot 
@@ -76,7 +79,8 @@ def acquire_data(top, useExt,QRange,chNb):
         for pulse_iteration in range(Nevts):
             top.Fpga[0].Asic.CalPulse.Start()
             time.sleep(0.001)
-            #time.sleep(0.009)#ALLDATA
+            if readAllData:time.sleep(0.009)#ALLDATA
+
 
             
         pixel_data['HitDataTOA'].append( pixel_stream.HitDataTOA.copy() )
@@ -124,6 +128,7 @@ def parse_arguments():
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
     parser.add_argument( "--display", type = argBool, required = False, default = True, help = "show plots")
     parser.add_argument( "--debug", type = argBool, required = False, default = True, help = "debug")
+    parser.add_argument( "--readAllChannels", type = argBool, required = False, default = False, help = " read all channels")
     parser.add_argument( "--moreStatAtLowQ", type = argBool, required = False, default = True, help = "increase statistics for low Q")
     parser.add_argument( "--morePointsAtLowQ", type = argBool, required = False, default = False, help = "increase statistics for low Q")
     
@@ -231,7 +236,7 @@ def measureTimeWalk(argsip,
     top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
 
     # Set parameters
-    set_pixel_specific_parameters(top, pixel_number)
+    set_pixel_specific_parameters(top, pixel_number,readAllData=args.readAllChannels)
     if pixel_number in range(0, 5): bitset=0x1
     if pixel_number in range(5, 10): bitset=0x2
     if pixel_number in range(10, 15): bitset=0x4
@@ -283,7 +288,7 @@ def measureTimeWalk(argsip,
     top.initialize()
 
     # get data
-    pixel_data = acquire_data(top, useExt,QRange,args.ch)
+    pixel_data = acquire_data(top, useExt,QRange,args.ch,readAllData=args.readAllChannels)
     if len(pixel_data) == 0 : raise ValueError('No hits were detected during delay sweep. Aborting!')    
 
 

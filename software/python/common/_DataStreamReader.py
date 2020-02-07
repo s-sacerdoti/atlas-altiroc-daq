@@ -396,11 +396,14 @@ class PixelReader(rogue.interfaces.stream.Slave):
         #print ("====================> In _acceptFrame")
         # First it is good practice to hold a lock on the frame data.
         with frame.lock():
+
             eventFrame = ParseFrame(frame)
             #print("Nb pix:",len(eventFrame.pixValue))
+            if self.doPrint: print("New Frame",self.count,len(eventFrame.pixValue))
             for i in range( len(eventFrame.pixValue) ):
                 dat = eventFrame.pixValue[i]
-                if (self.doPrint and (dat.Hit > 0 or i==0)):print ("toto",i,dat.Hit,dat.ToaData,dat.TotData,len(eventFrame.pixValue))
+                #if (self.doPrint and (dat.Hit > 0 or i==0)):print ("toto",i,dat.Hit,dat.ToaData,dat.TotData,len(eventFrame.pixValue))
+                if (self.doPrint and (dat.Hit > 0)):print ("Frame data: ",self.count,i,dat.Hit,dat.ToaData,dat.TotData)
                 if len(eventFrame.pixValue)>0 and self.channelNumber>=0 and i!=self.channelNumber: continue#Nikola: keep only one  channel
                 
                 #only when neither TOA nor TOT are in overflow:

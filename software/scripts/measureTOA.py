@@ -39,9 +39,8 @@ import matplotlib.pyplot as plt                                ##
 from setASICconfig import set_pixel_specific_parameters        ##
                                                                ##
 #################################################################
-def acquire_data(top, useExt, DelayRange,chNb): 
+def acquire_data(top, useExt, DelayRange,chNb,readAllData=False): 
     pixel_stream = feb.PixelReader()
-    readAllData=False
     if readAllData:
         pixel_stream.channelNumber=chNb #ALLDATA
         pixel_stream.doPrint=True #ALLDATA
@@ -101,6 +100,7 @@ def parse_arguments():
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
     parser.add_argument( "--display", type = argBool, required = False, default = True, help = "show plots")
     parser.add_argument( "--debug", type = argBool, required = False, default = True, help = "debug")
+    parser.add_argument( "--readAllChannels", type = argBool, required = False, default = False, help = " read all channels")
     parser.add_argument( "--useProbePA", type = argBool, required = False, default = False, help = "use probe PA")
     parser.add_argument( "--checkOFtoa", type = argBool, required = False, default = True, help = "check TOA overflow")
     parser.add_argument( "--checkOFtot", type = argBool, required = False, default = True, help = "check TOT overflow")
@@ -172,7 +172,7 @@ def measureTOA(argsip,
     top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
 
     # Set parameters for probes
-    set_pixel_specific_parameters(top, pixel_number)
+    set_pixel_specific_parameters(top, pixel_number,readAllData=args.readAllChannels)
     if pixel_number in range(0, 5): bitset=0x1
     if pixel_number in range(5, 10): bitset=0x2
     if pixel_number in range(10, 15): bitset=0x4
@@ -222,7 +222,7 @@ def measureTOA(argsip,
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
 
-    pixel_data = acquire_data(top, useExt, DelayRange,args.ch)
+    pixel_data = acquire_data(top, useExt, DelayRange,args.ch,readAllData=args.readAllChannels)
     
     #######################
     # Data Processing TOA #
@@ -378,14 +378,15 @@ def measureTOA(argsip,
 
     if delay_index_to_plot != -1:
         hist_range = 10
-        binlow = ( int(DataMean[delay_index_to_plot])-hist_range ) * LSBest
-        binhigh = ( int(DataMean[delay_index_to_plot])+hist_range ) * LSBest
-        hist_bin_list = np.arange(binlow, binhigh, LSBest)
-        ax3.hist(np.multiply(pixel_data[delay_index_to_plot],LSBest), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')
+        LSB=20
+        binlow = ( int(DataMean[delay_index_to_plot])-hist_range ) * LSB
+        binhigh = ( int(DataMean[delay_index_to_plot])+hist_range ) * LSB
+        hist_bin_list = np.arange(binlow, binhigh, LSB)
+        ax3.hist(np.multiply(pixel_data[delay_index_to_plot],LSB), bins = hist_bin_list, align = 'left', edgecolor = 'k', color = 'royalblue')
         ax3.set_title('TOA Measurment for Programmable Delay = %d' % DelayRange[delay_index_to_plot], fontsize = 11)
         ax3.set_xlabel('TOA Measurement [ps]', fontsize = 10)
         ax3.set_ylabel('N of Measrements', fontsize = 10)
-        ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMean[delay_index_to_plot]*LSBest, DataStdev[delay_index_to_plot]*LSBest, HitCnt[delay_index_to_plot])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+        ax3.legend(['Mean = %f ps \nStd. Dev. = %f ps \nN of Events = %d' % (DataMean[delay_index_to_plot]*LSB, DataStdev[delay_index_to_plot]*LSB, HitCnt[delay_index_to_plot])], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
 
     # Plot (1,1)
     ax4.plot(Delay, HitCnt)
