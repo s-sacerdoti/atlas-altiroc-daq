@@ -235,6 +235,7 @@ def measureTOA(argsip,
     DataMean = np.zeros(num_valid_TOA_reads)
     DataStdev = np.zeros(num_valid_TOA_reads)
     allTOAdata = []
+    
 
 
     
@@ -256,7 +257,9 @@ def measureTOA(argsip,
     MeanDataStdev = np.mean(DataStdev[nonzero])
     
     # LSB estimation based on "DelayStep" value, again ignoring zero values
-    safety_bound = 2 #so we don't measure too close to the edges of the pulse 
+    safety_bound = 0
+    if len(DelayRange)>10:
+        safety_bound = 2 #so we don't measure too close to the edges of the pulse        
     Delay = np.array(DelayRange)
     fit_x_values = Delay[nonzero][safety_bound:-safety_bound]
     fit_y_values = DataMean[nonzero][safety_bound:-safety_bound]
@@ -307,10 +310,14 @@ def measureTOA(argsip,
     ff.write('mean value = '+str(DataMean)+'\n')
     ff.write('sigma = '+str(DataStdev)+'\n')
     ff.write('Pulse delay   TOA '+'\n')
+    allTOA = []
+    allDelay = []
     for idel in range(len(DelayRange)):
       pulser = DelayRange[idel]
       for itoa in range(len(allTOAdata[idel])):
         ff.write(str(pulser)+' '+str(allTOAdata[idel][itoa])+'\n')
+        allTOA.append(allTOAdata[idel][itoa])
+        allDelay.append(pulser)
     ff.close()
     
     print('Saved file '+outFile)
@@ -330,22 +337,31 @@ def measureTOA(argsip,
 
     # Plot (0,0) ; top left
     #ax1.plot(Delay, np.multiply(DataMean,LSBest))
-    ax1.plot(Delay, DataMean)
-    ax1.grid(True)
+
+    xedges = range(delayMin,delayMax)#DelayRange#np.array(range(0,65))-0.5
+    yedges = range(0,128,2)
+    HTOA, xedges, yedges = np.histogram2d(allDelay, allTOA, bins=(xedges, yedges))
+    HTOA = HTOA.T  # Let each row list bins with common y range.
+    X, Y = np.meshgrid(xedges, yedges)        
+    ax1.pcolormesh(X, Y, HTOA,cmap=plt.cm.YlOrRd)
+    ax1.scatter(Delay, DataMean, facecolors='none', edgecolors='b')
+    #ax1.plot(Delay, DataMean)
+    #ax1.grid(True)
     ax1.set_title('TOA Measurment VS Programmable Delay Value', fontsize = 11)
     ax1.set_xlabel('Programmable Delay Value [step estimate = %f ps]' % DelayStep, fontsize = 10)
     ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
     ax1.legend(['LSB estimate: %f ps' % LSBest],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     #ax1.set_ylim(bottom = 0, top = np.max(np.multiply(DataMean,LSBest))+100)
     ax1.set_xlim(left = np.min(Delay), right = np.max(Delay))
-    ax1.set_ylim(bottom = 0, top = np.max(DataMean)+10)
+    ax1.set_ylim(bottom = 0, top = 128)
 
     # Plot (0,1) ; top right
-    ax2.scatter(Delay, np.multiply(DataStdev,LSBest))
+    #ax2.scatter(Delay, np.multiply(DataStdev,LSBest))
+    ax2.scatter(Delay, np.multiply(DataStdev,20))
     ax2.grid(True)
     ax2.set_title('TOA Jitter VS Programmable Delay Value', fontsize = 11)
     ax2.set_xlabel('Programmable Delay Value', fontsize = 10)
-    ax2.set_ylabel('Std. Dev. [ps]', fontsize = 10)
+    ax2.set_ylabel('Std. Dev. [ps] (LSB=20ps)', fontsize = 10)
     ax2.legend(['Average Std. Dev. = %f ps' % (MeanDataStdev*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     ax2.set_xlim(left = np.min(Delay), right = np.max(Delay))
     ax2.set_ylim(bottom = 0, top = np.max(np.multiply(DataStdev,LSBest))+20)

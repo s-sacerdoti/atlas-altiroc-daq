@@ -193,6 +193,7 @@ def measureTimeWalk(argsip,
 
     #list of charge for looping
     QRange = list(range( QMin, QMax, QStep ))
+    
     if args.morePointsAtLowQ:
         if 13 not in QRange: QRange=[13]+QRange
         if 11 not in QRange: QRange=[11]+QRange	
@@ -313,6 +314,10 @@ def measureTimeWalk(argsip,
     TOTMeanArray = np.zeros(len(QRange))
     TOTRMSArray = np.zeros(len(QRange))
 
+    allTOA=[]
+    allTOTc=[]
+    allQ=[]
+
 
     QArray=np.array(QRange)*args.Qconv
     for iQ in range(len(QRange)):
@@ -332,6 +337,10 @@ def measureTimeWalk(argsip,
        toaof=0
        for ele in  pixel_data['HitDataTOA'][iQ]:
            if ele==127:toaof+=1
+           allTOA.append(ele)
+           allQ.append(Q)
+       for ele in  pixel_data['HitDataTOTc'][iQ]:
+           allTOTc.append(ele)
        if len(pixel_data['HitDataTOA'][iQ])>0:
            TOAoffrac= toaof/float(len(pixel_data['HitDataTOA'][iQ]))
        else:
@@ -346,7 +355,7 @@ def measureTimeWalk(argsip,
 
 
        
-       TOAmean=np.mean(np.array(pixel_data['HitDataTOA'][iQ])[okTOA])*args.LSBTOA
+       TOAmean=np.mean(np.array(pixel_data['HitDataTOA'][iQ])[okTOA])#*args.LSBTOA
        TOArms=np.std(np.array(pixel_data['HitDataTOA'][iQ])[okTOA])*args.LSBTOA
        TOTcmean=np.mean(np.array(pixel_data['HitDataTOTc'][iQ])[okTOTc])
        TOTcrms=np.std(np.array(pixel_data['HitDataTOTc'][iQ])[okTOTc])
@@ -395,8 +404,8 @@ def measureTimeWalk(argsip,
         QTitle="Q [dac]"
         TOTTitle="TOT [ps]"
         TOTcTitle="TOTc [dac]"
-        TOATitle="TOA [ps]"
-        jitterTitle="Jitter [ps]"
+        TOATitle="TOA"
+        jitterTitle="Jitter [ps] (LSB=20ps)"
 
 
         if args.Qconv!=1:
@@ -412,15 +421,21 @@ def measureTimeWalk(argsip,
         fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(nrows = 3, ncols = 2, figsize=(13,9))
 
         # Plot (0,0) ; top left
-        ax1.scatter(QArray, TOAMeanArray)
-        ax1.grid(True)
+        xedges = np.array(range(0,65))-0.5
+        yedges = range(0,128,2)
+        HTOA, xedges, yedges = np.histogram2d(allQ, allTOA, bins=(xedges, yedges))
+        HTOA = HTOA.T  # Let each row list bins with common y range.
+        X, Y = np.meshgrid(xedges, yedges)        
+        ax1.pcolormesh(X, Y, HTOA,cmap=plt.cm.YlOrRd)
+        ax1.scatter(QArray, TOAMeanArray, facecolors='none', edgecolors='b')
+        #ax1.grid(True)
         ax1.set_title('', fontsize = 11)
         ax1.set_xlabel(QTitle, fontsize = 10)
         ax1.set_ylabel(TOATitle, fontsize = 10)
-        ax1.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
-        ax1.set_ylim(bottom = 0, top = np.max(TOAMeanArray)*1.1)
+        #ax1.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
+        ax1.set_ylim(bottom = 0, top = 128)
 
-       # Plot (0,1) ; top right
+       # Plot (0,1) ; top right      
         ax2.scatter(QArray, TOARMSArray)
         ax2.grid(True)
         ax2.set_title('', fontsize = 11)
@@ -429,15 +444,22 @@ def measureTimeWalk(argsip,
         ax2.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
         #ax2.set_ylim(bottom = 0, top = np.max(TOARMSArray)*1.1)
         ax2.set_ylim(bottom = 0, top = 100)
-       # Plot (1,0) ; bottom left
 
-        ax3.scatter(QArray, TOTcMeanArray)
+
+        # Plot (1,0) ; bottom left
+        xedges = np.array(range(0,65))-0.5
+        yedges = range(0,128,2)
+        HTOTc, xedges, yedges = np.histogram2d(allQ, allTOTc, bins=(xedges, yedges))
+        HTOTc = HTOTc.T  # Let each row list bins with common y range.
+        X, Y = np.meshgrid(xedges, yedges)        
+        ax3.pcolormesh(X, Y, HTOTc,cmap=plt.cm.YlOrRd)
+        ax3.scatter(QArray, TOTcMeanArray, facecolors='none', edgecolors='b')
         ax3.grid(True)
         ax3.set_title('', fontsize = 11)
         ax3.set_xlabel(QTitle, fontsize = 10)
         ax3.set_ylabel(TOTcTitle, fontsize = 10)
-        ax3.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
-        ax3.set_ylim(bottom = 0, top = np.max(TOTcMeanArray)*1.1)
+        #ax3.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
+        ax3.set_ylim(bottom = 0, top = 128)
 
         ax4.scatter( QArray, TOTcRMSArray)
         ax4.grid(True)

@@ -115,7 +115,7 @@ if __name__ == "__main__":
         #chList=[3]#,12,21]
         #dacList=[380,400]#range(300,440,10)
         #chList=[0]#TDR
-        chList=[0,5,10]
+        chList=[0,10]
         dacRef=305#Vthcor computed for this value
         dacList={}
         dacList[0]=320
