@@ -12,7 +12,7 @@ import math                                                    ##
 #################################################################
 
 
-
+from DAC import *
 
 #################################################################
 # 
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     doTOA=0
     doTW=0
     doThres=1
-    
+    dacList=getDACList(board)
     f=open("runTW_B"+str(board)+".sh","w")
     
     if board==2:
@@ -203,16 +203,16 @@ if __name__ == "__main__":
         
     for ch in chList:
         for cd in cdList:
-
+            
             ###############################
             # thres. scan
             ###############################
             for Q in [4]:#ATT TRIG EXT
-                thresMin=280
+                thresMin=270
                 #thresMin=dacList[ch]-20
                 thresMax=450
                 thresStep=5
-                cmd="python scripts/thresholdScan.py  --debug False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
+                cmd="python scripts/thresholdScan.py  --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
                 if doThres:f.write(cmd+"\n sleep 5 \n")
 
 

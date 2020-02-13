@@ -200,6 +200,7 @@ def thresholdScan(argip,
     # Data Processing
     
     HitCnt = []
+    HitCnt2 = []
     TOAmean = []
     TOAjit = []
     TOAmean_ps = []
@@ -218,15 +219,23 @@ def thresholdScan(argip,
         #    HitCnt.append(len(HitDataTOA))
         #    allTOA.append(HitDataTOA)
         #else: 
-        HitDataTOA = pixel_data['HitDataTOA'][idac]
+        HitDataTOA = np.array(pixel_data['HitDataTOA'][idac])
         HitCnt.append(len(HitDataTOA))
-        allTOA.append(HitDataTOA)
+        HitCnt2.append(np.count_nonzero(np.array(HitDataTOA)<127))
 
+
+
+
+
+
+        
+        allTOA.append(HitDataTOA)
         if len(HitDataTOA) > 0:
-            TOAmean.append(np.mean(HitDataTOA, dtype=np.float64))
-            TOAjit.append(math.sqrt(math.pow(np.std(HitDataTOA, dtype=np.float64),2)+1/12))
-            TOAmean_ps.append(np.mean(HitDataTOA, dtype=np.float64)*LSBest)
-            TOAjit_ps.append(math.sqrt(math.pow(np.std(HitDataTOA, dtype=np.float64),2)+1/12)*LSBest)
+            okTOA=HitDataTOA!=127 #used to remove saturated toa
+            TOAmean.append(np.mean(HitDataTOA[okTOA]))
+            TOAjit.append(math.sqrt(math.pow(np.std(HitDataTOA[okTOA], dtype=np.float64),2)+1/12))
+            TOAmean_ps.append(np.mean(HitDataTOA[okTOA], dtype=np.float64)*LSBest)
+            TOAjit_ps.append(math.sqrt(math.pow(np.std(HitDataTOA[okTOA], dtype=np.float64),2)+1/12)*LSBest)
     
         else:
             TOAmean.append(0)
@@ -246,31 +255,37 @@ def thresholdScan(argip,
     #################################################################
     # Print Data
     #find min th, max th, and middle points:
-    minTH = 0.
-    maxTH = 1024.
-    th50percent = 1024.
-    
-    midPt = []
+    maxTH = 999
+    suspicious=0
     for dac_index, dac_value in enumerate(newDacScan):
         if args.debug:
             try:
                 print('Threshold = %d, HitCnt = %d/%d' % (dac_value, HitCnt[dac_index], args.N))
             except OSError:
                 pass
-        if HitCnt[dac_index]/args.N>0.9:
-            if dac_index>0 and HitCnt[dac_index-1] < (args.N-1) :
-                minTH = (newDacScan[dac_index-1]+newDacScan[dac_index])/2
-            elif dac_index<len(newDacScan)-1 and HitCnt[dac_index+1] < args.N :
-                maxTH = newDacScan[dac_index]
-                
-        if HitCnt[dac_index]/args.N < 0.6:
-            th50percent = dac_value
+
+
+        if HitCnt[dac_index]/args.N>0.95 and HitCnt2[dac_index]>0:
+            #if dac_index
+            maxTH = newDacScan[dac_index]
+            suspicious=HitCnt2[dac_index]/args.N
+            print (maxTH,suspicious)
+            
+
     
     # th25= (maxTH-minTH)*0.25+minTH
     # th50= (maxTH-minTH)*0.5+minTH
     # th75= (maxTH-minTH)*0.75+minTH
-    
-    print('Threshold = %d %d '% (minTH,maxTH))
+
+    print ("**************************************")
+    print (suspicious)
+    if suspicious==0:
+        print ("Can't find a threshold")
+    elif suspicious>0.8:
+        print('Threshold = %d '% (maxTH))
+    else:
+        print('Threshold = %d but LARGE FRAC OF TOA 127 (%d)'% (maxTH,1-suspicious))
+    print ("**************************************")
     #print('Found minTH = %d, maxTH = %d  - points at 0.25, 0.50 and 0.75 are %d,%d,%d'% (minTH,maxTH,th25,th50,th75))
     #print('First DAC with efficiency below 60% = ', th50percent)
 
@@ -281,7 +296,7 @@ def thresholdScan(argip,
     ff = open(outFile,'a')
 
 
-    ff.write('dacList[%d]=%d#B%d,%d \n'%(pixel_number,maxTH,args.board,Qinj))
+    ff.write('dacList[%d]=%d#B%d,%d,%d \n'%(pixel_number,maxTH,args.board,Qinj,suspicious))
     
     # ff.write('Threshold scan ----'+time.ctime()+'\n')
     # ff.write('Pixel = '+str(pixel_number)+'\n')
@@ -323,7 +338,8 @@ def thresholdScan(argip,
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
 
     #plot N events vs threshold
-    ax1.plot(newDacScan,HitCnt)
+    ax1.scatter(newDacScan,HitCnt)
+    ax1.scatter(newDacScan,HitCnt2, facecolors='none', edgecolors='r')
     #ax1.scatter(newDacScan,HitCnt)
     ax1.set_title('Number of hits vs Threshold', fontsize = 11)
     ax1.set_xlabel('Threshold DAC', fontsize = 10)
