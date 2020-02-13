@@ -55,39 +55,10 @@ if __name__ == "__main__":
     doThres=1
     dacList=getDACList(board)
     f=open("runTW_B"+str(board)+".sh","w")
-    
-    if board==2:
-        #####chList=[5,6,7,8,10,12,13,14]#list(range(15,25))+
-        chList=[10]#list(range(15,25))+
-        #dacList=range(300,440,10)
-        dacRef=320#Vthcor computed for this value
-        dacList={}
-        dacList[5]=350
-        dacList[6]=360
-        dacList[7]=350
-        dacList[8]=330
-        dacList[10]=380
-        dacList[12]=320
-        dacList[13]=340
-        dacList[14]=330
-    elif board==3:
-        #chList=list(range(1,9))+list(range(10,15))
-        #dacList=range(300,380,10)
-        dacList={}
-        dacList[1]=408
-        dacList[2]=310
-        dacList[3]=348
-        dacList[4]=334
-        dacList[5]=374
-        dacList[6]=362
-        dacList[7]=344
-        dacList[8]=356      
-        dacList[10]=340
-        dacList[11]=374
-        dacList[12]=360
-        dacList[13]=382
-        dacList[14]=418        
-    elif board==8:
+
+
+
+    if board==8:
         qMin=1
         cdList=[4];
         #cdList=[4];chList=[4,9,14];
@@ -98,102 +69,10 @@ if __name__ == "__main__":
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
         delayList=[2500]
-        dacRef=290#Vthcor computed for this value
-        dacList={}
-        dacList[0]=   345 
-        dacList[1]=   335  
-        dacList[2]=   290
-        dacList[3]=   340
-        dacList[4]=   345
-        dacList[5]=   340
-        dacList[6]=   335#TOAfrac=0.2
-        dacList[7]=   305#TOAfrac=0.2
-        dacList[8]=   330
-        dacList[9]=   295 
-        dacList[10]=  365
-        dacList[11]=  355
-        dacList[12]=  330 
-        dacList[13]=  360#large TOAfrac
-        dacList[14]=  310
-    elif board==13:
-        #chList=list(range(0,6))+list(range(7,15))
-        #chList=[3]#,12,21]
-        #dacList=[380,400]#range(300,440,10)
-        #chList=[0]#TDR
-        #chList=[0,10]
-        dacRef=305#Vthcor computed for this value
-        dacList={}
-        dacList[0]=320
-        dacList[1]=305
-        dacList[2]=330
-        dacList[3]=315
-        dacList[4]=305
-        dacList[5]=385
-        dacList[7]=310
-        dacList[8]=335      
-        dacList[9]=325  
-        dacList[10]=320
-        dacList[11]=345
-        dacList[12]=365
-        dacList[13]=345
-        dacList[14]=350
-        # dacList[15]=300
-        # dacList[16]=380
-        # dacList[17]=330
-        # dacList[18]=390
-        # dacList[19]=370      
-        # dacList[20]=350
-        # dacList[21]=340
-        # dacList[22]=430
-        # dacList[23]=400
-        # dacList[24]=360
     elif board==15:
         chList=[4,9,14,19,24]
         cdList=[0,4]
-        dacList=range(300,410,10)
-        dacList={}
-        dacList[0]=330
-        dacList[1]=310
-        dacList[2]=340
-        dacList[3]=330
-        dacList[4]=320
-        dacList[5]=400
-        dacList[7]=320
-        dacList[8]=350      
-        dacList[9]=340  
-        dacList[10]=330
-        dacList[11]=350
-        dacList[12]=370
-        dacList[13]=360
-        dacList[14]=360
-        dacList[15]=300
-        dacList[16]=380
-        dacList[17]=330
-        dacList[18]=390
-        dacList[19]=370      
-        dacList[20]=350
-        dacList[21]=340
-        dacList[22]=430
-        dacList[23]=400
-        dacList[24]=360        
-    elif board==18:
-        dacList={}
-        dacList[0]=360
-        dacList[1]=390
-        dacList[2]=406
-        dacList[3]=340
-        #dacList[4]=440
-        dacList[5]=360
-        #dacList[6]=
-        #dacList[7]=
-        #dacList[8]=      
-        dacList[9]=356  
-        dacList[10]=344
-        dacList[11]=336
-        dacList[12]=326
-        dacList[13]=376
-        dacList[14]=376
-
+        pass
 
 
     if chList==None:
@@ -210,7 +89,7 @@ if __name__ == "__main__":
             for Q in [4]:#ATT TRIG EXT
                 thresMin=270
                 #thresMin=dacList[ch]-20
-                thresMax=450
+                thresMax=600
                 thresStep=5
                 cmd="python scripts/thresholdScan.py  --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
                 if doThres:f.write(cmd+"\n sleep 5 \n")
@@ -223,8 +102,8 @@ if __name__ == "__main__":
             #dacListLocal=list(range(dac-20,dac+21,10))
             #dacListLocal=list(range(dac-8,dac+1,2))
             #dacListLocal=list(range(dac-15,dac+1,5))
-            #dacListLocal=[dac]
-            dacListLocal=[dacRef]
+            dacListLocal=[dac]
+            #dacListLocal=[dacRef]
             #dacListLocal=list(range(dacRef+20,dacRef+140,20))
             #dacListLocal=list(range(dacRef-20,dacRef+100,5))+list(range(dacRef+100,dacRef+400,10))#B8            
             print(ch,cd,delayList,dacListLocal)            
