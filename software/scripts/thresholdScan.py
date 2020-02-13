@@ -75,7 +75,7 @@ def parse_arguments():
     
     # Get the arguments
     args = parser.parse_args()
-    args.out='%sThresScan_B_%d_ch_%d_cd_%d_delay_%d_Q_%d'%(args.out,args.board,args.ch,args.Cd,args.delay,args.Q)
+    args.out='%sthres_B_%d_ch_%d_cd_%d_delay_%d_Q_%d_'%(args.out,args.board,args.ch,args.Cd,args.delay,args.Q)
     return args
 
 ##############################################################################
@@ -316,9 +316,11 @@ def thresholdScan(argip,
     # ff.write('MeanTOAps = '+str(TOAmean_ps)+'\n')
     # ff.write('StdDevTOAps = '+str(TOAjit_ps)+'\n')
     # ff.write('dacVth   TOA N_TOA'+'\n')
-    # for dac_index, dac_value in enumerate(newDacScan):
-    #     for itoa in range(len(allTOA[dac_index])):
-    #         ff.write(str(dac_value)+' '+str(allTOA[dac_index][itoa])+' '+str(len(allTOA[dac_index]))+'\n')
+
+    for dac_index, dac_value in enumerate(newDacScan):
+        ff.write(str(dac_value)+' '+str(args.N)+' '+str(HitCnt[dac_index])+' '+str(HitCnt2[dac_index])+'\n')
+        #for itoa in range(len(allTOA[dac_index])):
+        #    ff.write(str(dac_value)+' '+str(allTOA[dac_index][itoa])+' '+str(len(allTOA[dac_index]))+'\n')
 
     ff.close()
 

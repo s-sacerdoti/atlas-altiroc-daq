@@ -51,8 +51,8 @@ if __name__ == "__main__":
     dacList=None
 
     doTOA=0
-    doTW=1
-    doThres=0
+    doTW=0
+    doThres=1
     
     dacList=getDACList(board)
     f=open("runTW_B"+str(board)+".sh","w")
@@ -60,7 +60,6 @@ if __name__ == "__main__":
 
 
     if board==8:
-        qMin=1
         cdList=[4];
         #cdList=[4];chList=[4,9,14];
         #chList=[4];cdList=[4];#TDR
@@ -80,23 +79,25 @@ if __name__ == "__main__":
         chList=sorted(dacList.keys())
         #chList=list(range(15,25))+list(range(0,15))
 
-        
+    ###############################
+    # thres. scan
+    ###############################        
     for ch in chList:
-        for cd in cdList:
-            
-            ###############################
-            # thres. scan
-            ###############################
+        for cd in cdList:        
             for Q in [4]:#ATT TRIG EXT
                 thresMin=270
-                #thresMin=dacList[ch]-20
-                thresMax=600
+                thresMax=500
                 thresStep=5
+                thresMin=dacList[ch]-10
+                thresStep=1
                 cmd="python scripts/thresholdScan.py  --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
                 if doThres:f.write(cmd+"\n sleep 5 \n")
 
-
-            
+    ###############################
+    # TW and TOA
+    ###############################
+    for ch in chList:
+        for cd in cdList:            
             #dac list
             dac=dacList[ch]        
             #dacListLocal=list(range(dac,dac+41,8))
@@ -114,8 +115,6 @@ if __name__ == "__main__":
                 # measure TW
                 ###############################
                 for delay in delayList:
-                    #name='Data/thresscan_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_thres_%d_'%(board,Rin_Vpa,ch,cd,delay,dac)
-                    name="Data/thresscan"
                     name="Data/"
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --moreStatAtLowQ False --morePointsAtLowQ True --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
                     if args.vthc64:
@@ -130,11 +129,12 @@ if __name__ == "__main__":
                 ###############################
                 # measure TOA
                 ###############################
-                #for Q in range(3,22,1):
-                #for Q in list(range(3,10,1))+list(range(10,27,4)):
-                #for Q in [6,8]:#5,26]:#,8,10,14,16,18,20,22]:
-                #for Q in [5,6,7,26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:
-                for Q in [40]:#ATT TRIG EXT
+
+                QList=list(range(3,10,1))+[13,21]
+                #QList=list(range(3,10,1))+list(range(10,27,4)):
+                #QList=[6,8]:#5,26]:#,8,10,14,16,18,20,22]:
+                #QList=[5,6,7,26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:
+                for Q in QList:
                     delayMin=2200
                     delayMax=2700
                     if Q<0:                        
