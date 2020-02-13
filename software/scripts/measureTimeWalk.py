@@ -6,7 +6,7 @@
 ##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
 ## No part of 'ATLAS ALTIROC DEV', including this file, 
 ## may be copied, modified, propagated, or distributed except according to 
-## the terms contained in the LICENSE.txt file.
+## the terms contained in the LICENSE.txt file.pdf
 ##############################################################################
 
 ##############################################################################

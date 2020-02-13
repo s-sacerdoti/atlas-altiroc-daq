@@ -50,11 +50,13 @@ def parse_arguments():
 
 
     # Add arguments
+
     parser.add_argument("--Cd", type = int, required = False, default = -1, help = "Cd")
     parser.add_argument("-N", type = int, required = False, default = 50, help = "Nb of events")
     parser.add_argument("--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP address")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
-    parser.add_argument( "--display", type = argBool, required = False, default = True, help = "show plots")
+    parser.add_argument( "--autoStop", type = argBool, required = False, default = False, help = "show plots")
+    parser.add_argument( "--display", type = argBool, required = False, default = True, help = "          ")
     parser.add_argument( "--debug", type = argBool, required = False, default = True, help = "debug")
     parser.add_argument( "--useProbePA", type = argBool, required = False, default = False, help = "use probe PA")
     parser.add_argument( "--useProbeDiscri", type = argBool, required = False, default = False, help = "use probe Discri")
@@ -77,7 +79,7 @@ def parse_arguments():
     return args
 
 ##############################################################################
-def acquire_data(dacScan, top, n_iterations): 
+def acquire_data(dacScan, top, n_iterations,autoStop=False): 
     pixel_stream = feb.PixelReader() 
     pixel_stream.checkOFtoa=args.checkOFtoa
     pixel_stream.checkOFtot=args.checkOFtot 
@@ -89,8 +91,20 @@ def acquire_data(dacScan, top, n_iterations):
     }
     
     asicVersion = 1 #hardcoded for now...
-
+    effList=[]
+    newDacScan=[]
     for scan_value in dacScan:
+        
+        if autoStop:
+            nForCheck=10
+            if len(effList)>        nForCheck:
+                if(all(np.array(effList[-nForCheck:])<0.05)):
+                    break
+                #used to remove saturated toa
+            #print(toto)
+        newDacScan.append(scan_value)
+
+            
         print('Vth DAC = %d' %scan_value) 
         top.Fpga[0].Asic.SlowControl.DAC10bit.set(scan_value)
     
@@ -102,12 +116,14 @@ def acquire_data(dacScan, top, n_iterations):
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
 
+
+        effList.append(len(pixel_stream.HitDataTOA.copy())/n_iterations)
         pixel_data['HitDataTOA'].append( pixel_stream.HitDataTOA.copy() )
         pixel_data['TOAOvflow'].append( pixel_stream.TOAOvflow.copy() )
         while pixel_stream.count < args.N: pass
         pixel_stream.clear()
     
-    return pixel_data
+    return pixel_data,newDacScan
 
 #################################################################
 def thresholdScan(argip,
@@ -178,7 +194,7 @@ def thresholdScan(argip,
     
     #################################################################
     # Data Processing
-    pixel_data = acquire_data(dacScan, top, args.N)
+    pixel_data,newDacScan = acquire_data(dacScan, top, args.N,args.autoStop)
     
     #################################################################
     # Data Processing
@@ -194,7 +210,7 @@ def thresholdScan(argip,
     if num_valid_TOA_reads == 0:
         raise ValueError('No hits were detected during delay sweep. Aborting!')
     
-    for idac,dacval in enumerate(dacScan):
+    for idac,dacval in enumerate(newDacScan):
         #if checkOvF:
         #    overflow = np.array(pixel_data['TOAOvflow'][idac])
         #    no_ovf_id = np.where(overflow == 0)[0]
@@ -235,46 +251,59 @@ def thresholdScan(argip,
     th50percent = 1024.
     
     midPt = []
-    for dac_index, dac_value in enumerate(dacScan):
-        try:
-            print('Threshold = %d, HitCnt = %d/%d' % (dac_value, HitCnt[dac_index], args.N))
-        except OSError:
-            pass
-        if HitCnt[dac_index] > args.N-2:
+    for dac_index, dac_value in enumerate(newDacScan):
+        if args.debug:
+            try:
+                print('Threshold = %d, HitCnt = %d/%d' % (dac_value, HitCnt[dac_index], args.N))
+            except OSError:
+                pass
+        if HitCnt[dac_index]/args.N>0.9:
             if dac_index>0 and HitCnt[dac_index-1] < (args.N-1) :
-                minTH = (dacScan[dac_index-1]+dacScan[dac_index])/2
-            elif dac_index<len(dacScan)-1 and HitCnt[dac_index+1] < args.N :
-                maxTH = (dacScan[dac_index+1]+dacScan[dac_index])/2
+                minTH = (newDacScan[dac_index-1]+newDacScan[dac_index])/2
+            elif dac_index<len(newDacScan)-1 and HitCnt[dac_index+1] < args.N :
+                maxTH = newDacScan[dac_index]
+                
         if HitCnt[dac_index]/args.N < 0.6:
             th50percent = dac_value
     
-    th25= (maxTH-minTH)*0.25+minTH
-    th50= (maxTH-minTH)*0.5+minTH
-    th75= (maxTH-minTH)*0.75+minTH
-    print('Found minTH = %d, maxTH = %d  - points at 0.25, 0.50 and 0.75 are %d,%d,%d'% (minTH,maxTH,th25,th50,th75))
-    print('First DAC with efficiency below 60% = ', th50percent)
+    # th25= (maxTH-minTH)*0.25+minTH
+    # th50= (maxTH-minTH)*0.5+minTH
+    # th75= (maxTH-minTH)*0.75+minTH
+    
+    print('Threshold = %d %d '% (minTH,maxTH))
+    #print('Found minTH = %d, maxTH = %d  - points at 0.25, 0.50 and 0.75 are %d,%d,%d'% (minTH,maxTH,th25,th50,th75))
+    #print('First DAC with efficiency below 60% = ', th50percent)
+
+    if os.path.exists(outFile+'.txt'):
+       ts = str(int(time.time()))
+       outFile = outFile+"_"+ts
+    outFile+=".txt"
     ff = open(outFile,'a')
-    ff.write('Threshold scan ----'+time.ctime()+'\n')
-    ff.write('Pixel = '+str(pixel_number)+'\n')
-    #ff.write('column = '+hex(column)+'\n')
-    ff.write('config file = '+Configuration_LOAD_file+'\n')
-    ff.write('args.N = '+str(args.N)+'\n')
-    #ff.write('dac_biaspa = '+hex(dac_biaspa)+'\n')
-    ff.write('cmd_pulser = '+str(Qinj)+'\n')
-    ff.write('LSBest = '+str(LSBest)+'\n')
-    #ff.write('Cd ='+str(cd*0.5)+' fC'+'\n')
-    ff.write('Found minTH = %d, maxTH = %d - points at 0.25, 0.50 and 0.75 are %d,%d,%d \n'% (minTH,maxTH,th25,th50,th75))
-    ff.write('First DAC with efficiency below 0.6 = %d  \n' % (th50percent))
-    ff.write('Threshold = '+str(dacScan)+'\n')
-    ff.write('N hits = '+str(HitCnt)+'\n')
-    ff.write('Mean TOA = '+str(TOAmean)+'\n')
-    ff.write('Std Dev TOA = '+str(TOAjit)+'\n')
-    ff.write('MeanTOAps = '+str(TOAmean_ps)+'\n')
-    ff.write('StdDevTOAps = '+str(TOAjit_ps)+'\n')
-    ff.write('dacVth   TOA N_TOA'+'\n')
-    for dac_index, dac_value in enumerate(dacScan):
-        for itoa in range(len(allTOA[dac_index])):
-            ff.write(str(dac_value)+' '+str(allTOA[dac_index][itoa])+' '+str(len(allTOA[dac_index]))+'\n')
+
+
+    #ff.write('dacList[%d]=%d#B%d \n'%(pixel_number,maxTH,args.board))
+    
+    # ff.write('Threshold scan ----'+time.ctime()+'\n')
+    # ff.write('Pixel = '+str(pixel_number)+'\n')
+    # #ff.write('column = '+hex(column)+'\n')
+    # ff.write('config file = '+Configuration_LOAD_file+'\n')
+    # ff.write('args.N = '+str(args.N)+'\n')
+    # #ff.write('dac_biaspa = '+hex(dac_biaspa)+'\n')
+    # ff.write('cmd_pulser = '+str(Qinj)+'\n')
+    # ff.write('LSBest = '+str(LSBest)+'\n')
+    # ff.write('Cd ='+str(cd*0.5)+' fC'+'\n')
+    # #ff.write('Found minTH = %d, maxTH = %d - points at 0.25, 0.50 and 0.75 are %d,%d,%d \n'% (minTH,maxTH,th25,th50,th75))
+    # ff.write('First DAC with efficiency below 0.6 = %d  \n' % (th50percent))
+    # ff.write('Threshold = '+str(newDacScan)+'\n')
+    # ff.write('N hits = '+str(HitCnt)+'\n')
+    # ff.write('Mean TOA = '+str(TOAmean)+'\n')
+    # ff.write('Std Dev TOA = '+str(TOAjit)+'\n')
+    # ff.write('MeanTOAps = '+str(TOAmean_ps)+'\n')
+    # ff.write('StdDevTOAps = '+str(TOAjit_ps)+'\n')
+    # ff.write('dacVth   TOA N_TOA'+'\n')
+    # for dac_index, dac_value in enumerate(newDacScan):
+    #     for itoa in range(len(allTOA[dac_index])):
+    #         ff.write(str(dac_value)+' '+str(allTOA[dac_index][itoa])+' '+str(len(allTOA[dac_index]))+'\n')
 
     ff.close()
 
@@ -294,20 +323,20 @@ def thresholdScan(argip,
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows = 2, ncols = 2, figsize=(16,7))
 
     #plot N events vs threshold
-    ax1.plot(dacScan,HitCnt)
-    #ax1.scatter(dacScan,HitCnt)
+    ax1.plot(newDacScan,HitCnt)
+    #ax1.scatter(newDacScan,HitCnt)
     ax1.set_title('Number of hits vs Threshold', fontsize = 11)
     ax1.set_xlabel('Threshold DAC', fontsize = 10)
     ax1.set_ylabel('Number of TOA hits', fontsize = 10)
 
     #plot TOA vs threshold
-    ax2.scatter(dacScan,TOAmean_ps)
+    ax2.scatter(newDacScan,TOAmean_ps)
     ax2.set_title('Mean TOA vs Threshold', fontsize = 11)
     ax2.set_xlabel('Threshold DAC', fontsize = 10)
     ax2.set_ylabel('Mean TOA value [ps]', fontsize = 10)
 
     #plot jitter vs Threshold
-    ax3.scatter(dacScan,TOAjit_ps)
+    ax3.scatter(newDacScan ,TOAjit_ps)
     ax3.set_title('Jitter TOA vs Threshold', fontsize = 11)
     ax3.legend(['Average Std. Dev. = %f ps' % (jitterMean*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     ax3.set_xlabel('Threshold DAC', fontsize = 10)
