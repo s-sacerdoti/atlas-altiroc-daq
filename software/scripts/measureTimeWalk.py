@@ -198,17 +198,14 @@ def measureTimeWalk(argsip,
     QRange = list(range( QMin, QMax, QStep ))
     
     if args.morePointsAtLowQ:
-        if 13 not in QRange: QRange=[13]+QRange
-        if 11 not in QRange: QRange=[11]+QRange	
-        #if 10 not in QRange: QRange=[10]+QRange	
-        if 9 not in QRange: QRange=[9]+QRange
-        #if 8 not in QRange: QRange=[8]+QRange
-        if 7 not in QRange: QRange=[7]+QRange
-        #if 6 not in QRange: QRange=[6]+QRange
+        for p in range(10,1,-1):
+            if p not in QRange: QRange=[p]+QRange
+    QRange=sorted(QRange)
 
+    
     Nevts=args.N
-    if args.moreStatAtLowQ and Q_value<=8:
-        Nevts*=5
+    #if args.moreStatAtLowQ and Q_value<=8:
+    #    Nevts*=5
 
 
     # choose config fileif not specified:

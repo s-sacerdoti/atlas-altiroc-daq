@@ -51,8 +51,9 @@ if __name__ == "__main__":
     dacList=None
 
     doTOA=0
-    doTW=0
-    doThres=1
+    doTW=1
+    doThres=0
+    
     dacList=getDACList(board)
     f=open("runTW_B"+str(board)+".sh","w")
 
@@ -76,7 +77,7 @@ if __name__ == "__main__":
 
 
     if chList==None:
-        chList=dacList.keys()
+        chList=sorted(dacList.keys())
         #chList=list(range(15,25))+list(range(0,15))
 
         
@@ -116,7 +117,7 @@ if __name__ == "__main__":
                     #name='Data/thresscan_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_thres_%d_'%(board,Rin_Vpa,ch,cd,delay,dac)
                     name="Data/thresscan"
                     name="Data/"
-                    cmd="python scripts/measureTimeWalk.py --skipExistingFile True --moreStatAtLowQ False --morePointsAtLowQ False --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
+                    cmd="python scripts/measureTimeWalk.py --skipExistingFile True --moreStatAtLowQ False --morePointsAtLowQ True --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
                     if args.vthc64:
                         cmd+=" --Vthc 64"
                         pass
