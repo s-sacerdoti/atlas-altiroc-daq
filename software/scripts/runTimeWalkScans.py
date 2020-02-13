@@ -86,7 +86,7 @@ if __name__ == "__main__":
     elif board==8:
         qMin=1
         cdList=[4];chList=[4,9,14];
-        chList=[4,9];cdList=[4];#TDR
+        #chList=[4];cdList=[4];#TDR
         #cdList=[4];
         #chList=[14]
         #cdList=range(0,8);chList=[4]#,9,14];
@@ -115,7 +115,7 @@ if __name__ == "__main__":
         #chList=[3]#,12,21]
         #dacList=[380,400]#range(300,440,10)
         #chList=[0]#TDR
-        chList=[0,10]
+        #chList=[0,10]
         dacRef=305#Vthcor computed for this value
         dacList={}
         dacList[0]=320
@@ -204,9 +204,9 @@ if __name__ == "__main__":
             #dacListLocal=list(range(dac-20,dac+21,10))
             #dacListLocal=list(range(dac-8,dac+1,2))
             #dacListLocal=list(range(dac-15,dac+1,5))
-            dacListLocal=[dac]
-            dacListLocal=[dacRef+20,dacRef+50,dacRef+80]
-
+            #dacListLocal=[dac]
+            dacListLocal=[dacRef]
+            #dacListLocal=list(range(dacRef+20,dacRef+140,20))
             #dacListLocal=list(range(dacRef-20,dacRef+100,5))+list(range(dacRef+100,dacRef+400,10))#B8
 
             
@@ -237,7 +237,7 @@ if __name__ == "__main__":
                 #for Q in list(range(3,10,1))+list(range(10,27,4)):
                 #for Q in [6,8]:#5,26]:#,8,10,14,16,18,20,22]:
                 #for Q in [5,6,7,26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:
-                for Q in [20,40]:#ATT TRIG EXT
+                for Q in [40]:#ATT TRIG EXT
                     delayMin=2200
                     delayMax=2700
                     if Q<0:                        
@@ -248,11 +248,11 @@ if __name__ == "__main__":
                     if Q<0:
                         cmd+=" --useExt True "
                     cmd+=" >& "+logName
-                    f.write(cmd+"\n sleep 5 \n")
+                    #f.write(cmd+"\n sleep 5 \n")
 
 
 
-                    #python scripts/measureTOA.py --skipExistingFile True -N $N --debug False --display False --checkOFtoa False --checkOFtot False  --board 8 --ch $ch --useExt True --delayMin 1800 --delayMax 2300 --delayStep 10  --out Data/$NAME --DAC $DAC --Cd $cd  >& 'Data/'$NAME'-'$ch'-'$DAC'.log'
+
 
 
 

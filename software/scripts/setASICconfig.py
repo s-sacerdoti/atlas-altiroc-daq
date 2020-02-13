@@ -4,22 +4,22 @@ def set_pixel_specific_parameters(top, pixel_number,readAllData=False):
     for ipix in range(25):
         top.Fpga[0].Asic.SlowControl.disable_pa[ipix].set(0x1)	
         top.Fpga[0].Asic.SlowControl.ON_discri[ipix].set(0x0)
-        top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[ipix].set(0x1)#ALWAYS ON
+        top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[ipix].set(0x0)#ALWAYS ON
         top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].set(0x0)
         top.Fpga[0].Asic.SlowControl.EN_trig_ext[ipix].set(0x0)
 
     #B13 6dead 7prb et 13prb
-    #for ipix in range(15):
+    for ipix in range(15):
     #for ipix in list(range(0,6))+list(range(7,15)):
-    #for ipix in [0,1,2,3,4,5,9,10,11,12,14]:#Why 8 remove?
+    #for ipix in [0,1,2,3,4,5,7,8,9,10,11,12,13,14]:
     #for ipix in [3,4,5,9,10,11,12,14]:
     #for ipix in range(0,5):
-    for ipix in [1,2]:
-        #top.Fpga[0].Asic.SlowControl.disable_pa[ipix].set(0x0)	
-        #top.Fpga[0].Asic.SlowControl.ON_discri[ipix].set(0x1)
-        #top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[ipix].set(0x1)#New
-        #top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].set(0x1)
-        #top.Fpga[0].Asic.SlowControl.EN_trig_ext[ipix].set(0x1)
+    #for ipix in [1,2]:
+        top.Fpga[0].Asic.SlowControl.disable_pa[ipix].set(0x0)	
+        top.Fpga[0].Asic.SlowControl.ON_discri[ipix].set(0x1)
+        top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[ipix].set(0x1)#New
+        # top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].set(0x1)
+        #####top.Fpga[0].Asic.SlowControl.EN_trig_ext[ipix].set(0x1)
         pass
     #top.Fpga[0].Asic.SlowControl.ON_Ctest[2].set(0x0)
     
@@ -65,12 +65,12 @@ def set_pixel_specific_parameters(top, pixel_number,readAllData=False):
     top.Fpga[0].Asic.Probe.pix[pixel_number].toa_busy.set(0x0)
     top.Fpga[0].Asic.Probe.pix[pixel_number].en_read.set(0x1)
 
-    #Readout
+    #Readout: only 1 channel
     top.Fpga[0].Asic.Readout.ReadoutSize.set(0)
     top.Fpga[0].Asic.Readout.RdIndexLut[0].set(pixel_number)
 
 
-
+    #read all channels
     if readAllData:
         N=15
         #chList=[pixel_number]+[x for x in range(N) if x != pixel_number]

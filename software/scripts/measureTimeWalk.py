@@ -42,7 +42,7 @@ from setASICconfig import set_pixel_specific_parameters        ##
 #################################################################
 # 
 #################################################################
-def acquire_data(top, useExt,QRange,chNb,readAllData=False): 
+def acquire_data(top, useExt,QRange,Nevts,chNb,readAllData=False): 
     pixel_stream = feb.PixelReader()
     #pixel_stream.channelNumber=chNb #Only when you read all channels
     if readAllData:
@@ -73,9 +73,7 @@ def acquire_data(top, useExt,QRange,chNb,readAllData=False):
         if useExt:
             top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(delay_value+pulseWidth)
 
-        Nevts=args.N
-        if args.moreStatAtLowQ and Q_value<=8:
-            Nevts*=5
+
         for pulse_iteration in range(Nevts):
             top.Fpga[0].Asic.CalPulse.Start()
             time.sleep(0.001)
@@ -208,7 +206,9 @@ def measureTimeWalk(argsip,
         if 7 not in QRange: QRange=[7]+QRange
         #if 6 not in QRange: QRange=[6]+QRange
 
-
+    Nevts=args.N
+    if args.moreStatAtLowQ and Q_value<=8:
+        Nevts*=5
 
 
     # choose config fileif not specified:
@@ -288,7 +288,7 @@ def measureTimeWalk(argsip,
     top.initialize()
 
     # get data
-    pixel_data = acquire_data(top, useExt,QRange,args.ch,readAllData=args.readAllChannels)
+    pixel_data = acquire_data(top, useExt,QRange,Nevts,args.ch,readAllData=args.readAllChannels)
     if len(pixel_data) == 0 : raise ValueError('No hits were detected during delay sweep. Aborting!')    
 
 
@@ -309,7 +309,8 @@ def measureTimeWalk(argsip,
     ffData = open(outData,'a')
 
 
-
+    effArray = np.zeros(len(QRange))
+    eff2Array = np.zeros(len(QRange))
     TOAoffracArray = np.zeros(len(QRange))
     TOAMeanArray = np.zeros(len(QRange))
     TOARMSArray = np.zeros(len(QRange))
@@ -344,6 +345,9 @@ def measureTimeWalk(argsip,
            if ele==127:toaof+=1
            allTOA.append(ele)
            allQ.append(Q)
+       eff=(len(pixel_data['HitDataTOA'][iQ]))/Nevts
+       eff2=(len(pixel_data['HitDataTOA'][iQ])-toaof)/Nevts
+           
        for ele in  pixel_data['HitDataTOTc'][iQ]:
            allTOTc.append(ele)
        if len(pixel_data['HitDataTOA'][iQ])>0:
@@ -353,6 +357,9 @@ def measureTimeWalk(argsip,
            pass
 
 
+
+       print (eff,len(pixel_data['HitDataTOA'][iQ]),Nevts)
+       
        okTOA=np.array(pixel_data['HitDataTOA'][iQ])!=127 #used to remove saturated toa
        okTOTc=np.array(pixel_data['HitDataTOA'][iQ])!=127 #used to remove saturated toa
 
@@ -372,6 +379,8 @@ def measureTimeWalk(argsip,
            TOTmean=(TOTcmean+1.)*args.LSBTOTc-TOTfmean*20
        TOTrms=math.sqrt(math.pow(TOTcrms*args.LSBTOTc,2)+math.pow(TOTfrms*args.LSBTOTf,2))
 
+       if not math.isnan(eff):effArray[iQ]=eff
+       if not math.isnan(eff2):eff2Array[iQ]=eff2
        if not math.isnan(TOAoffrac):TOAoffracArray[iQ]=TOAoffrac
        if not math.isnan(TOAmean):TOAMeanArray[iQ]=TOAmean
        if not math.isnan(TOArms):TOARMSArray[iQ]=TOArms
@@ -425,6 +434,8 @@ def measureTimeWalk(argsip,
 
         fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(nrows = 3, ncols = 2, figsize=(13,9))
 
+
+        #plt.zscale("log")
         # Plot (0,0) ; top left
         xedges = np.array(range(0,65))-0.5
         yedges = range(0,128,2)
@@ -474,11 +485,12 @@ def measureTimeWalk(argsip,
         ax4.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
         ax4.set_ylim(bottom = 0, top = np.max(TOTcRMSArray)*1.1)
 
-        ax5.scatter(QArray, TOAoffracArray)
+        ax5.scatter(QArray, effArray)
+        ax5.scatter(QArray, eff2Array, facecolors='none', edgecolors='r')
         ax5.grid(True)
         ax5.set_title('', fontsize = 11)
         ax5.set_xlabel(QTitle, fontsize = 10)
-        ax5.set_ylabel("Saturated TOA frac", fontsize = 10)
+        ax5.set_ylabel("Efficiency", fontsize = 10)
         ax5.set_xlim(left = np.min(QArray)*0.9, right = np.max(QArray)*1.1)
         ax5.set_ylim(bottom = 0, top = 1.1)
 
