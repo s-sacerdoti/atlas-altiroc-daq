@@ -50,6 +50,10 @@ if __name__ == "__main__":
     chList=None
     dacList=None
 
+    doTOA=0
+    doTW=0
+    doThres=1
+    
     f=open("runTW_B"+str(board)+".sh","w")
     
     if board==2:
@@ -85,7 +89,8 @@ if __name__ == "__main__":
         dacList[14]=418        
     elif board==8:
         qMin=1
-        cdList=[4];chList=[4,9,14];
+        cdList=[4];
+        #cdList=[4];chList=[4,9,14];
         #chList=[4];cdList=[4];#TDR
         #cdList=[4];
         #chList=[14]
@@ -198,6 +203,20 @@ if __name__ == "__main__":
         
     for ch in chList:
         for cd in cdList:
+
+            ###############################
+            # thres. scan
+            ###############################
+            for Q in [4]:#ATT TRIG EXT
+                thresMin=280
+                #thresMin=dacList[ch]-20
+                thresMax=450
+                thresStep=5
+                cmd="python scripts/thresholdScan.py  --debug False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
+                if doThres:f.write(cmd+"\n sleep 5 \n")
+
+
+            
             #dac list
             dac=dacList[ch]        
             #dacListLocal=list(range(dac,dac+41,8))
@@ -207,9 +226,7 @@ if __name__ == "__main__":
             #dacListLocal=[dac]
             dacListLocal=[dacRef]
             #dacListLocal=list(range(dacRef+20,dacRef+140,20))
-            #dacListLocal=list(range(dacRef-20,dacRef+100,5))+list(range(dacRef+100,dacRef+400,10))#B8
-
-            
+            #dacListLocal=list(range(dacRef-20,dacRef+100,5))+list(range(dacRef+100,dacRef+400,10))#B8            
             print(ch,cd,delayList,dacListLocal)            
             for dac in dacListLocal:   
 
@@ -228,7 +245,7 @@ if __name__ == "__main__":
                         cmd+=" --cfg "+args.cfg
                         pass
                         
-                    f.write(cmd+"\n sleep 5 \n")
+                    if doTW: f.write(cmd+"\n sleep 5 \n")
                     
                 ###############################
                 # measure TOA
@@ -248,7 +265,7 @@ if __name__ == "__main__":
                     if Q<0:
                         cmd+=" --useExt True "
                     cmd+=" >& "+logName
-                    #f.write(cmd+"\n sleep 5 \n")
+                    if doTOA:f.write(cmd+"\n sleep 5 \n")
 
 
 

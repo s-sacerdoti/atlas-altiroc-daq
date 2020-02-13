@@ -111,7 +111,7 @@ def acquire_data(dacScan, top, n_iterations,autoStop=False):
         for iteration in range(n_iterations):
             if (asicVersion == 1): 
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
-                time.sleep(0.05)
+                time.sleep(0.01)
             else:
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
@@ -281,7 +281,7 @@ def thresholdScan(argip,
     ff = open(outFile,'a')
 
 
-    #ff.write('dacList[%d]=%d#B%d \n'%(pixel_number,maxTH,args.board))
+    ff.write('dacList[%d]=%d#B%d,%d \n'%(pixel_number,maxTH,args.board,Qinj))
     
     # ff.write('Threshold scan ----'+time.ctime()+'\n')
     # ff.write('Pixel = '+str(pixel_number)+'\n')
