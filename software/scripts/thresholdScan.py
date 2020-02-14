@@ -84,6 +84,9 @@ def parse_arguments():
 ##############################################################################
 def acquire_data(dacScan, top, n_iterations,autoStop=False): 
     pixel_stream = feb.PixelReader() 
+    if readAllData:
+        pixel_stream.channelNumber=chNb #ALLDATA
+        pixel_stream.doPrint=True #ALLDATA
     pixel_stream.checkOFtoa=args.checkOFtoa
     pixel_stream.checkOFtot=args.checkOFtot 
    

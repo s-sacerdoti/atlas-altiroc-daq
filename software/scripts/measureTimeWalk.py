@@ -44,12 +44,9 @@ from setASICconfig import set_pixel_specific_parameters        ##
 #################################################################
 def acquire_data(top, useExt,QRange,Nevts,chNb,readAllData=False): 
     pixel_stream = feb.PixelReader()
-    #pixel_stream.channelNumber=chNb #Only when you read all channels
     if readAllData:
         pixel_stream.channelNumber=chNb #ALLDATA
         pixel_stream.doPrint=True #ALLDATA
-
-    #pixel_stream.checkOFtot=True   
     pixel_stream.checkOFtoa=args.checkOFtoa
     pixel_stream.checkOFtot=args.checkOFtot 
     pyrogue.streamTap(top.dataStream[0], pixel_stream) # Assuming only 1 FPGA

@@ -51,8 +51,8 @@ if __name__ == "__main__":
     dacList=None
 
     doTOA=1
-    doTW=0
-    doThres=0
+    doTW=1
+    doThres=1
     
     dacList=getDACList(board)
     f=open("runTW_B"+str(board)+".sh","w")
@@ -69,6 +69,8 @@ if __name__ == "__main__":
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
         delayList=[2500]
+    elif board==13:
+        chList=[0]
     elif board==15:
         chList=[4,9,14,19,24]
         #chList=range(15)
@@ -137,7 +139,7 @@ if __name__ == "__main__":
 
                 QList=list(range(3,10,1))+[13,21]
                 #QList=list(range(3,10,1))+list(range(10,27,4)):
-                #QList=[6,8]:#5,26]:#,8,10,14,16,18,20,22]:
+                QList=[4]#5,26]:#,8,10,14,16,18,20,22]:
                 #QList=[5,6,7,26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:
                 for Q in QList:
                     delayMin=2200
