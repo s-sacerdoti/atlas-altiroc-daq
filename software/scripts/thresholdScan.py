@@ -73,7 +73,7 @@ def parse_arguments():
     parser.add_argument("--maxVth", type = int, required = False, default = maxDAC, help = "scan stop")
     parser.add_argument("--VthStep", type = int, required = False, default = DACstep, help = "scan step")
     parser.add_argument("--out", type = str, required = False, default = 'testThreshold.txt', help = "output file name")  
-
+    parser.add_argument( "--skipExistingFile", type = argBool, required = False, default = False, help = "")
 
     
     # Get the arguments
@@ -82,7 +82,7 @@ def parse_arguments():
     return args
 
 ##############################################################################
-def acquire_data(dacScan, top, n_iterations,autoStop=False): 
+def acquire_data(dacScan, top, n_iterations,autoStop=False,readAllData=False): 
     pixel_stream = feb.PixelReader() 
     if readAllData:
         pixel_stream.channelNumber=chNb #ALLDATA
@@ -143,6 +143,13 @@ def thresholdScan(argip,
       DACstep,
       outFile):
 
+
+    
+    if args.skipExistingFile and os.path.exists(outFile+'.csv'):
+        print ('output file already exist. Skip......')
+        sys.exit()
+
+    #dac range    
     dacScan = range(minDAC,maxDAC,DACstep)
 
     #choose config file:
@@ -173,13 +180,15 @@ def thresholdScan(argip,
 
     #some more config
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValue)
-    top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0)
-    top.Fpga[0].Asic.CalPulse.CalPulseDelay.set(5000)
+    #top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0)
+    #top.Fpga[0].Asic.CalPulse.CalPulseDelay.set(5000)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
-    top.Fpga[0].Asic.CalPulse.CalPulseWidth.set(0x12)#New
+
         
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
+
+    print   (top.Fpga[0].Asic.SlowControl.Rin_Vpa.value())
     
     #################################################################
     # Data Processing
@@ -255,7 +264,7 @@ def thresholdScan(argip,
 
         if dac_index>1 and HitCnt[dac_index]/args.N>0.95 and HitCnt2[dac_index]>0:
             #if dac_index
-            maxTH = newDacScan[dac_index]-5
+            maxTH = newDacScan[dac_index]
             suspicious=HitCnt2[dac_index]/float(args.N)
             print (maxTH,suspicious)
             
