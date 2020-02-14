@@ -51,8 +51,8 @@ if __name__ == "__main__":
     dacList=None
 
     doTOA=1
-    doTW=1
-    doThres=1
+    doTW=0
+    doThres=0
     
     dacList=getDACList(board)
     f=open("runTW_B"+str(board)+".sh","w")
@@ -70,7 +70,8 @@ if __name__ == "__main__":
         #chList=list(range(0,25))
         delayList=[2500]
     elif board==13:
-        chList=[0]
+        #chList=range(11,15)
+        pass
     elif board==15:
         chList=[4,9,14,19,24]
         #chList=range(15)
@@ -89,15 +90,18 @@ if __name__ == "__main__":
     # thres. scan
     ###############################        
     for ch in chList:
-        for cd in cdList:        
-            for Q in [4]:#ATT TRIG EXT
+        for cd in cdList:
+            QList=range(5,63,5)
+            QList=[10,20]
+            #QList=[4]
+            for Q in QList:#ATT TRIG EXT
                 thresMin=290
-                thresMax=500
+                thresMax=1200
                 thresStep=5
-                #thresMin=dacList[ch]-10
-                #thresStep=1
+                thresMin=dacList[ch]-10
+                thresStep=1
                 N=100
-                cmd="python scripts/thresholdScan.py  --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(N,board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
+                cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(N,board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
                 if doThres:f.write(cmd+"\n sleep 5 \n")
 
     ###############################
@@ -139,7 +143,7 @@ if __name__ == "__main__":
 
                 QList=list(range(3,10,1))+[13,21]
                 #QList=list(range(3,10,1))+list(range(10,27,4)):
-                QList=[4]#5,26]:#,8,10,14,16,18,20,22]:
+                QList=[5]#,26]#,8,10,14,16,18,20,22]:
                 #QList=[5,6,7,26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:
                 for Q in QList:
                     delayMin=2200

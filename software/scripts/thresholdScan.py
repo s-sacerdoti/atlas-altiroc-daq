@@ -113,14 +113,17 @@ def acquire_data(dacScan, top, n_iterations,autoStop=False,readAllData=False):
             
         print('Vth DAC = %d' %scan_value) 
         top.Fpga[0].Asic.SlowControl.DAC10bit.set(scan_value)
-    
+        top.initialize()#You MUST call this function after doing ASIC configurations!!!
+            
         for iteration in range(n_iterations):
             if (asicVersion == 1): 
                 top.Fpga[0].Asic.LegacyV1AsicCalPulseStart()
                 time.sleep(0.01)
+                if readAllData:time.sleep(0.009)#ALLDATA
             else:
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
+                if readAllData:time.sleep(0.009)#ALLDATA
 
         print ("--> N = ",len(pixel_stream.HitDataTOA.copy()))
         effList.append(len(pixel_stream.HitDataTOA.copy())/n_iterations)
@@ -145,7 +148,7 @@ def thresholdScan(argip,
 
 
     
-    if args.skipExistingFile and os.path.exists(outFile+'.csv'):
+    if args.skipExistingFile and os.path.exists(outFile+'.txt'):
         print ('output file already exist. Skip......')
         sys.exit()
 
