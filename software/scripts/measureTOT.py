@@ -131,9 +131,12 @@ def parse_arguments():
     riseEdgeStep = 1
     using_TZ_tot = False # <= TOT TDC Processing Selection (0 = VPA TOT, 1 = TZ TOT)
     outFile = 'TestData/TOTmeasurement'
-    
+    Vthc=-1
+    Rin_Vpa=0 # 0 => 25K, 1 => 15 K
     
     # Add arguments
+    parser.add_argument("--Vthc", type = int, required = False, default = Vthc, help = "Vth cor")
+    parser.add_argument("--Rin_Vpa", type = int, required = False, default = Rin_Vpa, help = "RinVpa")
     parser.add_argument( "--skipExistingFile", type = argBool, required = False, default = False, help = "")
     parser.add_argument( "--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP addresses")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
@@ -155,7 +158,8 @@ def parse_arguments():
     parser.add_argument("--riseEdgeMax",  type = int, required = False, default = riseEdgeMax,  help = "pulser stop")
     parser.add_argument("--riseEdgeStep", type = int, required = False, default = riseEdgeStep, help = "pulser step")
     parser.add_argument("--out", type = str, required = False, default = outFile, help = "output file")
-
+    parser.add_argument( "--readAllChannels", type = argBool, required = False, default = False, help = " read all channels")
+    
     # Get the arguments
     args = parser.parse_args()
     args.out='%sTOT_B_%d_ch_%d_'%(args.out,args.board,args.ch)
@@ -184,23 +188,9 @@ def measureTOT( argsip,
         sys.exit()
 
 
-    
-    #choose config file:
-    Configuration_LOAD_file = 'config/asic_config_B7.yml'
-    if board == 8:
-        Configuration_LOAD_file = 'config/asic_config_B8.yml'
-    elif board == 4:
-        Configuration_LOAD_file = 'config/asic_config_B4.yml'
-    elif board == 3:
-        Configuration_LOAD_file = 'config/asic_config_B3.yml'
-    elif board == 2:
-        Configuration_LOAD_file = 'config/asic_config_B2.yml'
-    elif board == 13:
-        Configuration_LOAD_file = 'config/asic_config_B13.yml'
-    elif board == 15:
-        Configuration_LOAD_file = 'config/asic_config_B15.yml'
-    elif board == 18:
-        Configuration_LOAD_file = 'config/asic_config_B18.yml'
+    # choose config fileif not specified:
+    if args.cfg==None:
+        Configuration_LOAD_file = 'config/asic_config_B'+str(board)+'.yml'
 
     # Setup root class
     top = feb.Top(ip = argsip, userYaml = [Configuration_LOAD_file])
@@ -220,31 +210,13 @@ def measureTOT( argsip,
     time.sleep(0.001)
     top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
 
-    set_pixel_specific_parameters(top, pixel_number)
-    if pixel_number in range(0, 5): bitset=0x1
-    if pixel_number in range(5, 10): bitset=0x2
-    if pixel_number in range(10, 15): bitset=0x4
-    if pixel_number in range(15, 20): bitset=0x8
-    if pixel_number in range(20, 25): bitset=0x10
-    for ipix in range(0,25):top.Fpga[0].Asic.Probe.pix[ipix].probe_pa.set(0x0)
-    if not args.useProbePA:
-        top.Fpga[0].Asic.Probe.en_probe_pa.set(0x0) 
-        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x0)
-    else:
-        top.Fpga[0].Asic.Probe.en_probe_pa.set(bitset) 
-        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x1)
-    for ipix in range(0,25):top.Fpga[0].Asic.Probe.pix[ipix].probe_dig_out_disc.set(0x0)
-    if not args.useProbeDiscri:
-        top.Fpga[0].Asic.Probe.en_probe_dig.set(0x0) 
-        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x0)
-    else:
-        top.Fpga[0].Asic.Probe.en_probe_dig.set(bitset) 
-        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)
+    # Set parameters
+    set_pixel_specific_parameters(top, pixel_number,args)
 
+    #some more config
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
     top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(fallEdge)
-    top.Fpga[0].Asic.CalPulse.CalPulseWidth.set(0x12)#New
 
     if useExt: #scan with external trigger
         print("Will use external trigger")
@@ -258,10 +230,6 @@ def measureTOT( argsip,
         print ("exit...")
         sys.exit()
         
-    #overright Cd
-    if args.Cd>=0:
-        for i in range(5):
-            top.Fpga[0].Asic.SlowControl.cd[i].set(args.Cd)  
 
 
     #You MUST call this function after doing ASIC configurations!!!

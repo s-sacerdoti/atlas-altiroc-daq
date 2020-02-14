@@ -82,7 +82,7 @@ def set_pixel_specific_parameters(top, pixel_number,args):
         top.Fpga[0].Asic.Probe.en_probe_dig.set(bitset) 
         top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)
 
-    
+    #Detector capacitance
     if args.Cd>=0:
         for i in range(5):
             top.Fpga[0].Asic.SlowControl.cd[i].set(args.Cd)  

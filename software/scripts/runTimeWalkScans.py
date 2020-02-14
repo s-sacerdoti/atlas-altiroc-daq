@@ -50,9 +50,9 @@ if __name__ == "__main__":
     chList=None
     dacList=None
 
-    doTOA=0
+    doTOA=1
     doTW=0
-    doThres=1
+    doThres=0
     
     dacList=getDACList(board)
     f=open("runTW_B"+str(board)+".sh","w")
