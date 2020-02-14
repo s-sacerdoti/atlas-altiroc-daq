@@ -71,12 +71,16 @@ if __name__ == "__main__":
         delayList=[2500]
     elif board==15:
         chList=[4,9,14,19,24]
+        #chList=range(15)
         cdList=[0,4]
         pass
 
 
     if chList==None:
-        chList=sorted(dacList.keys())
+        if dacList==None or len(dacList)==0:
+            chList=range(15)
+        else:            
+            chList=sorted(dacList.keys())
         #chList=list(range(15,25))+list(range(0,15))
 
     ###############################
@@ -85,12 +89,13 @@ if __name__ == "__main__":
     for ch in chList:
         for cd in cdList:        
             for Q in [4]:#ATT TRIG EXT
-                thresMin=270
+                thresMin=290
                 thresMax=500
                 thresStep=5
-                thresMin=dacList[ch]-10
-                thresStep=1
-                cmd="python scripts/thresholdScan.py  --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
+                #thresMin=dacList[ch]-10
+                #thresStep=1
+                N=100
+                cmd="python scripts/thresholdScan.py  --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(N,board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
                 if doThres:f.write(cmd+"\n sleep 5 \n")
 
     ###############################

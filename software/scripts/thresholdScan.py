@@ -47,12 +47,15 @@ def parse_arguments():
     maxDAC = 420
     DACstep = 5
     DelayValue = 2400
-
-
+    Rin_Vpa=0 # 0 => 25K, 1 => 15 K
+    Vthc=-1
+    
     # Add arguments
-
+    parser.add_argument("--Vthc", type = int, required = False, default = Vthc, help = "Vth cor")
+    parser.add_argument("--Rin_Vpa", type = int, required = False, default = Rin_Vpa, help = "RinVpa")
+    parser.add_argument( "--readAllChannels", type = argBool, required = False, default = False, help = " read all channels")
     parser.add_argument("--Cd", type = int, required = False, default = -1, help = "Cd")
-    parser.add_argument("-N", type = int, required = False, default = 50, help = "Nb of events")
+    parser.add_argument("--N","-N", type = int, required = False, default = 100, help = "Nb of events")
     parser.add_argument("--ip", nargs ='+', required = False, default = ['192.168.1.10'], help = "List of IP address")
     parser.add_argument( "--board", type = int, required = False, default = 7,help = "Choose board")
     parser.add_argument( "--autoStop", type = argBool, required = False, default = False, help = "show plots")
@@ -75,7 +78,7 @@ def parse_arguments():
     
     # Get the arguments
     args = parser.parse_args()
-    args.out='%sthres_B_%d_ch_%d_cd_%d_delay_%d_Q_%d_'%(args.out,args.board,args.ch,args.Cd,args.delay,args.Q)
+    args.out='%sthres_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_Q_%d_'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.delay,args.Q)
     return args
 
 ##############################################################################
@@ -90,7 +93,7 @@ def acquire_data(dacScan, top, n_iterations,autoStop=False):
     'TOAOvflow' : []
     }
     
-    asicVersion = 1 #hardcoded for now...
+    asicVersion = 2 #hardcoded for now...
     effList=[]
     newDacScan=[]
     for scan_value in dacScan:
@@ -116,7 +119,7 @@ def acquire_data(dacScan, top, n_iterations,autoStop=False):
                 top.Fpga[0].Asic.CalPulse.Start()
                 time.sleep(0.001)
 
-
+        print ("--> N = ",len(pixel_stream.HitDataTOA.copy()))
         effList.append(len(pixel_stream.HitDataTOA.copy())/n_iterations)
         pixel_data['HitDataTOA'].append( pixel_stream.HitDataTOA.copy() )
         pixel_data['TOAOvflow'].append( pixel_stream.TOAOvflow.copy() )
@@ -153,42 +156,25 @@ def thresholdScan(argip,
         dataStream = feb.PrintEventReader()    
         pyrogue.streamTap(top.dataStream[0], dataStream) # Assuming only 1 FPGA
     
+    # Testing resets (why???)
+    top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x0)
+    time.sleep(0.001)
+    top.Fpga[0].Asic.Gpio.RSTB_DLL.set(0x1)
+    time.sleep(0.001)
+    top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x0)
+    time.sleep(0.001)
+    top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
+    
+    #configuration
+    set_pixel_specific_parameters(top, pixel_number,args)
 
-    set_pixel_specific_parameters(top, pixel_number)
-    if pixel_number in range(0, 5): bitset=0x1
-    if pixel_number in range(5, 10): bitset=0x2
-    if pixel_number in range(10, 15): bitset=0x4
-    if pixel_number in range(15, 20): bitset=0x8
-    if pixel_number in range(20, 25): bitset=0x10
-    for ipix in range(0,25):top.Fpga[0].Asic.Probe.pix[ipix].probe_pa.set(0x0)
-    if not args.useProbePA:
-        top.Fpga[0].Asic.Probe.en_probe_pa.set(0x0) 
-        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x0)
-    else:
-        top.Fpga[0].Asic.Probe.en_probe_pa.set(bitset) 
-        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x1)
-    for ipix in range(0,25):top.Fpga[0].Asic.Probe.pix[ipix].probe_dig_out_disc.set(0x0)
-    if not args.useProbeDiscri:
-        top.Fpga[0].Asic.Probe.en_probe_dig.set(0x0) 
-        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x0)
-    else:
-        top.Fpga[0].Asic.Probe.en_probe_dig.set(bitset) 
-        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)
-        
     #some more config
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(DelayValue)
     top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(0)
     top.Fpga[0].Asic.CalPulse.CalPulseDelay.set(5000)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(Qinj)
-    #top.Fpga[0].Asic.Gpio.CalPulseWidth.set(0x12)
-    #if not checkOvF:
-    #    top.Fpga[0].Asic.Readout.OnlySendFirstHit.set(0)
-
-    #overright Cd
-    if args.Cd>=0:
-        for i in range(5):
-            top.Fpga[0].Asic.SlowControl.cd[i].set(args.Cd)  
-
+    top.Fpga[0].Asic.CalPulse.CalPulseWidth.set(0x12)#New
+        
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
     
@@ -253,8 +239,7 @@ def thresholdScan(argip,
     #################################################################
     
     #################################################################
-    # Print Data
-    #find min th, max th, and middle points:
+    # Print Data    #find min th, max th, and middle points:
     maxTH = 999
     suspicious=0
     for dac_index, dac_value in enumerate(newDacScan):
@@ -265,9 +250,9 @@ def thresholdScan(argip,
                 pass
 
 
-        if HitCnt[dac_index]/args.N>0.95 and HitCnt2[dac_index]>0:
+        if dac_index>1 and HitCnt[dac_index]/args.N>0.95 and HitCnt2[dac_index]>0:
             #if dac_index
-            maxTH = newDacScan[dac_index]
+            maxTH = newDacScan[dac_index]-5
             suspicious=HitCnt2[dac_index]/float(args.N)
             print (maxTH,suspicious)
             
@@ -359,7 +344,8 @@ def thresholdScan(argip,
     ax3.legend(['Average Std. Dev. = %f ps' % (jitterMean*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     ax3.set_xlabel('Threshold DAC', fontsize = 10)
     ax3.set_ylabel('Mean TOA Jitter', fontsize = 10)
-
+    ax3.set_ylim(bottom = 0, top = 100)
+               
     plt.subplots_adjust(hspace = 0.35, wspace = 0.2)
     plt.savefig(outFile+".pdf")
     if args.display:

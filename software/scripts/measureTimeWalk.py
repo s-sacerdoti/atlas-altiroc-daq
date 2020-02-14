@@ -70,8 +70,8 @@ def acquire_data(top, useExt,QRange,Nevts,chNb,readAllData=False):
         print('Testing Q value ' + str(Q_value) )
         top.Fpga[0].Asic.SlowControl.dac_pulser.set(Q_value)
         top.initialize()#You MUST call this function after doing ASIC configurations!!!
-        if useExt:
-            top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(delay_value+pulseWidth)
+        # if useExt:
+        #     top.Fpga[0].Asic.Gpio.DlyCalPulseReset.set(delay_value+pulseWidth)
 
 
         for pulse_iteration in range(Nevts):
@@ -233,53 +233,13 @@ def measureTimeWalk(argsip,
     top.Fpga[0].Asic.Gpio.RSTB_TDC.set(0x1)
 
     # Set parameters
-    set_pixel_specific_parameters(top, pixel_number,readAllData=args.readAllChannels)
-    if pixel_number in range(0, 5): bitset=0x1
-    if pixel_number in range(5, 10): bitset=0x2
-    if pixel_number in range(10, 15): bitset=0x4
-    if pixel_number in range(15, 20): bitset=0x8
-    if pixel_number in range(20, 25): bitset=0x10
-    for ipix in range(0,25):top.Fpga[0].Asic.Probe.pix[ipix].probe_pa.set(0x0)
-    if not args.useProbePA:
-        top.Fpga[0].Asic.Probe.en_probe_pa.set(0x0) 
-        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x0)
-    else:
-        top.Fpga[0].Asic.Probe.en_probe_pa.set(bitset) 
-        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x1)
-    for ipix in range(0,25):top.Fpga[0].Asic.Probe.pix[ipix].probe_dig_out_disc.set(0x0)
-    if not args.useProbeDiscri:
-        top.Fpga[0].Asic.Probe.en_probe_dig.set(0x0) 
-        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x0)
-    else:
-        top.Fpga[0].Asic.Probe.en_probe_dig.set(bitset) 
-        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)
+    set_pixel_specific_parameters(top, pixel_number,args)
 
-    #TO BE REMOVED: add probe for tests
-    #top.Fpga[0].Asic.Probe.en_probe_dig.set(0x2) 
-    #top.Fpga[0].Asic.Probe.pix[7].probe_dig_out_disc.set(0x1)
-        
+    #some more config
     top.Fpga[0].Asic.SlowControl.DAC10bit.set(DAC)
     top.Fpga[0].Asic.SlowControl.dac_pulser.set(QMin)
     top.Fpga[0].Asic.Gpio.DlyCalPulseSet.set(delay)
-    top.Fpga[0].Asic.CalPulse.CalPulseWidth.set(0x12)#New
-
-    # Data Acquisition for TOA with external
-    if useExt:
-        print("Will use external trigger")
-        top.Fpga[0].Asic.SlowControl.disable_pa[pixel_number].set(0x1)
-        top.Fpga[0].Asic.SlowControl.ON_discri[pixel_number].set(0x0)
-        top.Fpga[0].Asic.SlowControl.EN_trig_ext[pixel_number].set(0x1)
-        top.Fpga[0].Asic.SlowControl.ON_Ctest[pixel_number].set(0x0)
- 
-    # Overright Cd
-    if args.Cd>=0:
-        for i in range(5):
-            top.Fpga[0].Asic.SlowControl.cd[i].set(args.Cd)  
-
-    #additionnal parameters
-    top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(args.Rin_Vpa)
-    if args.Vthc>0:
-        top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(args.Vthc) # alignment
+  
 
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()

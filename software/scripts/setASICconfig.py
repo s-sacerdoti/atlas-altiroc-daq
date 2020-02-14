@@ -1,4 +1,4 @@
-def set_pixel_specific_parameters(top, pixel_number,readAllData=False):
+def set_pixel_specific_parameters(top, pixel_number,args):
         
     #Ctest,discri,PA,SRAM off for all channels
     for ipix in range(25):
@@ -65,13 +65,43 @@ def set_pixel_specific_parameters(top, pixel_number,readAllData=False):
     top.Fpga[0].Asic.Probe.pix[pixel_number].toa_busy.set(0x0)
     top.Fpga[0].Asic.Probe.pix[pixel_number].en_read.set(0x1)
 
+
+    #probes
+    for ipix in range(0,25):top.Fpga[0].Asic.Probe.pix[ipix].probe_pa.set(0x0)
+    if not args.useProbePA:
+        top.Fpga[0].Asic.Probe.en_probe_pa.set(0x0) 
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x0)
+    else:
+        top.Fpga[0].Asic.Probe.en_probe_pa.set(bitset) 
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_pa.set(0x1)
+    for ipix in range(0,25):top.Fpga[0].Asic.Probe.pix[ipix].probe_dig_out_disc.set(0x0)
+    if not args.useProbeDiscri:
+        top.Fpga[0].Asic.Probe.en_probe_dig.set(0x0) 
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x0)
+    else:
+        top.Fpga[0].Asic.Probe.en_probe_dig.set(bitset) 
+        top.Fpga[0].Asic.Probe.pix[pixel_number].probe_dig_out_disc.set(0x1)
+
+    
+    if args.Cd>=0:
+        for i in range(5):
+            top.Fpga[0].Asic.SlowControl.cd[i].set(args.Cd)  
+
+
+
+    #some more config
+    top.Fpga[0].Asic.CalPulse.CalPulseWidth.set(0x12)#New
+    top.Fpga[0].Asic.SlowControl.Rin_Vpa.set(args.Rin_Vpa)
+    if args.Vthc>0:
+        top.Fpga[0].Asic.SlowControl.bit_vth_cor[pixel_number].set(args.Vthc) # alignment
+        
     #Readout: only 1 channel
     top.Fpga[0].Asic.Readout.ReadoutSize.set(0)
     top.Fpga[0].Asic.Readout.RdIndexLut[0].set(pixel_number)
 
 
     #read all channels
-    if readAllData:
+    if args.readAllChannels:
         N=15
         #chList=[pixel_number]+[x for x in range(N) if x != pixel_number]
         chList=range(N)

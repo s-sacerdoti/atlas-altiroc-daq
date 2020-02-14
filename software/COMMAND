@@ -27,10 +27,9 @@ python scripts/runTimeWalkScans.py  -b 3
 python scripts/runTDCCalib.py  -b 3 --toa  > runTOA_B3.sh
 python scripts/runTDCCalib.py  -b 3 --tot  > runTOT_B3.sh
 
-python scripts/runTimeWalkScans.py  -b 8  
-python scripts/runTDCCalib.py  -b 8 --toa  > runTOA_B8.sh
-python scripts/runTDCCalib.py  -b 8 --tot  > runTOT_B8.sh
-
+python scripts/runTimeWalkScans.py  -b 18  
+python scripts/runTDCCalib.py  -b 18 --toa  > runTOA_B18.sh
+python scripts/runTDCCalib.py  -b 18 --tot  > runTOT_B18.sh
 
 python scripts/runTimeWalkScans.py  -b 15  
 python scripts/runTDCCalib.py  -b 15 --toa  > runTOA_B15.sh
@@ -40,16 +39,7 @@ python scripts/runTimeWalkScans.py  -b 13
 python scripts/runTDCCalib.py  -b 13 --toa  > runTOA_B13.sh
 python scripts/runTDCCalib.py  -b 13 --tot  > runTOT_B13.sh
 
-python scripts/runTimeWalkScans.py  -b 18  
-python scripts/runTDCCalib.py  -b 18 --toa  > runTOA_B18.sh
-python scripts/runTDCCalib.py  -b 18 --tot  > runTOT_B18.sh
 
-
-
-
-
-
-
-
-python scripts/measureTOA.py --skipExistingFile False -N 500 --debug False --display False --checkOFtoa False --checkOFtot False --ch 1 --board 8 --DAC 450 --Q 13 --delayMin 2350 --delayMax 2650 --out Data/delayPulser_B_8_ch_24_
-
+python scripts/runTimeWalkScans.py  -b 8  
+python scripts/runTDCCalib.py  -b 8 --toa  > runTOA_B8.sh
+python scripts/runTDCCalib.py  -b 8 --tot  > runTOT_B8.sh
