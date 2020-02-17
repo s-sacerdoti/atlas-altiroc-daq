@@ -51,8 +51,8 @@ if __name__ == "__main__":
     dacList=None
 
     doTOA=1
-    doTW=0
-    doThres=0
+    doTW=1
+    doThres=1
     
     dacList=getDACList(board)
     f=open("runTW_B"+str(board)+".sh","w")
@@ -86,23 +86,6 @@ if __name__ == "__main__":
             chList=sorted(dacList.keys())
         #chList=list(range(15,25))+list(range(0,15))
 
-    ###############################
-    # thres. scan
-    ###############################        
-    for ch in chList:
-        for cd in cdList:
-            QList=range(5,63,5)
-            QList=[10,20]
-            #QList=[4]
-            for Q in QList:#ATT TRIG EXT
-                thresMin=290
-                thresMax=1200
-                thresStep=5
-                thresMin=dacList[ch]-10
-                thresStep=1
-                N=100
-                cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(N,board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
-                if doThres:f.write(cmd+"\n sleep 5 \n")
 
     ###############################
     # TW and TOA
@@ -162,6 +145,28 @@ if __name__ == "__main__":
 
 
 
+    ###############################
+    # thres. scan
+    ###############################        
+    if doThres:
+        for ch in chList:
+            for cd in cdList:
+                #QList=range(0,63,10)+[5]
+                QList=[0,10,20]
+                #QList=[4]
+                for Q in QList:#ATT TRIG EXT
+                    thresMin=280
+                    thresMax=1200
+                    thresStep=5
+                    if Q >=5:thresMin=dacList[ch]-10
+                    thresStep=1
+                    N=100
+                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(N,board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
+                    f.write(cmd+"\n sleep 5 \n")
+
+
+                    
+                    
 
 
 print (" ************ CHECK TRIG EXT ***************")

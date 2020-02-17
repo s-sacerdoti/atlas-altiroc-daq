@@ -38,9 +38,6 @@ if __name__ == "__main__":
     args = parse_arguments()
 
 
-    qMin=3
-    qMax=63
-    qStep=1
     board=args.board
     NTOA=500
     NTOT=50
@@ -49,7 +46,7 @@ if __name__ == "__main__":
     totDelayStep=10   #Need 1 for TOTf
     chList=list(range(0,15))
     
-    toaDelayStep=1
+    toaDelayStep=5
     if board==2:
         toaDelayMin=1800
         toaDelayMax=2300
