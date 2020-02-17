@@ -25,7 +25,7 @@ def parse_arguments():
     # Add arguments
     parser.add_argument("-b", "--board", type = int, required = False, default = 8,help = "Choose board")
     parser.add_argument("-c","--ch", type = int, required = False, default = 4, help = "channel")
-    parser.add_argument("--vthc64", type = argBool, required = False, default = False)
+    #parser.add_argument("--vthc64", type = argBool, required = False, default = False)
     parser.add_argument("--cfg", required = False, default = None)
     #parser.add_argument("--dacRef", required = False, default = None)
     # Get the arguments
@@ -38,6 +38,7 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
 
+    
     cdList=[0]
     qMin=1
     qMax=63#63#63
@@ -46,19 +47,20 @@ if __name__ == "__main__":
     N=100
     Rin_Vpa=0
     delayList=[2450]
-    #delayList=range(2450,2550+1,20) 
     chList=None
     dacList=None
-
-    doTOA=1
-    doTW=1
-    doThres=1
-    
-    dacList=getDACList(board)
     f=open("runTW_B"+str(board)+".sh","w")
 
+    
+    doTOA=0
+    doTW=1
+    doThres=0
+    
 
-
+    dacList=getDACList(board)
+    dacRef=min(dacList.values())
+    useVthc=True
+    
     if board==8:
         cdList=[4];
         #cdList=[4];chList=[4,9,14];
@@ -93,13 +95,16 @@ if __name__ == "__main__":
     for ch in chList:
         for cd in cdList:            
             #dac list
-            dac=dacList[ch]        
+            if useVthc:
+                dacNom=dacRef
+            else:
+                dacNom=dacList[ch]
             #dacListLocal=list(range(dac,dac+41,8))
             #dacListLocal=list(range(dac-20,dac+21,10))
             #dacListLocal=list(range(dac-8,dac+1,2))
             #dacListLocal=list(range(dac-15,dac+1,5))
-            dacListLocal=[dac]
-            #dacListLocal=[dacRef]
+            #dacListLocal=[dac]
+            dacListLocal=[dacNom]
             #dacListLocal=list(range(dacRef+20,dacRef+140,20))
             #dacListLocal=list(range(dacRef-20,dacRef+100,5))+list(range(dacRef+100,dacRef+400,10))#B8            
             print(ch,cd,delayList,dacListLocal)            
@@ -111,7 +116,7 @@ if __name__ == "__main__":
                 for delay in delayList:
                     name="Data/"
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --moreStatAtLowQ False --morePointsAtLowQ True --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
-                    if args.vthc64:
+                    if not useVthc:
                         cmd+=" --Vthc 64"
                         pass
                     if args.cfg is not None:
