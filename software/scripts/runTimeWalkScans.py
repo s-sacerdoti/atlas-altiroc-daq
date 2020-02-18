@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     dacList=getDACList(board)
     dacRef=min(dacList.values())
-    useVthc=True
+    useVthc=False
     
     if board==8:
         cdList=[4];
@@ -72,7 +72,8 @@ if __name__ == "__main__":
         #chList=list(range(0,25))
         delayList=[2500]
     elif board==13:
-        #chList=range(11,15)
+        #chList=[0,4,5,10]
+        chList=[0]
         pass
     elif board==15:
         chList=[4,9,14,19,24]
@@ -99,14 +100,12 @@ if __name__ == "__main__":
                 dacNom=dacRef
             else:
                 dacNom=dacList[ch]
-            #dacListLocal=list(range(dac,dac+41,8))
-            #dacListLocal=list(range(dac-20,dac+21,10))
-            #dacListLocal=list(range(dac-8,dac+1,2))
-            #dacListLocal=list(range(dac-15,dac+1,5))
-            #dacListLocal=[dac]
             dacListLocal=[dacNom]
-            #dacListLocal=list(range(dacRef+20,dacRef+140,20))
-            #dacListLocal=list(range(dacRef-20,dacRef+100,5))+list(range(dacRef+100,dacRef+400,10))#B8            
+            #dacListLocal=list(range(dacNom-20,dacNom+200,2));qMin=5;qMax=41;qStep=5 #for pulse shape
+            dacListLocal=list(range(dacNom-20,dacNom+300,5));qMin=5;qMax=41;qStep=5 #for pulse shape
+            #dacListLocal=list(range(dacNom+300,1000,20));qMin=5;qMax=41;qStep=5 #for pulse shape
+            
+            
             print(ch,cd,delayList,dacListLocal)            
             for dac in dacListLocal:   
 
@@ -131,8 +130,7 @@ if __name__ == "__main__":
 
                 QList=list(range(3,10,1))+[13,21]
                 #QList=list(range(3,10,1))+list(range(10,27,4)):
-                QList=[5]#,26]#,8,10,14,16,18,20,22]:
-                #QList=[5,6,7,26]:#5,6,7]:#,8]#,26]:#5,26]:#,8,10,14,16,18,20,22]:
+                QList=[5,13,26]
                 for Q in QList:
                     delayMin=2200
                     delayMax=2700
@@ -141,6 +139,9 @@ if __name__ == "__main__":
                         delayMax=2300
                     logName='Data/delayTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d.log'%(board,Rin_Vpa,ch,cd,Q,dac)
                     cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep 5 --out Data/delay "%(cd,ch,board,dac,Q,delayMin,delayMax)
+                    if not useVthc:
+                        cmd+=" --Vthc 64"
+                        pass
                     if Q<0:
                         cmd+=" --useExt True "
                     cmd+=" >& "+logName
@@ -156,17 +157,20 @@ if __name__ == "__main__":
     if doThres:
         for ch in chList:
             for cd in cdList:
-                #QList=range(0,63,10)+[5]
-                QList=[0,10,20]
+                #QList=range(0,63,10)
+                QList=[0]#,10,20]
                 #QList=[4]
                 for Q in QList:#ATT TRIG EXT
-                    thresMin=280
+                    thresMin=260
                     thresMax=1200
                     thresStep=5
                     if Q >=5:thresMin=dacList[ch]-10
                     thresStep=1
                     N=100
                     cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(N,board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
+                    if not useVthc:
+                        cmd+=" --Vthc 64"
+                        pass
                     f.write(cmd+"\n sleep 5 \n")
 
 

@@ -104,7 +104,7 @@ def acquire_data(dacScan, top, n_iterations,autoStop=False,readAllData=False):
         if autoStop:
             nForCheck=10
             if len(effList)>        nForCheck:
-                if(all(np.array(effList[-nForCheck:])<0.05)):
+                if(max(effList)>=0.5 and  all(np.array(effList[-nForCheck:])<0.05)):
                     break
                 #used to remove saturated toa
             #print(toto)
