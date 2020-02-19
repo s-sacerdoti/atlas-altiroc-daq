@@ -328,16 +328,20 @@ def measureTOA(argsip,
     ax1.set_xlim(left = np.min(Delay), right = np.max(Delay))
     ax1.set_ylim(bottom = 0, top = 128)
 
+
+    LSBForPlot=20
+    if LSBest<50:
+        LSBForPlot=LSBest
     # Plot (0,1) ; top right
-    #ax2.scatter(Delay, np.multiply(DataStdev,LSBest))
-    ax2.scatter(Delay, np.multiply(DataStdev,20))
+    #ax2.scatter(Delay, np.multiply(DataStdev,LSBForPlotest))
+    ax2.scatter(Delay, np.multiply(DataStdev,LSBForPlot))
     ax2.grid(True)
     ax2.set_title('TOA Jitter VS Programmable Delay Value', fontsize = 11)
     ax2.set_xlabel('Programmable Delay Value', fontsize = 10)
-    ax2.set_ylabel('Std. Dev. [ps] (LSB=20ps)', fontsize = 10)
-    ax2.legend(['Average Std. Dev. = %f ps' % (MeanDataStdev*LSBest)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
+    ax2.set_ylabel('Std. Dev. [ps] (LSBForPlot='+str(round(LSBForPlot))+'ps)', fontsize = 10)
+    ax2.legend(['Average Std. Dev. = %f ps' % (MeanDataStdev*LSBForPlot)], loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     ax2.set_xlim(left = np.min(Delay), right = np.max(Delay))
-    ax2.set_ylim(bottom = 0, top = np.max(np.multiply(DataStdev,LSBest))+20)
+    ax2.set_ylim(bottom = 0, top = np.max(np.multiply(DataStdev,LSBForPlot))+20)
     ax2.set_ylim(bottom = 0, top = 100)
 
     # Plot (1,0) ; bottom left
@@ -351,7 +355,7 @@ def measureTOA(argsip,
 
     if delay_index_to_plot != -1:
         hist_range = 10
-        LSB=20
+        LSB=LSBest
         binlow = ( int(DataMean[delay_index_to_plot])-hist_range ) * LSB
         binhigh = ( int(DataMean[delay_index_to_plot])+hist_range ) * LSB
         hist_bin_list = np.arange(binlow, binhigh, LSB)
