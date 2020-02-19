@@ -39,14 +39,15 @@ if __name__ == "__main__":
 
 
     board=args.board
-    NTOA=500
+    NTOA=50#was 500
     NTOT=50
     totDelayMin=700
     totDelayMax=3000
-    totDelayStep=10   #Need 1 for TOTf
+    totDelayStep=20   #Need 1 for TOTf
     chList=list(range(0,15))
-    
+    chList=[0,2,5,11]    
     toaDelayStep=5
+    
     if board==2:
         toaDelayMin=1800
         toaDelayMax=2300
@@ -60,7 +61,7 @@ if __name__ == "__main__":
         toaDelayMax=2300
         #chList=[4,9,14]
     elif board==13:
-        toaDelayMin=1900
+        toaDelayMin=1850
         toaDelayMax=2300
     elif board==15:
         toaDelayMin=1900

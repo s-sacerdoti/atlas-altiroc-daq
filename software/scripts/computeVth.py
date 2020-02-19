@@ -31,7 +31,7 @@ print ("        DAC10bit: "+str(dacRef))
 for i,d in dacList.items():
 
     vthc=int(64+(dacRef-d)*0.4/0.8)
-
+    print (dacRef,d,vthc)
 
     
     print ("        bit_vth_cor["+str(i)+"]: "+str(vthc))
