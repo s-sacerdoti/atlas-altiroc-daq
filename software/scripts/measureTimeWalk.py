@@ -126,9 +126,7 @@ def parse_arguments():
     parser.add_argument( "--readAllChannels", type = argBool, required = False, default = False, help = " read all channels")
     parser.add_argument( "--moreStatAtLowQ", type = argBool, required = False, default = True, help = "increase statistics for low Q")
     parser.add_argument( "--morePointsAtLowQ", type = argBool, required = False, default = False, help = "increase statistics for low Q")
-    
-    parser.add_argument( "--skipExistingFile", type = argBool, required = False, default = False, help = "")
-        
+    parser.add_argument( "--skipExistingFile", type = argBool, required = False, default = False, help = "")        
     parser.add_argument( "--useProbePA", type = argBool, required = False, default = False, help = "use probe PA")
     parser.add_argument( "--useProbeDiscri", type = argBool, required = False, default = False, help = "use probe Discri")
     parser.add_argument( "--checkOFtoa", type = argBool, required = False, default = True, help = "check TOA overflow")
@@ -151,7 +149,7 @@ def parse_arguments():
 
     # Get the arguments
     args = parser.parse_args()
-    args.out='%sTW_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_thres_%d_'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.delay,args.DAC)
+    args.out='%sTW_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_thres_%d_'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.delay,args.Vthc)
     print(args.out)
     print(outFile)
 

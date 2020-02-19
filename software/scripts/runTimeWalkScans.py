@@ -11,11 +11,11 @@ import math                                                    ##
 #################################################################
 from DAC import *
 
-doTW   = 0
-doTOA  = 1
+doTW   = 1
+doTOA  = 0
 doThres= 0
 useVthc=True
-chList=[0,2,5,11]
+chList=[1,4,0,7]#,2,5,11]
 
 QTOAList=list(range(3,10,1))+[13,21]
 #QTOAList=[5,26]
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     qStep=2
     N=100
     Rin_Vpa=0
-    delayList=[2450]
+    delay=2450
     dacList=None
     dacList=getDACList(board)
     dacRef=min(dacList.values())
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         #cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
-        delayList=[2500]
+        delay=2500
     elif board==13:
         #chList=[11,12,13,14]
         #chList=[0]
@@ -99,23 +99,28 @@ if __name__ == "__main__":
             else:
                 dacNom=dacList[ch]
             dacListLocal=[dacNom]
+            vthcList=[64]
+            vthcList=list(range(63,0,-2));qMin=5;qMax=41;qStep=5 #for pulse shape
             #dacListLocal=list(range(dacNom,dacNom+41,10))
             #dacListLocal=list(range(dacNom-20,dacNom+200,2));qMin=5;qMax=41;qStep=5 #for pulse shape
             #dacListLocal=list(range(dacNom-20,dacNom+300,5));qMin=5;qMax=41;qStep=5 #for pulse shape
             #dacListLocal=list(range(dacNom+300,1000,20));qMin=5;qMax=41;qStep=5 #for pulse shape
             
             
-            print(ch,cd,delayList,dacListLocal)            
+            print(ch,cd,delay,dacListLocal,vthcList)            
             for dac in dacListLocal:   
 
                 ###############################
                 # measure TW
                 ###############################
-                for delay in delayList:
+                for vthc in vthcList:
                     name="Data/"
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --moreStatAtLowQ False --morePointsAtLowQ True --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
-                    if not useVthc:
-                        cmd+=" --Vthc 64"
+                    cmd+=" --Vthc "+str(vthc)
+                    
+                    if not useVthc:#take the one from config
+                        #vthc=64
+                        cmd+=" --Vthc "+str(vthc)
                         pass
                     if args.cfg is not None:
                         cmd+=" --cfg "+args.cfg
@@ -156,7 +161,7 @@ if __name__ == "__main__":
                 for Q in QThresList:#ATT TRIG EXT
                     if Q >5:thresMin=dacList[ch]-10
                     N=100
-                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(N,board,delayList[0],thresMin,thresMax,thresStep,cd,ch,Q)
+                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(N,board,delay,thresMin,thresMax,thresStep,cd,ch,Q)
                     if not useVthc:
                         cmd+=" --Vthc 64"
                         pass
