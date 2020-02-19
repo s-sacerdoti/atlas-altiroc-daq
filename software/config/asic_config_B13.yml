@@ -77,9 +77,9 @@ Top:
         CP_b: 0x3 # B2:Cp_b 5 or 7 with R pull up/dwn but 1 with dividers.  WO Ileak on Vctrl, Charge pump I only detremines the velocity of DLL locking and not the value to which it locks
         
 
-        ext_Vcrtlf_en: 0x0 # B13 Strap needed, 0 or 1 (better to keep 0 => DLL will do the job starting from initial condition obtained under rstb_DLL)
-        ext_Vcrtls_en: 0x0 # B13 No strap needed, 0 or 1 (better to keep 0)
-        ext_Vcrtlc_en: 0x0 # B13 no strap neede, 0 or 1 (better to keep 0)
+        ext_Vcrtlf_en: 0x1 # B13 Strap needed, 0 or 1 (better to keep 0 => DLL will do the job starting from initial condition obtained under rstb_DLL)
+        ext_Vcrtls_en: 0x1 # B13 No strap needed, 0 or 1 (better to keep 0)
+        ext_Vcrtlc_en: 0x1 # B13 no strap neede, 0 or 1 (better to keep 0)
 
         totf_satovfw: 0x1
         totc_satovfw: 0x1
