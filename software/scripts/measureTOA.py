@@ -83,7 +83,7 @@ def parse_arguments():
     
     #default parameters
     pixel_number = 4
-    DAC_Vth = 400
+    DAC_Vth = -1
     dlyMin = 2300 
     dlyMax = 2700 
     dlyStep = 10

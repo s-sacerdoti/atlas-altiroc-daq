@@ -49,7 +49,11 @@ if __name__ == "__main__":
     toaDelayStep=1
     toaDelayMin=1900
     toaDelayMax=2350
-        
+
+    #chList=[4,9,14]    
+    #NTOA=1000#was 500
+    #toaDelayStep=20
+    
     if board==2:
         toaDelayMin=1800
         toaDelayMax=2300

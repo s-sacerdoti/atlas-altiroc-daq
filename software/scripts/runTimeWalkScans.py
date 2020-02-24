@@ -11,21 +11,32 @@ import math                                                    ##
 #################################################################
 from DAC import *
 
-doTW   = 0
+#####################
+# 
+#####################
+doTW   = 1
 doTOA  = 0
 doThres= 0
-doSshape=1
+doSshape=0
 useVthc=False
 chList=None
-#chList=[4]
+chList=[4,9,14]
 
+#####################
+# TOA
+#####################
+Ntoa=100
+delayStep=5
 #QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
-QTOAList=[5,26]#default
+QTOAList=[5,13,26]#default
+QTOAList=[26]# chON
 
-
+#####################
+# Threshold
+#####################
 QThresList=[4]#default
 thresMin=260  #overwritten for Q>5
-thresMax=1200
+thresMax=1023#max is 1023
 if doSshape:
     doThres= 1
     thresStep=1
@@ -148,7 +159,7 @@ if __name__ == "__main__":
                         delayMin=1800
                         delayMax=2300
                     logName='Data/delayTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d.log'%(board,Rin_Vpa,ch,cd,Q,dac)
-                    cmd="python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep 5 --out Data/delay "%(cd,ch,board,dac,Q,delayMin,delayMax)
+                    cmd="python scripts/measureTOA.py --skipExistingFile True -N %d --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep %d --out Data/delay "%(Ntoa,cd,ch,board,dac,Q,delayMin,delayMax,delayStep)
                     if not useVthc:
                         cmd+=" --Vthc 64"
                         pass

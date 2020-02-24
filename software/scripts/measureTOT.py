@@ -123,7 +123,7 @@ def parse_arguments():
     
     #default parameters
     pixel_number = 4
-    DAC_Vth = 320
+    DAC_Vth = -1
     Qinj = 13 #10fc
     config_file = None#'config/asic_config_B8.yml'
     riseEdgeMin = 0
