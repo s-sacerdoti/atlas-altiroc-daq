@@ -11,24 +11,25 @@ import math                                                    ##
 #################################################################
 from DAC import *
 
-doTW   = 1
+doTW   = 0
 doTOA  = 0
 doThres= 0
-useVthc=True
-chList=[1,4,0,7]#,2,5,11]
+doSshape=1
+useVthc=False
+chList=None
+#chList=[4]
 
-QTOAList=list(range(3,10,1))+[13,21]
-#QTOAList=[5,26]
-QTOAList=[26]
+#QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
+QTOAList=[5,26]#default
 
 
-#QThresList=range(0,63,10)
-QThresList=[0]#,10,20]
-#QThresList=[4]
+QThresList=[4]#default
 thresMin=260  #overwritten for Q>5
 thresMax=1200
-thresStep=5
-
+if doSshape:
+    doThres= 1
+    thresStep=1
+    QThresList=[0,10,20]#,30,40,50,60]#S-shape
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -57,7 +58,9 @@ if __name__ == "__main__":
     delay=2450
     dacList=None
     dacList=getDACList(board)
-    dacRef=min(dacList.values())
+    dacRef=0
+    if len(dacList.values())>0:
+        dacRef=min(dacList.values())
     
     if board==8:
         cdList=[4];
@@ -69,6 +72,8 @@ if __name__ == "__main__":
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
         delay=2500
+    elif board==12:
+        cdList=[4];
     elif board==13:
         #chList=[11,12,13,14]
         #chList=[0]
@@ -97,10 +102,14 @@ if __name__ == "__main__":
             if useVthc:
                 dacNom=dacRef
             else:
-                dacNom=dacList[ch]
+                if ch in dacList.keys():
+                    dacNom=dacList[ch]
+                else:
+                    print ("PRB with dacList, break")
+                    break
             dacListLocal=[dacNom]
             vthcList=[64]
-            vthcList=list(range(63,0,-2));qMin=5;qMax=41;qStep=5 #for pulse shape
+            #vthcList=list(range(63,0,-2));qMin=5;qMax=41;qStep=5 #for pulse shape
             #dacListLocal=list(range(dacNom,dacNom+41,10))
             #dacListLocal=list(range(dacNom-20,dacNom+200,2));qMin=5;qMax=41;qStep=5 #for pulse shape
             #dacListLocal=list(range(dacNom-20,dacNom+300,5));qMin=5;qMax=41;qStep=5 #for pulse shape
@@ -159,9 +168,10 @@ if __name__ == "__main__":
         for ch in chList:
             for cd in cdList:
                 for Q in QThresList:#ATT TRIG EXT
-                    if Q >5:thresMin=dacList[ch]-10
+                    if Q >5:thresMinLocal=dacList[ch]-10+(Q-4)*7
+                    else:thresMinLocal=thresMin
                     N=100
-                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(N,board,delay,thresMin,thresMax,thresStep,cd,ch,Q)
+                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(N,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q)
                     if not useVthc:
                         cmd+=" --Vthc 64"
                         pass

@@ -35,6 +35,11 @@ python scripts/runTimeWalkScans.py  -b 15
 python scripts/runTDCCalib.py  -b 15 --toa  > runTOA_B15.sh
 python scripts/runTDCCalib.py  -b 15 --tot  > runTOT_B15.sh
 
+
+python scripts/runTimeWalkScans.py  -b 12
+python scripts/runTDCCalib.py  -b 12 --toa  > runTOA_B12.sh
+python scripts/runTDCCalib.py  -b 12 --tot  > runTOT_B12.sh
+
 python scripts/runTimeWalkScans.py  -b 13  
 python scripts/runTDCCalib.py  -b 13 --toa  > runTOA_B13.sh
 python scripts/runTDCCalib.py  -b 13 --tot  > runTOT_B13.sh

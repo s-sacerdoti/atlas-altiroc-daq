@@ -54,6 +54,23 @@ def getDACList(board):
         # dacList[12]=  330 
         # dacList[13]=  360#large TOAfrac
         # dacList[14]=  310
+    elif board==12:#cd4
+        dacList[0]=435#B12,4,0.990000  
+        dacList[1]=410#B12,4,1.000000 
+        dacList[2]=370#B12,4,1.000000 
+        dacList[3]=465#B12,4,0.960000 
+        dacList[4]=340#B12,4,1.000000 
+        dacList[5]=460#B12,4,1.000000 
+        dacList[6]=430#B12,4,0.990000 
+        dacList[7]=435#B12,4,0.990000 
+        dacList[8]=415#B12,4,1.000000 
+        dacList[9]=360#B12,4,0.990000
+        dacList[10]=425#B12,4,1.000000 
+        dacList[11]=410#B12,4,1.000000 
+        #dacList[12]=1195#B12,4,0.990000 Always triggering
+        dacList[13]=455#B12,4,0.990000 
+        dacList[14]=355#B12,4,0.030000
+
     elif board==13:
         # dacList[0]=320
         # dacList[1]=305

@@ -121,7 +121,7 @@ def parse_arguments():
     args = parser.parse_args()
     if args.useExt:
         args.Q=-1
-    args.out='%sTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d_'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.Q,args.DAC)
+    args.out='%sTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d_vthc_%d_'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.Q,args.DAC,args.Vthc)
         
 
     return args
