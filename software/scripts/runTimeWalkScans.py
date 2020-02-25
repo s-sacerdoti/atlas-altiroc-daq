@@ -15,12 +15,20 @@ from DAC import *
 # 
 #####################
 doTW   = 1
-doTOA  = 0
+doTOA  = 1
 doThres= 0
 doSshape=0
 useVthc=False
 chList=None
-chList=[4,9,14]
+
+#chList=[4,9,14]
+#####################
+# TW
+#####################
+qMin=1
+qMax=63#63#63
+qStep=2
+N=100
 
 #####################
 # TOA
@@ -37,6 +45,7 @@ QTOAList=[26]# chON
 QThresList=[4]#default
 thresMin=260  #overwritten for Q>5
 thresMax=1023#max is 1023
+thresStep=5
 if doSshape:
     doThres= 1
     thresStep=1
@@ -59,14 +68,9 @@ if __name__ == "__main__":
     
     f=open("runTW_B"+str(board)+".sh","w")
 
-
-    cdList=[0]
-    qMin=1
-    qMax=63#63#63
-    qStep=2
-    N=100
     Rin_Vpa=0
     delay=2450
+    cdList=[0]
     dacList=None
     dacList=getDACList(board)
     dacRef=0

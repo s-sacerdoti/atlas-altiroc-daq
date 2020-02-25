@@ -279,12 +279,14 @@ def thresholdScan(argip,
 
     print ("**************************************")
     print (suspicious)
+    thresFlag="ok"
     if suspicious==0:
         print ("Can't find a threshold")
     elif suspicious>0.8:
         print('Threshold = %d '% (maxTH))
     else:
         print('Threshold = %d but LARGE FRAC OF TOA 127 (%f)'% (maxTH,1-suspicious))
+        thresFlag="PRB!!!!!!!!!"
     print ("**************************************")
     #print('Found minTH = %d, maxTH = %d  - points at 0.25, 0.50 and 0.75 are %d,%d,%d'% (minTH,maxTH,th25,th50,th75))
     #print('First DAC with efficiency below 60% = ', th50percent)
@@ -296,7 +298,8 @@ def thresholdScan(argip,
     ff = open(outFile,'a')
 
 
-    ff.write('dacList[%d]=%d#B%d,%d,%f \n'%(pixel_number,maxTH,args.board,Qinj,round(suspicious,2)))
+    ff.write('dacList[%d]=%d#B%d,%d,%.2f,%s \n'%(pixel_number,maxTH,args.board,Qinj,round(suspicious,2),thresFlag))
+
     
     # ff.write('Threshold scan ----'+time.ctime()+'\n')
     # ff.write('Pixel = '+str(pixel_number)+'\n')

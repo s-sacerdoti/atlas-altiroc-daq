@@ -69,8 +69,7 @@ def getDACList(board):
         dacList[11]=410#B12,4,1.000000 
         #dacList[12]=1195#B12,4,0.990000 Always triggering
         dacList[13]=455#B12,4,0.990000 
-        dacList[14]=355#B12,4,0.030000
-
+        dacList[14]=360#B12,5,0.99,ok
     elif board==13:
         # dacList[0]=320
         # dacList[1]=305
