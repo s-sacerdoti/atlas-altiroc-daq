@@ -14,11 +14,11 @@ from DAC import *
 #####################
 # 
 #####################
-doTW   = 1
-doTOA  = 1
+doTW   = 0
+doTOA  = 0
 doThres= 0
-doSshape=0
-useVthc=False
+doSshape=1
+useVthc=True
 chList=None
 
 #chList=[4,9,14]
@@ -33,11 +33,11 @@ N=100
 #####################
 # TOA
 #####################
-Ntoa=100
-delayStep=5
+Ntoa=500
+delayStep=20
 #QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
-QTOAList=[5,13,26]#default
-QTOAList=[26]# chON
+QTOAList=[5,26]#default
+#QTOAList=[26]# chON
 
 #####################
 # Threshold
@@ -49,7 +49,7 @@ thresStep=5
 if doSshape:
     doThres= 1
     thresStep=1
-    QThresList=[0,10,20]#,30,40,50,60]#S-shape
+    QThresList=[0]#,10,20,30,40]#,30,40,50,60]#S-shape
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -123,7 +123,7 @@ if __name__ == "__main__":
                     print ("PRB with dacList, break")
                     break
             dacListLocal=[dacNom]
-            vthcList=[64]
+            vthcList=[-1]
             #vthcList=list(range(63,0,-2));qMin=5;qMax=41;qStep=5 #for pulse shape
             #dacListLocal=list(range(dacNom,dacNom+41,10))
             #dacListLocal=list(range(dacNom-20,dacNom+200,2));qMin=5;qMax=41;qStep=5 #for pulse shape
@@ -140,7 +140,7 @@ if __name__ == "__main__":
                 for vthc in vthcList:
                     name="Data/"
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --moreStatAtLowQ False --morePointsAtLowQ True --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(N,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
-                    cmd+=" --Vthc "+str(vthc)
+
                     
                     if not useVthc:#take the one from config
                         #vthc=64
@@ -164,8 +164,9 @@ if __name__ == "__main__":
                         delayMax=2300
                     logName='Data/delayTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d.log'%(board,Rin_Vpa,ch,cd,Q,dac)
                     cmd="python scripts/measureTOA.py --skipExistingFile True -N %d --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep %d --out Data/delay "%(Ntoa,cd,ch,board,dac,Q,delayMin,delayMax,delayStep)
-                    if not useVthc:
-                        cmd+=" --Vthc 64"
+                    if not useVthc:#take the one from config
+                        #vthc=64
+                        cmd+=" --Vthc "+str(vthc)
                         pass
                     if Q<0:
                         cmd+=" --useExt True "
@@ -187,14 +188,14 @@ if __name__ == "__main__":
                     else:thresMinLocal=thresMin
                     N=100
                     cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(N,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q)
-                    if not useVthc:
-                        cmd+=" --Vthc 64"
-                        pass
+                    cmd+=" --Vthc 64"
+
                     f.write(cmd+"\n sleep 5 \n")
 
 
                     
                     
-
-
+print (" ") 
+print ("useVthc:",useVthc)
+print (" " )
 print (" ************ CHECK TRIG EXT ***************")

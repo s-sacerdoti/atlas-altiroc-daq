@@ -36,7 +36,7 @@ import rogue.utilities.fileio                                  ##
 import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
-from setASICconfig import set_pixel_specific_parameters        ##
+from setASICconfig import *        ##
                                                                ##
 #################################################################
 def acquire_data(top, useExt, DelayRange,chNb,readAllData=False): 
@@ -300,6 +300,7 @@ def measureTOA(argsip,
     print("The arguments was:")
     print(args)
     print("Config file was:", Configuration_LOAD_file)
+    printStatus(top)
     print ("-------------------------------------------------------")
 
     

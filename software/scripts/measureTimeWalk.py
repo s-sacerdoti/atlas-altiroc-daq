@@ -34,7 +34,7 @@ import rogue.utilities.fileio                                  ##
 import statistics                                              ##
 import math                                                    ##
 import matplotlib.pyplot as plt                                ##
-from setASICconfig import set_pixel_specific_parameters        ##
+from setASICconfig import *        ##
                                                                ##
 #################################################################
 
@@ -193,7 +193,7 @@ def measureTimeWalk(argsip,
     QRange = list(range( QMin, QMax, QStep ))
     
     if args.morePointsAtLowQ:
-        for p in range(10,3,-1):
+        for p in range(10,1,-1):
             if p not in QRange: QRange=[p]+QRange
     QRange=sorted(QRange)
 
@@ -360,6 +360,7 @@ def measureTimeWalk(argsip,
     print("The arguments was:")
     print(args)
     print("Config file was:", Configuration_LOAD_file)
+    printStatus(top)
     print ("-------------------------------------------------------")
 
     #################################################################

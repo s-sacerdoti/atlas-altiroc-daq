@@ -1,3 +1,27 @@
+def printStatus(top):
+    PAList=[]
+    DiscriList=[]
+    SRAMList=[]
+    CtestList=[]
+    TrigExtList=[]
+    for ipix in range(0,25):
+        if top.Fpga[0].Asic.SlowControl.disable_pa[ipix].value()==0:
+            PAList.append(ipix)
+        if top.Fpga[0].Asic.SlowControl.ON_discri[ipix].value()==1:
+            DiscriList.append(ipix)
+        if top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[ipix].value()==1:
+            SRAMList.append(ipix)
+        if top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].value()==1:
+            CtestList.append(ipix)
+        if top.Fpga[0].Asic.SlowControl.EN_trig_ext[ipix].value()==1:
+            TrigExtList.append(ipix)
+            
+    print ("PAOn:",PAList)
+    print ("DiscriOn:",DiscriList)
+    print ("SRAMOn:",SRAMList)
+    print ("CtestOn:",CtestList)
+    print ("TrigExtOn:",TrigExtList)
+    
 def set_pixel_specific_parameters(top, pixel_number,args):
         
     #Ctest,discri,PA,SRAM off for all channels
@@ -118,3 +142,10 @@ def set_pixel_specific_parameters(top, pixel_number,args):
     for ipix in range(0,15,2):
         #top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].set(0x1)
         pass
+
+
+
+
+
+
+
