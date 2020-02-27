@@ -14,7 +14,7 @@ from DAC import *
 #####################
 # 
 #####################
-doTW   = 1
+doTW   = 0
 doTOA  = 1
 doThres= 0
 doSshape=0
@@ -120,9 +120,12 @@ if __name__ == "__main__":
     for ch in chList:
         for cd in cdList:            
             #dac list
+            
             if useVthc:
                 dacNom=dacRef
+                vthcList=[-1]
             else:
+                vthcList=[64]
                 if ch in dacList.keys():
                     dacNom=dacList[ch]
                 else:
@@ -143,7 +146,7 @@ if __name__ == "__main__":
             #      if cd in [5]: dacListLocal+=[304]
             #      if cd in [4]: dacListLocal+=[308]
                  
-            vthcList=[-1]
+
             #vthcList=list(range(63,0,-2));qMin=5;qMax=41;qStep=5 #for pulse shape
             #dacListLocal=list(range(dacNom,dacNom+41,10))
             #dacListLocal=list(range(dacNom-20,dacNom+200,2));qMin=5;qMax=41;qStep=5 #for pulse shape
