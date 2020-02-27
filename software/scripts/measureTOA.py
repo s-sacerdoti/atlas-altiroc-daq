@@ -93,6 +93,7 @@ def parse_arguments():
     
     
     # Add arguments
+    #parser.add_argument( "--moreStatForFewPoints", type = argBool, required = False, default = False, help = "")
     parser.add_argument( "--skipExistingFile", type = argBool, required = False, default = False, help = "")
     parser.add_argument("--Rin_Vpa", type = int, required = False, default = 0, help = "RinVpa")
     parser.add_argument("--Vthc", type = int, required = False, default = -1, help = "Vth cor")

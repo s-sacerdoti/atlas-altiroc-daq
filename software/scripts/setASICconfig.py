@@ -135,7 +135,7 @@ def set_pixel_specific_parameters(top, pixel_number,args):
         #top.Fpga[0].Asic.SlowControl.ON_discri[ipix].set(0x1)
         #top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[ipix].set(0x1)#New
         #top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].set(0x1)
-        #top.Fpga[0].Asic.SlowControl.EN_trig_ext[ipix].set(0x1)
+        #######top.Fpga[0].Asic.SlowControl.EN_trig_ext[ipix].set(0x1)  BLUE SWITH!!!!!!!!!
         pass
 
 

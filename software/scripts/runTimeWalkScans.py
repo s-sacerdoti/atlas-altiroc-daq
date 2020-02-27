@@ -14,29 +14,30 @@ from DAC import *
 #####################
 # 
 #####################
-doTW   = 0
-doTOA  = 0
+doTW   = 1
+doTOA  = 1
 doThres= 0
-doSshape=1
-useVthc=True
+doSshape=0
+useVthc=False
 chList=None
-
 #chList=[4,9,14]
+
 #####################
 # TW
 #####################
 qMin=1
 qMax=63#63#63
-qStep=2
+qStep=1
 N=100
 
 #####################
 # TOA
 #####################
-Ntoa=500
-delayStep=20
+#Ntoa=500;delayStep=20 #Default
+Ntoa=100; delayStep=1  #TDR
 #QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
 QTOAList=[5,26]#default
+QTOAList=[4,5,6,7,8,9,10,11,12,13,26]#test
 #QTOAList=[26]# chON
 
 #####################
@@ -65,8 +66,9 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
     board=args.board
-    
-    f=open("runTW_B"+str(board)+".sh","w")
+
+    fname="runTW_B"+str(board)+".sh"
+    f=open(fname,"w")
 
     Rin_Vpa=0
     delay=2450
@@ -80,7 +82,10 @@ if __name__ == "__main__":
     if board==8:
         cdList=[4];
         #cdList=[4];chList=[4,9,14];
-        #chList=[4];cdList=[4];#TDR
+        chList=[4];cdList=[4];dacList[4]=345#TDR
+        chList=[4,9]
+        cdList=[4,5,6,7]
+        cdList=[4,6]
         #cdList=[4];
         #chList=[14]
         #cdList=range(0,8);chList=[4]#,9,14];
@@ -92,6 +97,7 @@ if __name__ == "__main__":
     elif board==13:
         #chList=[11,12,13,14]
         #chList=[0]
+        chList=[4,9,1]
         pass
     elif board==15:
         chList=[4,9,14,19,24]
@@ -123,12 +129,27 @@ if __name__ == "__main__":
                     print ("PRB with dacList, break")
                     break
             dacListLocal=[dacNom]
+
+
+            #dacListLocal=[]
+            # if ch==4:
+            #      if cd ==7: dacListLocal+=[350]
+            #      if cd in [6]: dacListLocal+=[354]
+            #      if cd in [5]: dacListLocal+=[358]
+            #      if cd in [4]: dacListLocal+=[362]
+            # if ch==9:
+            #      if cd ==7: dacListLocal+=[296]
+            #      if cd in [6]: dacListLocal+=[300]
+            #      if cd in [5]: dacListLocal+=[304]
+            #      if cd in [4]: dacListLocal+=[308]
+                 
             vthcList=[-1]
             #vthcList=list(range(63,0,-2));qMin=5;qMax=41;qStep=5 #for pulse shape
             #dacListLocal=list(range(dacNom,dacNom+41,10))
             #dacListLocal=list(range(dacNom-20,dacNom+200,2));qMin=5;qMax=41;qStep=5 #for pulse shape
             #dacListLocal=list(range(dacNom-20,dacNom+300,5));qMin=5;qMax=41;qStep=5 #for pulse shape
             #dacListLocal=list(range(dacNom+300,1000,20));qMin=5;qMax=41;qStep=5 #for pulse shape
+            #dacListLocal=list(range(260,450,4));qMin=5;qMax=22;qStep=4 #for pulse shape#PULSESHAPE
             
             
             print(ch,cd,delay,dacListLocal,vthcList)            
@@ -157,7 +178,7 @@ if __name__ == "__main__":
                 ###############################
 
                 for Q in QTOAList:
-                    delayMin=2200
+                    delayMin=2200#200
                     delayMax=2700
                     if Q<0:                        
                         delayMin=1800
@@ -199,3 +220,4 @@ print (" ")
 print ("useVthc:",useVthc)
 print (" " )
 print (" ************ CHECK TRIG EXT ***************")
+print("source "+fname)

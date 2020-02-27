@@ -45,13 +45,14 @@ if __name__ == "__main__":
     totRiseEdgeMax=3000
     totRiseEdgeStep=20   #Need 1 for TOTf
     chList=list(range(0,15))
-    #chList=[0,2,5,11]    
+    #chList=[4,9,14]    
     toaDelayStep=1
     toaDelayMin=1900
     toaDelayMax=2350
 
+    #HighStat
     #chList=[4,9,14]    
-    #NTOA=1000#was 500
+    #NTOA=500#was 500
     #toaDelayStep=20
     
     if board==2:
@@ -83,14 +84,16 @@ if __name__ == "__main__":
 
     for ch in chList:
         if args.toa:
-            nameTOA='Data/delayScanTrigExt_B_%d_ch_%d_'%(board,ch)
+            #nameTOA='Data/delayScanTrigExt_B_%d_ch_%d_'%(board,ch)
+            nameTOA='Data/delayScanTrigExt_'
             cmdTOA="python scripts/measureTOA.py --skipExistingFile True -N %s --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --ch %d --Cd 0 --useExt True --delayMin %d --delayMax %d --delayStep %d  --out %s"%(NTOA,board,ch,toaDelayMin,toaDelayMax,toaDelayStep,nameTOA)
             print(cmdTOA)
             print("sleep 5")
 
 
         if args.tot:
-            nameTOT='Data/widthScanTrigExt_B_%d_ch_%d_'%(board,ch)
+            #nameTOT='Data/widthScanTrigExt_B_%d_ch_%d_'%(board,ch)
+            nameTOT='Data/widthScanTrigExt_'
             cmdTOT="python scripts/measureTOT.py --skipExistingFile True  -N %s --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --ch %d --Cd 0 --useExt True --riseEdgeMin %d --riseEdgeMax %d --riseEdgeStep %s --out %s"%(NTOT,board,ch,totRiseEdgeMin,totRiseEdgeMax,totRiseEdgeStep,nameTOT)
             print(cmdTOT)
             print("sleep 5")
