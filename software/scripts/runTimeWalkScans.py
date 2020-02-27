@@ -37,8 +37,8 @@ N=100
 Ntoa=100; delayStep=1  #TDR
 #QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
 QTOAList=[5,26]#default
-QTOAList=[4,5,6,7,8,9,10,11,12,13,26]#test
-#QTOAList=[26]# chON
+QTOAList=[4,5,6,7,8,9,10,11,12,13,26,52]#test
+QTOAList=[52]# chON
 
 #####################
 # Threshold
@@ -85,7 +85,7 @@ if __name__ == "__main__":
         chList=[4];cdList=[4];dacList[4]=345#TDR
         chList=[4,9]
         cdList=[4,5,6,7]
-        cdList=[4,6]
+        #cdList=[4,6]
         #cdList=[4];
         #chList=[14]
         #cdList=range(0,8);chList=[4]#,9,14];
@@ -134,17 +134,17 @@ if __name__ == "__main__":
             dacListLocal=[dacNom]
 
 
-            #dacListLocal=[]
-            # if ch==4:
-            #      if cd ==7: dacListLocal+=[350]
-            #      if cd in [6]: dacListLocal+=[354]
-            #      if cd in [5]: dacListLocal+=[358]
-            #      if cd in [4]: dacListLocal+=[362]
-            # if ch==9:
-            #      if cd ==7: dacListLocal+=[296]
-            #      if cd in [6]: dacListLocal+=[300]
-            #      if cd in [5]: dacListLocal+=[304]
-            #      if cd in [4]: dacListLocal+=[308]
+            dacListLocal=[]
+            if ch==4:
+                 if cd ==7: dacListLocal+=[350]
+                 if cd in [6]: dacListLocal+=[354]
+                 if cd in [5]: dacListLocal+=[358]
+                 if cd in [4]: dacListLocal+=[362]
+            if ch==9:
+                 if cd ==7: dacListLocal+=[296]
+                 if cd in [6]: dacListLocal+=[300]
+                 if cd in [5]: dacListLocal+=[304]
+                 if cd in [4]: dacListLocal+=[308]
                  
 
             #vthcList=list(range(63,0,-2));qMin=5;qMax=41;qStep=5 #for pulse shape
