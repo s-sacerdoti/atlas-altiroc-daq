@@ -15,9 +15,11 @@ from DAC import *
 # 
 #####################
 doTW   = 0
+doPS   = 0 # TW with thres. scan
 doTOA  = 0
 doThres= 0
-doSshape=1
+doNoise= 1 # can be only Noise or Line
+doLin  = 0
 useVthc=False
 chList=None
 #chList=[4,9,14]
@@ -29,30 +31,44 @@ qMin=1
 qMax=63#63#63
 qStep=1
 Ntw=100
-
+if doPS:
+    doTW=1
+    doTOA=0
+    doNoise=0
+    doLin=0
+    
 #####################
 # TOA
 #####################
-#Ntoa=500;delayStep=20 #Default
-Ntoa=100; delayStep=1  #TDR
-#QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
+#Ntoa=500;delayStep=20 #Default to check distributions
+Ntoa=100;delayStep=5  #to measure jitter
+#Ntoa=100; delayStep=1  #TDR
 QTOAList=[5,26,52]#default
-#QTOAList=[4,5,6,7,8,9,10,11,12,13,26,52]#test
-#QTOAList=[52]# chON
+#QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
+#QTOAList=[4,5,6,7,8,9,10,11,12,13,26,52]#to measure jitter vs Q
+
 
 #####################
 # Threshold
 #####################
-Nthres=500
+Nthres=100
 QThresList=[4]#default
 thresMin=260  #overwritten for Q>5
 thresMax=1023#max is 1023
 thresStep=5
-if doSshape:
+if doNoise:
+    Nthres=1000
     doThres= 1
     thresStep=1
-    QThresList=[0]#,10,20,30,40]#,30,40,50,60]#S-shape
-
+    #thresMin= #
+    thresMax=400
+    QThresList=[0]
+elif doLin:
+    Nthres=100
+    doThres= 1
+    thresStep=5
+    QThresList=[10,20,30,40,50,60]
+    
 def parse_arguments():
     parser = argparse.ArgumentParser()
     argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
@@ -83,12 +99,13 @@ if __name__ == "__main__":
     if board==8:
         cdList=[4];
         #cdList=[4];chList=[4,9,14];
-        chList=[4];cdList=[4];dacList[4]=345#TDR
-        chList=[4,9]
-        cdList=[4,5,6,7]
-        #cdList=[4,6]
-        #cdList=[4];
-        #chList=[14]
+        #chList=[4];cdList=[4];dacList[4]=345#TDR
+        #chList=[4,9]
+        #cdList=[4,5,6,7]
+        cdList=[0,7,1,6,2,5,3];chList=[4]
+        
+        #cdList=[2,3,5,6];chList=[9]
+        
         #cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacList=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
@@ -98,7 +115,8 @@ if __name__ == "__main__":
     elif board==13:
         #chList=[11,12,13,14]
         #chList=[0]
-        chList=[4,9,1]
+        #chList=[4,9,1,0,14]
+        #chList=[14]
         pass
     elif board==15:
         chList=[4,9,14,19,24]
@@ -135,23 +153,22 @@ if __name__ == "__main__":
             dacListLocal=[dacNom]
 
 
-            dacListLocal=[]
-            if ch==4:
-                 if cd ==7: dacListLocal+=[350]
-                 if cd in [6]: dacListLocal+=[354]
-                 if cd in [5]: dacListLocal+=[358]
-                 if cd in [4]: dacListLocal+=[362]
-            if ch==9:
-                 if cd ==7: dacListLocal+=[296]
-                 if cd in [6]: dacListLocal+=[300]
-                 if cd in [5]: dacListLocal+=[304]
-                 if cd in [4]: dacListLocal+=[308]
-                 
-
+            # dacListLocal=[]
+            # if ch==4:
+            #      if cd ==7: dacListLocal+=[350]
+            #      if cd in [6]: dacListLocal+=[354]
+            #      if cd in [5]: dacListLocal+=[358]
+            #      if cd in [4]: dacListLocal+=[362]
+            # if ch==9:
+            #      if cd ==7: dacListLocal+=[296]
+            #      if cd in [6]: dacListLocal+=[300]
+            #      if cd in [5]: dacListLocal+=[304]
+            #      if cd in [4]: dacListLocal+=[308]                
+            # nom=dacListLocal[0]#ugly
+            # dacListLocal=list(range(nom-40,nom+100,2))+list(range(nom+100,nom+200,4));qMin=5;qMax=22;qStep=4 #for pulse shape#PULSESHAPE
             #vthcList=list(range(63,0,-2));qMin=5;qMax=41;qStep=5 #for pulse shape
-            nom=dacListLocal[0]#ugly
-            dacListLocal=list(range(nom-40,nom+100,2))+list(range(nom+100,nom+200,4));qMin=5;qMax=22;qStep=4 #for pulse shape#PULSESHAPE
-            
+            if doPS:
+                dacListLocal=list(range(dacNom-40,dacNom+100,2))+list(range(dacNom+100,dacNom+200,4));qMin=5;qMax=22;qStep=4 #for pulse shape#PULSESHAPE    
             
             print(ch,cd,delay,dacListLocal,vthcList)            
             for dac in dacListLocal:   
