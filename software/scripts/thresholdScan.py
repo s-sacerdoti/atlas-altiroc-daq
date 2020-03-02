@@ -298,7 +298,7 @@ def thresholdScan(argip,
     ff = open(outFile,'a')
 
 
-    ff.write('dacList[%d]=%d#B%d,%d,%.2f,%s \n'%(pixel_number,maxTH,args.board,Qinj,round(suspicious,2),thresFlag))
+    ff.write('dacList[(%d,%d)]=%d#B%d,%d,%.2f,%s \n'%(pixel_number,args.Cd,maxTH,args.board,Qinj,round(suspicious,2),thresFlag))
 
     
     # ff.write('Threshold scan ----'+time.ctime()+'\n')
