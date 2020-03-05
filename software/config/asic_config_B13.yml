@@ -35,35 +35,21 @@ Top:
         disable_pa[:]: 0x0
         ON_discri[:]: 0x0
         bit_vth_cor[:]: 0x40
-        DAC10bit: 300
-        bit_vth_cor[0]: 49
-        bit_vth_cor[1]: 59
-        bit_vth_cor[2]: 49
-        bit_vth_cor[3]: 54
-        bit_vth_cor[4]: 64
-        bit_vth_cor[5]: 19
-        bit_vth_cor[7]: 59
-        bit_vth_cor[8]: 44
-        bit_vth_cor[9]: 54
-        bit_vth_cor[10]: 54
-        bit_vth_cor[11]: 41
-        bit_vth_cor[12]: 31
-        bit_vth_cor[13]: 39
-        bit_vth_cor[14]: 44
-        # bit_vth_cor[0]: 56
-        # bit_vth_cor[1]: 64
-        # bit_vth_cor[2]: 51
-        # bit_vth_cor[3]: 59
+        # DAC10bit: 300
+        # bit_vth_cor[0]: 49
+        # bit_vth_cor[1]: 59
+        # bit_vth_cor[2]: 49
+        # bit_vth_cor[3]: 54
         # bit_vth_cor[4]: 64
-        # bit_vth_cor[5]: 24
-        # bit_vth_cor[7]: 61
-        # bit_vth_cor[8]: 49
+        # bit_vth_cor[5]: 19
+        # bit_vth_cor[7]: 59
+        # bit_vth_cor[8]: 44
         # bit_vth_cor[9]: 54
-        # bit_vth_cor[10]: 56
-        # bit_vth_cor[11]: 44
-        # bit_vth_cor[12]: 34
-        # bit_vth_cor[13]: 44
-        # bit_vth_cor[14]: 41
+        # bit_vth_cor[10]: 54
+        # bit_vth_cor[11]: 41
+        # bit_vth_cor[12]: 31
+        # bit_vth_cor[13]: 39
+        # bit_vth_cor[14]: 44
         EN_hyst[:]: 0x1
         EN_trig_ext[:]: 0x0
         cBit_f_TOA[:]: 0x0   # increase to 0 to f to reduce LSB while keeping cBit_s_TOA=0        

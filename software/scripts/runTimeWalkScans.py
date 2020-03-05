@@ -14,11 +14,12 @@ from DAC import *
 #####################
 # 
 #####################
-doTW   = 0
-doPS   = 0 # TW with thres. scan
-doTOA  = 0
 doThres= 0
-doNoise= 1 # can be only Noise or Line
+doTW   = 0
+doNoise= 0
+doTOA  = 0
+doPS   = 1 # TW with thres. scan
+
 useVthcFromConfig=False
 chList=None
 #chList=[4,9,14]
@@ -32,8 +33,6 @@ qStep=1
 Ntw=100
 if doPS:
     doTW=1
-    doTOA=0
-    doNoise=0
 
     
 #####################
@@ -43,8 +42,9 @@ if doPS:
 Ntoa=100;delayStep=5  #to measure jitter
 #Ntoa=100; delayStep=1  #TDR
 QTOAList=[4,5,6,7,8,9,13,26,52]#default
+QTOAList=[5,6,13,52]#default
 #QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
-#QTOAList=[4,5,6,7,8,9,10,11,12,13,26,52]#to measure jitter vs Q
+
 
 
 #####################
@@ -60,8 +60,10 @@ if doNoise:
     doThres= 1
     thresStep=1
     #thresMin= #
-    thresMax=400
+    thresMax=1000
     QThresList=[0,6,13]
+
+
     
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -94,9 +96,11 @@ if __name__ == "__main__":
         cdList=[4];
         #cdList=[4];chList=[4,9,14];
         #chList=[4];cdList=[4];dacMap[4]=345#TDR
-        chList=[4,9,14]
-        cdList=range(0,8,1)        
-        #cdList=[2,3,5,6];chList=[9]
+        #chList=[4,9]
+        #cdList=range(0,8,1)
+        #cdList=[0,4,7]
+        #cdList=[5,6,3,2,1]
+        
         #cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacMap=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
