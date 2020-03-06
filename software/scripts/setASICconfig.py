@@ -125,9 +125,8 @@ def set_pixel_specific_parameters(top, pixel_number,args):
 
 
 
-
     #B13 6dead 7prb et 13prb
-    for ipix in range(0,15):
+    #for ipix in range(0,15):
     #for ipix in list(range(0,6))+list(range(7,15)):
     #for ipix in [0,1,2,3,4,5,7,8,9,10,11,12,13,14]:
     #for ipix in list(range(0,5))+list(range(10,15)):
@@ -136,12 +135,18 @@ def set_pixel_specific_parameters(top, pixel_number,args):
         #top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[ipix].set(0x1)#New
         #top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].set(0x1)
         #######top.Fpga[0].Asic.SlowControl.EN_trig_ext[ipix].set(0x1)  BLUE SWITH!!!!!!!!!
-        pass
+        #pass
+    
+    if args.allChON:
+        for ipix in range(0,15):
+            top.Fpga[0].Asic.SlowControl.disable_pa[ipix].set(0x0)	
+            top.Fpga[0].Asic.SlowControl.ON_discri[ipix].set(0x1)
+            top.Fpga[0].Asic.SlowControl.EN_ck_SRAM[ipix].set(0x1)#New
 
-
-    for ipix in range(0,15,2):
-        #top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].set(0x1)
-        pass
+    if args.allCtestON:        
+        for ipix in range(0,15,2):
+            top.Fpga[0].Asic.SlowControl.ON_Ctest[ipix].set(0x1)
+            pass
 
 
 

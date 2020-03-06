@@ -51,6 +51,8 @@ def parse_arguments():
     Vthc=-1
     
     # Add arguments
+    parser.add_argument( "--allChON", type = argBool, required = False, default = False, help = "")
+    parser.add_argument( "--allCtestON", type = argBool, required = False, default = False, help = "")        
     parser.add_argument("--Vthc", type = int, required = False, default = Vthc, help = "Vth cor")
     parser.add_argument("--Rin_Vpa", type = int, required = False, default = Rin_Vpa, help = "RinVpa")
     parser.add_argument( "--readAllChannels", type = argBool, required = False, default = False, help = " read all channels")
@@ -77,8 +79,14 @@ def parse_arguments():
 
     
     # Get the arguments
+    
+    extra=""
     args = parser.parse_args()
-    args.out='%sthres_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_Q_%d_'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.delay,args.Q)
+    if args.allChON:
+        extra+="allChON"
+    if args.allCtestON:
+        extra+="allCtestON"
+    args.out='%sthres_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_Q_%d_%s'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.delay,args.Q,extra)
     return args
 
 ##############################################################################

@@ -34,7 +34,22 @@ Top:
         ON_Ctest[:]: 0x0
         disable_pa[:]: 0x0
         ON_discri[:]: 0x0
-        bit_vth_cor[:]: 0x40
+        bit_vth_cor[:]: 0x40       
+        DAC10bit: 294
+        bit_vth_cor[9]: 55
+        bit_vth_cor[0]: 51
+        bit_vth_cor[7]: 59
+        bit_vth_cor[12]: 34
+        bit_vth_cor[3]: 55
+        bit_vth_cor[8]: 44
+        bit_vth_cor[11]: 43
+        bit_vth_cor[2]: 49
+        bit_vth_cor[14]: 42
+        bit_vth_cor[5]: 21
+        bit_vth_cor[10]: 53
+        bit_vth_cor[1]: 60
+        bit_vth_cor[13]: 40
+        bit_vth_cor[4]: 64
         # DAC10bit: 300
         # bit_vth_cor[0]: 49
         # bit_vth_cor[1]: 59

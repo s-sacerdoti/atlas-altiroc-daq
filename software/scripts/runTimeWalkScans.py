@@ -14,15 +14,21 @@ from DAC import *
 #####################
 # 
 #####################
-doThres= 0
-doTW   = 0
-doNoise= 0
-doTOA  = 0
-doPS   = 1 # TW with thres. scan
+useVthcFromConfig = 0
 
-useVthcFromConfig=False
+doThres= 0
+
+doNoise= 1
+
+doTW   = 0
+doTOA  = 0
+
+doPS   = 0 # TW with thres. scan
+doXtalk= 0 # TOA Channels should be ON
+
+
 chList=None
-#chList=[4,9,14]
+#chList=[0,1,2,3,4]
 
 #####################
 # TW
@@ -39,19 +45,30 @@ if doPS:
 # TOA
 #####################
 #Ntoa=500;delayStep=20 #Default to check distributions
-Ntoa=100;delayStep=5  #to measure jitter
+Ntoa=100;
+delayMin=2200
+delayMax=2700
+delayStep=5 
 #Ntoa=100; delayStep=1  #TDR
 QTOAList=[4,5,6,7,8,9,13,26,52]#default
 QTOAList=[5,6,13,52]#default
+#QTOAList=[4,7,8,9,26]#default
 #QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
 
-
-
+if doXtalk == 1:
+    doTOA=1
+    QTOAList=[13,60]
+    useVthcFromConfig=True
+    delayMin=2400#200
+    delayMax=2500
+    delayStep=10
+    Ntoa=200
+    
 #####################
 # Threshold
 #####################
 Nthres=100
-QThresList=[4]#default
+QThresList=[3]#default
 thresMin=260  #overwritten for Q>5
 thresMax=1023#max is 1023
 thresStep=2
@@ -90,7 +107,7 @@ if __name__ == "__main__":
     dacMap=getDACList(board)
     ###dacRef=0
     ###if len(dacMap.values())>0:
-    ###    dacRef=min(dacMap.values())
+    dacRef=min(dacMap.values())
     
     if board==8:
         cdList=[4];
@@ -99,8 +116,7 @@ if __name__ == "__main__":
         #chList=[4,9]
         #cdList=range(0,8,1)
         #cdList=[0,4,7]
-        #cdList=[5,6,3,2,1]
-        
+        #cdList=[5,6,3,2,1]        
         #cdList=range(0,8);chList=[4]#,9,14];
         #cdList=[0];dacMap=range(290,390,10);chList=list(range(0,15));qStep=2;
         #chList=list(range(0,25))
@@ -136,7 +152,7 @@ if __name__ == "__main__":
             #dac list
             dacNom=0
             if useVthcFromConfig:
-                dacNom=0###dacRef
+                dacNom=dacRef
                 vthcList=[-1]
             else:
                 vthcList=[64]
@@ -180,20 +196,21 @@ if __name__ == "__main__":
                 ###############################
 
                 for Q in QTOAList:
-                    delayMin=2200#200
-                    delayMax=2700
-                    if Q<0:                        
+                    if Q<0:#trig ext                        
                         delayMin=1800
                         delayMax=2300
                     logName='Data/delayTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d.log'%(board,Rin_Vpa,ch,cd,Q,dac)
                     cmd="python scripts/measureTOA.py --skipExistingFile True -N %d --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep %d --out Data/delay "%(Ntoa,cd,ch,board,dac,Q,delayMin,delayMax,delayStep)
+
                     if not useVthcFromConfig:#take the one from config
                         #vthc=64
                         cmd+=" --Vthc "+str(vthc)
                         pass
                     if Q<0:
                         cmd+=" --useExt True "
-                    #cmd+=" >& "+logName
+                    if doXtalk:
+                        cmd+=" --readAllChannels True  --allChON True "
+                        cmd+=" >& "+logName
                     if doTOA:f.write(cmd+"\n sleep 5 \n")
 
 

@@ -34,4 +34,4 @@ for i,d in dacList.items():
     #print (dacRef,d,vthc)
 
     
-    print ("        bit_vth_cor["+str(i)+"]: "+str(vthc))
+    print ("        bit_vth_cor["+str(i[0])+"]: "+str(vthc))

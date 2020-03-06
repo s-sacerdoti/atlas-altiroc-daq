@@ -135,6 +135,8 @@ def parse_arguments():
     Rin_Vpa=0 # 0 => 25K, 1 => 15 K
     
     # Add arguments
+    parser.add_argument( "--allChON", type = argBool, required = False, default = False, help = "")
+    parser.add_argument( "--allCtestON", type = argBool, required = False, default = False, help = "")        
     parser.add_argument("--Vthc", type = int, required = False, default = Vthc, help = "Vth cor")
     parser.add_argument("--Rin_Vpa", type = int, required = False, default = Rin_Vpa, help = "RinVpa")
     parser.add_argument( "--skipExistingFile", type = argBool, required = False, default = False, help = "")
@@ -162,7 +164,12 @@ def parse_arguments():
     
     # Get the arguments
     args = parser.parse_args()
-    args.out='%sTOT_B_%d_ch_%d_'%(args.out,args.board,args.ch)
+    extra=""
+    if args.allChON:
+        extra+="allChON"
+    if args.allCtestON:
+        extra+="allCtestON"
+    args.out='%sTOT_B_%d_ch_%d_%s'%(args.out,args.board,args.ch,extra)
     return args
 #################################################################
 

@@ -94,6 +94,8 @@ def parse_arguments():
     
     # Add arguments
     #parser.add_argument( "--moreStatForFewPoints", type = argBool, required = False, default = False, help = "")
+    parser.add_argument( "--allChON", type = argBool, required = False, default = False, help = "")
+    parser.add_argument( "--allCtestON", type = argBool, required = False, default = False, help = "")        
     parser.add_argument( "--skipExistingFile", type = argBool, required = False, default = False, help = "")
     parser.add_argument("--Rin_Vpa", type = int, required = False, default = 0, help = "RinVpa")
     parser.add_argument("--Vthc", type = int, required = False, default = -1, help = "Vth cor")
@@ -122,7 +124,13 @@ def parse_arguments():
     args = parser.parse_args()
     if args.useExt:
         args.Q=-1
-    args.out='%sTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d_vthc_%d_'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.Q,args.DAC,args.Vthc)
+    
+    extra=""
+    if args.allChON:
+        extra+="allChON"
+    if args.allCtestON:
+        extra+="allCtestON"
+    args.out='%sTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d_vthc_%d_%s'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.Q,args.DAC,args.Vthc,extra)
         
 
     return args
