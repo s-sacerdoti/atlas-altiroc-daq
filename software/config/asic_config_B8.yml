@@ -36,21 +36,7 @@ Top:
         bit_vth_cor[:]: 0x40
 
         
-        # bit_vth_cor[0]: 36
-        # bit_vth_cor[1]: 41
-        # bit_vth_cor[2]: 64
-        # bit_vth_cor[3]: 39
-        # bit_vth_cor[4]: 36
-        # bit_vth_cor[5]: 39
-        # bit_vth_cor[6]: 41
-        # bit_vth_cor[7]: 56
-        # bit_vth_cor[8]: 44
-        # bit_vth_cor[9]: 61
-        # bit_vth_cor[10]: 26
-        # bit_vth_cor[11]: 31
-        # bit_vth_cor[12]: 44
-        # bit_vth_cor[13]: 29
-        # bit_vth_cor[14]: 54
+
 
 
 

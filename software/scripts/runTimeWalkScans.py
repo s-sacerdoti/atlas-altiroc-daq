@@ -18,9 +18,9 @@ useVthcFromConfig = 0
 
 doThres= 0
 
-doNoise= 1
+doNoise= 0
 
-doTW   = 0
+doTW   = 1
 doTOA  = 0
 
 doPS   = 0 # TW with thres. scan
@@ -107,32 +107,36 @@ if __name__ == "__main__":
     dacMap=getDACList(board)
     ###dacRef=0
     ###if len(dacMap.values())>0:
-    dacRef=min(dacMap.values())
-    
+    dacRef=0
+    if len(dacMap)>0:
+        dacRef=min(dacMap.values())
+
+        
     if board==8:
         cdList=[4];
-        #cdList=[4];chList=[4,9,14];
         #chList=[4];cdList=[4];dacMap[4]=345#TDR
-        #chList=[4,9]
-        #cdList=range(0,8,1)
-        #cdList=[0,4,7]
-        #cdList=[5,6,3,2,1]        
-        #cdList=range(0,8);chList=[4]#,9,14];
-        #cdList=[0];dacMap=range(290,390,10);chList=list(range(0,15));qStep=2;
-        #chList=list(range(0,25))
-        delay=2500
+        ###delay=2500
+    elif board==9:
+        cdList=[4];
+        pass
+    elif board==11:
+        cdList=[4];
+        pass
     elif board==12:
         cdList=[4];
+        pass
     elif board==13:
         #chList=[11,12,13,14]
         #chList=[0]
         #chList=[4,9,1,0,14]
         #chList=[14]
         pass
+    elif board==14:
+        cdList=[4];
+        pass
     elif board==15:
-        chList=[4,9,14,19,24]
-        #chList=range(15)
         cdList=[0,4]
+        #chList=[4,9,14,19,24]        
         pass
 
 
@@ -167,7 +171,8 @@ if __name__ == "__main__":
             if doPS:
                 qMin=0;
                 qMax=26;
-                qStep=4 #for pulse shape#PULSESHAPE    
+                qStep=4 #for pulse shape#PULSESHAPE
+                dacNom=290+40
                 dacListLocal=list(range(dacNom-40,dacNom+100,4))+list(range(dacNom+100,dacNom+200,4));
             
             print(ch,cd,delay,dacListLocal,vthcList)            

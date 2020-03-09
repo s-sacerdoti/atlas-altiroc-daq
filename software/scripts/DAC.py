@@ -40,7 +40,7 @@ def getDACList(board):
         dacList[(13,4)]=466#B8,4,0.26,PRB!!!!!!!!! 
         dacList[(14,4)]=308#B8,5,0.95,ok 
 
-
+        #for lower cd
         dacList[(4,0)]=420#B8,4,0.99,ok 
         dacList[(4,1)]=396#B8,4,0.94,ok 
         dacList[(4,2)]=378#B8,4,1.00,ok 
@@ -57,7 +57,27 @@ def getDACList(board):
         dacList[(9,5)]=306#B8,4,0.97,ok 
         dacList[(9,6)]=302#B8,4,1.00,ok 
         dacList[(9,7)]=300#B8,4,0.94,ok 
-        
+    elif board==9:
+        dacList[(0,4)]=416#B9,3,1.00,ok 
+        dacList[(10,4)]=420#B9,3,0.99,ok 
+        dacList[(1,4)]=408#B9,3,0.97,ok 
+        dacList[(2,4)]=410#B9,3,0.99,ok 
+        dacList[(3,4)]=446#B9,3,0.99,ok 
+        dacList[(4,4)]=306#B9,3,0.96,ok 
+        dacList[(5,4)]=420#B9,3,0.96,ok 
+        dacList[(6,4)]=396#B9,3,0.96,ok 
+        dacList[(7,4)]=482#B9,3,0.98,ok 
+        dacList[(8,4)]=420#B9,3,0.98,ok 
+        dacList[(9,4)]=348#B9,3,1.00,ok
+        #dacList[(11,4)]=1020#B9,3,0.99,ok AMWAYS TRIGGERING
+        dacList[(12,4)]=456#B9,3,1.00,ok 
+        dacList[(13,4)]=382#B9,3,0.99,ok 
+        dacList[(14,4)]=348#B9,5,0.97,ok 
+        pass
+    elif board==10:
+        pass
+    elif board==11:
+        pass
 
 
         
@@ -110,7 +130,8 @@ def getDACList(board):
         dacList[(13,0)]=342#B13,3,0.97,ok
         #dacList[(14,0)]=324#B13,3,0.01,PRB!!!!!!!!! 
         dacList[(14,0)]=338#B13,5,0.95,ok
-
+    elif board==14:
+        pass
 
 
 
