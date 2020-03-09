@@ -47,7 +47,7 @@ if __name__ == "__main__":
     chList=list(range(0,15))
     #chList=[4,9,14]    
     toaDelayStep=1
-    toaDelayMin=1900
+    toaDelayMin=1800
     toaDelayMax=2350
 
     #HighStat
@@ -55,31 +55,10 @@ if __name__ == "__main__":
     #NTOA=500#was 500
     #toaDelayStep=20
     
-    if board==2:
-        toaDelayMin=1800
+    if board==14:
+        toaDelayMin=1750
         toaDelayMax=2300
         #chList=[7,8,6,10,12,13,14,5]
-    elif board==3:
-        toaDelayMin=1900
-        toaDelayMax=2300
-        #chList=list(range(2,9))+list(range(10,15))+[1]
-    elif board==8:
-        toaDelayMin=1950
-        toaDelayMax=2300
-        #chList=[4,9,14]
-    elif board==12:
-        toaDelayMin=1850
-        toaDelayMax=2350
-    elif board==13:
-        toaDelayMin=1850
-        toaDelayMax=2300
-    elif board==15:
-        toaDelayMin=1900
-        toaDelayMax=2350
-    elif board==18:
-        toaDelayMin=1900
-        toaDelayMax=2350
-        #chList=[0,1,2,3,5,9,10,11,12,13,14]
 
 
     for ch in chList:
