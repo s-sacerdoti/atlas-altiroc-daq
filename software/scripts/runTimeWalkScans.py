@@ -18,9 +18,9 @@ useVthcFromConfig = 0
 
 doThres= 0
 
-doNoise= 0
+doNoise= 1
 
-doTW   = 1
+doTW   = 0
 doTOA  = 0
 
 doPS   = 0 # TW with thres. scan
@@ -28,7 +28,8 @@ doXtalk= 0 # TOA Channels should be ON
 
 
 chList=None
-#chList=[0,1,2,3,4]
+chList=[4,9,14]
+
 
 #####################
 # TW
@@ -95,59 +96,46 @@ def parse_arguments():
 
 if __name__ == "__main__":
     args = parse_arguments()
+    
+    boardASICAlone=[8,9,10,11,12,14,15]
     board=args.board
 
     fname="runTW_B"+str(board)+".sh"
     f=open(fname,"w")
 
-    Rin_Vpa=0
-    delay=2450
-    cdList=[0]
+
+
+    #threshold
     dacMap=None
     dacMap=getDACList(board)
-    ###dacRef=0
-    ###if len(dacMap.values())>0:
     dacRef=0
     if len(dacMap)>0:
         dacRef=min(dacMap.values())
 
-        
-    if board==8:
-        cdList=[4];
-        #chList=[4];cdList=[4];dacMap[4]=345#TDR
-        ###delay=2500
-    elif board==9:
-        cdList=[4];
-        pass
-    elif board==11:
-        cdList=[4];
-        pass
-    elif board==12:
-        cdList=[4];
-        pass
-    elif board==13:
-        #chList=[11,12,13,14]
-        #chList=[0]
-        #chList=[4,9,1,0,14]
-        #chList=[14]
-        pass
-    elif board==14:
-        cdList=[4];
-        pass
-    elif board==15:
-        cdList=[0,4]
-        #chList=[4,9,14,19,24]        
-        pass
-
-
+    #channel list
     if chList==None:
         if dacMap==None or len(dacMap)==0:
             chList=range(15)
         else:            
-            chList= set([k[0] for k in sorted(dacMap.keys())])
+            chList= set([k[1] for k in sorted(dacMap.keys())])
         #chList=list(range(15,25))+list(range(0,15))
 
 
+    #detector capacitance
+    cdList=[0]
+    if board in boardASICAlone:
+        cdList=[4,];
+        #chList=[4,9]
+        #cdList=[4,5,6,7];
+        
+    #special settings
+    Rin_Vpa=0
+    delay=2450
+    if board==8:
+        delay=2500
+
+
+        
     ###############################
     # TW and TOA
     ###############################
@@ -160,8 +148,8 @@ if __name__ == "__main__":
                 vthcList=[-1]
             else:
                 vthcList=[64]
-                if (ch,cd) in dacMap.keys():
-                    dacNom=dacMap[(ch,cd)]
+                if (board,ch,cd) in dacMap.keys():
+                    dacNom=dacMap[(board,ch,cd)]
                 else:
                     print ("PRB with dacMap, break")
                     break
@@ -229,7 +217,7 @@ if __name__ == "__main__":
         for ch in chList:
             for cd in cdList:
                 for Q in QThresList:#ATT TRIG EXT
-                    if Q >5:thresMinLocal=dacMap[(ch,cd)]-10+(Q-4)*7
+                    if Q >5:thresMinLocal=dacMap[(board,ch,cd)]-20+(Q-3)*7
                     else:thresMinLocal=thresMin
                     cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q)
                     cmd+=" --Vthc 64"
