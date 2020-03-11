@@ -21,9 +21,9 @@ doThres= 0
 doNoise= 1
 
 doTW   = 0
-doTOA  = 0
+doTOA  = 1
 
-doPS   = 0 # TW with thres. scan
+doPS   = 1 # TW with thres. scan
 doXtalk= 0 # TOA Channels should be ON
 
 
@@ -158,10 +158,9 @@ if __name__ == "__main__":
             
             if doPS:
                 qMin=0;
-                qMax=26;
-                qStep=4 #for pulse shape#PULSESHAPE
-                dacNom=290+40
-                dacListLocal=list(range(dacNom-40,dacNom+100,4))+list(range(dacNom+100,dacNom+200,4));
+                qMax=13;
+                qStep=1 #for pulse shape#PULSESHAPE
+                dacListLocal=list(range(dacNom-40,dacNom+100,4))#+list(range(dacNom+100,dacNom+200,4));
             
             print(ch,cd,delay,dacListLocal,vthcList)            
             for dac in dacListLocal:   
@@ -187,7 +186,7 @@ if __name__ == "__main__":
                 ###############################
                 # measure TOA
                 ###############################
-
+                if dac!=dacNom: continue
                 for Q in QTOAList:
                     if Q<0:#trig ext                        
                         delayMin=1800
@@ -219,7 +218,7 @@ if __name__ == "__main__":
                 for Q in QThresList:#ATT TRIG EXT
                     if Q >5:thresMinLocal=dacMap[(board,ch,cd)]-20+(Q-3)*7
                     else:thresMinLocal=thresMin
-                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --Q %d --out Data/ --autoStop True"%(Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q)
+                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --out Data/ --autoStop True  --Q %d "%(Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q)
                     cmd+=" --Vthc 64"
 
                     f.write(cmd+"\n sleep 5 \n")
