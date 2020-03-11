@@ -158,9 +158,9 @@ if __name__ == "__main__":
             
             if doPS:
                 qMin=0;
-                qMax=13;
-                qStep=1 #for pulse shape#PULSESHAPE
-                dacListLocal=list(range(dacNom-40,dacNom+100,4))#+list(range(dacNom+100,dacNom+200,4));
+                qMax=26;
+                qStep=4 #for pulse shape#PULSESHAPE
+                dacListLocal=list(range(dacNom-40,dacNom+150,4))####+list(range(dacNom+100,dacNom+200,4));
             
             print(ch,cd,delay,dacListLocal,vthcList)            
             for dac in dacListLocal:   

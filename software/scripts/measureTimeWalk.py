@@ -201,7 +201,7 @@ def measureTimeWalk(argsip,
     QRange = list(range( QMin, QMax, QStep ))
     
     if args.morePointsAtLowQ:
-        for p in range(10,1,-1):
+        for p in range(13,0,-1):
             if p not in QRange: QRange=[p]+QRange
     QRange=sorted(QRange)
 
