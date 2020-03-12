@@ -10,18 +10,19 @@ import os                                                      ##
 import math                                                    ##
 #################################################################
 from DAC import *
+from computeVth import *
 
 #####################
 # 
 #####################
-useVthcFromConfig = 0
+useVthcFromConfig = 1
 
 doThres= 0
 
-doNoise= 1
+doNoise= 0
 
-doTW   = 0
-doTOA  = 1
+doTW   = 1
+doTOA  = 0
 
 doPS   = 0 # TW with thres. scan
 doXtalk= 0 # TOA Channels should be ON
@@ -47,9 +48,9 @@ if doPS:
 #####################
 #Ntoa=500;delayStep=20 #Default to check distributions
 Ntoa=100;
+delayStep=5 
 delayMin=2200
 delayMax=2700
-delayStep=5 
 #Ntoa=100; delayStep=1  #TDR
 #QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
 QTOAList=[4,5,6,7,8,9,13,26,52]#default
@@ -97,6 +98,7 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
     
+
     boardASICAlone=[8,9,10,11,12,14,15]
     board=args.board
 
@@ -105,12 +107,17 @@ if __name__ == "__main__":
 
 
 
+    #detector capacitance
+    cdList=[0]
+    if board in boardASICAlone:
+        cdList=[4,];
+        #chList=[4,9]
+        #cdList=[4,5,6,7];
+        
     #threshold
     dacMap=None
     dacMap=getDACList(board)
     dacRef=0
-    if len(dacMap)>0:
-        dacRef=min(dacMap.values())
 
     #channel list
     if chList==None:
@@ -121,12 +128,7 @@ if __name__ == "__main__":
         #chList=list(range(15,25))+list(range(0,15))
 
 
-    #detector capacitance
-    cdList=[0]
-    if board in boardASICAlone:
-        cdList=[4,];
-        #chList=[4,9]
-        #cdList=[4,5,6,7];
+
         
     #special settings
     Rin_Vpa=0
@@ -143,7 +145,8 @@ if __name__ == "__main__":
         for cd in cdList:            
             #dac list
             dacNom=0
-            if useVthcFromConfig:
+            if useVthcFromConfig:                
+                dacRef,vthcMap=getVthc(board,cd)
                 dacNom=dacRef
                 vthcList=[-1]
             else:
