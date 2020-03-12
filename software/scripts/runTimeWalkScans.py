@@ -23,7 +23,7 @@ doNoise= 1
 doTW   = 0
 doTOA  = 1
 
-doPS   = 1 # TW with thres. scan
+doPS   = 0 # TW with thres. scan
 doXtalk= 0 # TOA Channels should be ON
 
 
@@ -51,10 +51,10 @@ delayMin=2200
 delayMax=2700
 delayStep=5 
 #Ntoa=100; delayStep=1  #TDR
-QTOAList=[4,5,6,7,8,9,13,26,52]#default
-QTOAList=[5,6,13,52]#default
-#QTOAList=[4,7,8,9,26]#default
 #QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
+QTOAList=[4,5,6,7,8,9,13,26,52]#default
+#QTOAList=[5,6,9,13,26,52]#default
+
 
 if doXtalk == 1:
     doTOA=1
@@ -79,7 +79,7 @@ if doNoise:
     thresStep=1
     #thresMin= #
     thresMax=1000
-    QThresList=[0,6,13]
+    QThresList=[0,2,4,6,13]
 
 
     
