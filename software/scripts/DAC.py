@@ -142,8 +142,8 @@ def getDACList(board):
         #dacList[(14,11,4)]=1022#3,1.00,ok 
         dacList[(14,12,4)]=660#3,0.97,ok 
         dacList[(14,13,4)]=732#3,0.91,ok 
-        #dacList[(14,14,4)]=592#3,0.65,PRB!!!!!!!!!    
-
+        #dacList[(14,14,4)]=592#3,0.65,PRB!!!!!!!!!    
+        dacList[(14,14,4)]=676#5,0.02,PRB!!!!!!!!! 
         pass
     elif board==15:
         pass
