@@ -15,21 +15,21 @@ from computeVth import *
 #####################
 # 
 #####################
-useVthcFromConfig = 1
+
 
 doThres= 0
 
 doNoise= 0
 
 doTW   = 1
-doTOA  = 0
+doTOA  = 1
 
 doPS   = 0 # TW with thres. scan
 doXtalk= 0 # TOA Channels should be ON
 
 
 chList=None
-chList=[4,9,14]
+chList=[4,9]
 
 
 #####################
@@ -46,7 +46,6 @@ if doPS:
 #####################
 # TOA
 #####################
-#Ntoa=500;delayStep=20 #Default to check distributions
 Ntoa=100;
 delayStep=5 
 delayMin=2200
@@ -55,12 +54,13 @@ delayMax=2700
 #QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
 QTOAList=[4,5,6,7,8,9,13,26,52]#default
 #QTOAList=[5,6,9,13,26,52]#default
-
+#default
+Ntoa=500;delayStep=20;QTOAList=[52] #Default to check distributions
 
 if doXtalk == 1:
     doTOA=1
     QTOAList=[13,60]
-    useVthcFromConfig=True
+    args.useVthc=True
     delayMin=2400#200
     delayMax=2500
     delayStep=10
@@ -90,6 +90,9 @@ def parse_arguments():
     parser.add_argument("-b", "--board", type = int, required = False, default = 8,help = "Choose board")
     parser.add_argument("-c","--ch", type = int, required = False, default = 4, help = "channel")
     parser.add_argument("--cfg", required = False, default = None)
+    parser.add_argument("--chON", action="store_true", default = False)
+    parser.add_argument("--ctestON", action="store_true", default = False)
+    parser.add_argument("--useVthc", action="store_true", default = False)
     args = parser.parse_args()
     return args
 
@@ -102,8 +105,14 @@ if __name__ == "__main__":
     boardASICAlone=[8,9,10,11,12,14,15]
     board=args.board
 
-    fname="runTW_B"+str(board)+".sh"
-    f=open(fname,"w")
+    fname="runTW_B"+str(board)
+    if args.useVthc:
+        fname+="_useVthc"
+    if args.chON:
+        fname+="_chON"
+    if args.ctestON:
+        fname+="_ctestON"
+    f=open(fname+".sh","w")
 
 
 
@@ -145,7 +154,7 @@ if __name__ == "__main__":
         for cd in cdList:            
             #dac list
             dacNom=0
-            if useVthcFromConfig:                
+            if args.useVthc:                
                 dacRef,vthcMap=getVthc(board,cd)
                 dacNom=dacRef
                 vthcList=[-1]
@@ -176,10 +185,17 @@ if __name__ == "__main__":
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --moreStatAtLowQ False --morePointsAtLowQ True --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(Ntw,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
 
                     
-                    if not useVthcFromConfig:#take the one from config
+                    if not args.useVthc:#take the one from config
                         #vthc=64
                         cmd+=" --Vthc "+str(vthc)
                         pass
+                    if args.chON:
+                        cmd+=" --allChON True"
+                        pass
+                    if args.ctestON:
+                        cmd+=" --allCtestON True"
+                        pass
+
                     if args.cfg is not None:
                         cmd+=" --cfg "+args.cfg
                         pass
@@ -197,9 +213,15 @@ if __name__ == "__main__":
                     logName='Data/delayTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d.log'%(board,Rin_Vpa,ch,cd,Q,dac)
                     cmd="python scripts/measureTOA.py --skipExistingFile True -N %d --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep %d --out Data/delay "%(Ntoa,cd,ch,board,dac,Q,delayMin,delayMax,delayStep)
 
-                    if not useVthcFromConfig:#take the one from config
+                    if not args.useVthc:#take the one from config
                         #vthc=64
                         cmd+=" --Vthc "+str(vthc)
+                        pass
+                    if args.chON:
+                        cmd+=" --allChON True"
+                        pass
+                    if args.ctestON:
+                        cmd+=" --allCtestON True"
                         pass
                     if Q<0:
                         cmd+=" --useExt True "
@@ -230,7 +252,7 @@ if __name__ == "__main__":
                     
                     
 print (" ") 
-print ("useVthcFromConfig:",useVthcFromConfig)
+print ("args.useVthc:",args.useVthc)
 print (" " )
 print (" ************ CHECK TRIG EXT ***************")
 print("source "+fname)

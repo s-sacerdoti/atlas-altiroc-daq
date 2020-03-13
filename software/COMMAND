@@ -20,6 +20,13 @@ python scripts/measureTimeWalk.py --morePointsAtLowQ False --debug False --displ
 
 
 B=9
-python scripts/runTimeWalkScans.py  -b $B  
+python scripts/runTimeWalkScans.py  -b $B
+python scripts/runTimeWalkScans.py  -b $B --useVthc 
+python scripts/runTimeWalkScans.py  -b $B --useVthc --chON 
+python scripts/runTimeWalkScans.py  -b $B --useVthc --chON --ctestON
+
 python scripts/runTDCCalib.py  -b $B --toa  > runTOA_B$B.sh
 python scripts/runTDCCalib.py  -b $B --tot  > runTOT_B$B.sh
+
+
+python scripts/measureTimeWalk.py --skipExistingFile False --moreStatAtLowQ False --morePointsAtLowQ False --debug False --display False --checkOFtoa False --checkOFtot False --delay 2500 --QMax 63 --QStep 1 --out Data/ --board 8 --ch 14 --Cd 4 --DAC 350 --Vthc 64 --useProbeDiscri True --useProbePA True --N 100000 --QMin 4

@@ -13,7 +13,6 @@
 # Script Settings
 DelayStep = 9.5582  # <= Estimate of the Programmable Delay Step in ps (measured on 10JULY2019)
 pulseWidth = 300  # for external trigger
-
 #################################################################
                                                                ##
 import sys                                                     ##
