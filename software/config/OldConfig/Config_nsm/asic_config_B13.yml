@@ -1,0 +1,172 @@
+Top:
+  Fpga[:]: # "[:]" is a wildcard for a dict search
+    ##########################################################################
+    Asic: # Note: Configuration tuned for ASIC Board V2: #6
+      ##########################################################################
+      Gpio:
+        RSTB_RAM: 0x1
+        RST_COUNTER: 0x0
+        DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
+        DlyCalPulseReset: 0 # Falling edge of EXT_TRIG
+      TdcClk:
+        Tdc40MHzClkSel: Pll
+        FpgaTdcClkHigh: 0x1
+        FpgaTdcClkLow: 0x1
+      Trig:
+        enable: True
+        TrigTypeSel: Master
+        CalStrobeAlign: 0x3      # Same as calibration pulse testing
+        TrigStrobeAlign: 0x3     # Sets 6.25 ns trigger window w.r.t to 40 MHz clock  (might need tuning for the real system)
+        EnCalPulseTrig: 0x1      # Disable calibration pulse
+        EnBncExtTrig: 0x0        # Disable BNC external trigger
+        EnPcieLocalTrig: 0x0     # Enable the local TOA_BUSY trigger
+        EnLemoRemoteTrig: 0x0    # Enable the remote TOA_BUSY trigger   
+        MasterModeSel: OR        # Either OR or AND the TOA_BUSY triggers together (inverted to active HIGH logic in FW)
+        ReadoutStartDly: 128     # Units of 6.4ns (might need tuning for the real system)
+        TrigSizeBeforePause: 0x0 # number of triggers before o-scope deadtime (zero bypass deadtime
+        DeadtimeDuration: 0x0    # number of seconds to hold off readout until o-scope recovers
+        EnableReadout: 0x1       # prevents either o-scope or dataStream from receiving data until enabled
+      ##########################################################################
+      SlowControl:
+        ########################
+        #general settings -> all off
+#######################         NSM    ########################
+        EN_ck_SRAM[:]: 0x1
+        ON_Ctest[:]: 0x0
+        disable_pa[:]: 0x0
+
+ ########################
+
+#Threshold alignment. DAC cor 7 bits 0x40= 64 decimal (mid range) 
+# B13: alignment for Vth =320 (Q=2-3) #
+        bit_vth_cor[0]: 64 # 
+        bit_vth_cor[1]: 74 # 
+        bit_vth_cor[2]: 64 #
+        bit_vth_cor[3]: 72 #
+        bit_vth_cor[4]: 74 #
+        bit_vth_cor[5]: 64 # B13: hs?
+        bit_vth_cor[6]: 64 # B13: HS?
+        bit_vth_cor[7]: 74 #
+        bit_vth_cor[8]: 62 #
+        bit_vth_cor[9]: 67 # 
+        bit_vth_cor[10]: 69 #
+        bit_vth_cor[11]: 58 #
+        bit_vth_cor[12]: 49 #
+        bit_vth_cor[13]: 56 #
+        bit_vth_cor[14]: 54 #
+
+        bit_vth_cor[15]: 64 #
+        bit_vth_cor[16]: 64 #
+        bit_vth_cor[17]: 64 #
+        bit_vth_cor[18]: 64 #
+        bit_vth_cor[19]: 64 #
+        bit_vth_cor[20]: 64 #
+        bit_vth_cor[21]: 64 # 
+        bit_vth_cor[22]: 64 #
+        bit_vth_cor[23]: 64 #
+        bit_vth_cor[24]: 64 #
+
+########################
+
+
+
+        ON_discri[:]: 0x0
+        EN_hyst[:]: 0x1
+        EN_trig_ext[:]: 0x0
+        cBit_f_TOA[:]: 0x0   # increase to 0 to f to reduce LSB while keeping cBit_s_TOA=0        
+        cBit_s_TOA[:]: 0x0
+        cBit_f_TOT[:]: 0x0
+        cBit_s_TOT[:]: 0x0
+        cBit_c_TOT[:]: 0x0
+ 
+        ###################
+        DLL_ALockR_en: 0x1 # should be kept to 1
+        CP_b: 0x3 # B2:Cp_b 5 or 7 with R pull up/dwn but 1 with dividers.  WO Ileak on Vctrl, Charge pump I only detremines the velocity of DLL locking and not the value to which it locks
+        
+
+        ext_Vcrtlf_en: 0x0 # B13 Strap needed, 0 or 1 (better to keep 0 => DLL will do the job starting from initial condition obtained under rstb_DLL)
+        ext_Vcrtls_en: 0x0 # B13 No strap needed, 0 or 1 (better to keep 0)
+        ext_Vcrtlc_en: 0x0 # B13 no strap neede, 0 or 1 (better to keep 0)
+
+        totf_satovfw: 0x1
+        totc_satovfw: 0x1
+        toa_satovfw: 0x1      
+      
+        SatFVa: 0x4 #3
+        IntFVa: 0x0 #1
+        SatFTz: 0x4 #4
+        IntFTz: 0x1 #1  
+      
+        cBitf: 0x0 # with R dividers cbitf 0, decrease from f to 0 to reduce LSB while increasing cBits to f 
+        cBits: 0x0 #
+        cBitc: 0 # with R dividers 0     
+      
+        Rin_Vpa: 0x0 #0 0 => 25K, 1 => 15K. Set to 1 to avoid couplings with TOA busyb (sensor)
+        Cp_Vpa: 0x0
+        Ccomp_TZ: 0x0 #0
+      
+        cd[0]: 0x0 
+        cd[1]: 0x0 
+        cd[2]: 0x0 
+   
+        dac_biaspa: 0x1e #10
+        ON_dac_biaspa: 0x1
+        dac_pulser: 12 #7
+      
+        DAC10bit: 451 #average
+
+        ON_dac_LR: 0x0
+        Ck40_choice: 0x1
+        en_8drivers: 0x1
+
+        PLL: 0x0
+        Shifted_ck40: 0x0
+        #dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
+
+
+      ##########################################################################
+      Readout:
+        #####################
+        RstRamPulseWidth: 0xF
+        ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
+        RstPulseWidth: 0xF
+        RstToReadDly: 0x0   # Min. tuned on 18JULY2019:LLR
+        RckHighWidth: 0x2   # Min. tuned on 18JULY2019:LLR
+        RckLowWidth: 0x2    # Min. tuned on 18JULY2019:LLR
+        #####################
+        RestoreProbeConfig: 0x1 #1 sets probe in previous config
+        EnProbeWrite: 0x1
+        OnlySendFirstHit: 0x1
+        #Probe cofiguration
+        EnProbeDigOutDisc: 0x0
+        EnProbeDigSelect: 0x0
+        EnProbeDig: 0x0
+        EnProbePa: 0x0
+        #####################
+        RdIndexLut[0]: 0
+        RdIndexLut[1]: 1
+        RdIndexLut[2]: 2
+        RdIndexLut[3]: 3
+        RdIndexLut[4]: 4
+        RdIndexLut[5]: 5
+        RdIndexLut[6]: 6
+        RdIndexLut[7]: 7
+        RdIndexLut[8]: 8
+        RdIndexLut[9]: 9
+        RdIndexLut[10]: 10
+        RdIndexLut[11]: 11
+        RdIndexLut[12]: 12
+        RdIndexLut[13]: 13
+        RdIndexLut[14]: 14
+        RdIndexLut[15]: 15
+        RdIndexLut[16]: 16
+        RdIndexLut[17]: 17
+        RdIndexLut[18]: 18
+        RdIndexLut[19]: 19
+        RdIndexLut[20]: 20
+        RdIndexLut[21]: 21
+        RdIndexLut[22]: 22
+        RdIndexLut[23]: 23
+        RdIndexLut[24]: 24
+        ReadoutSize: 0
+  LiveDisplayRst: 0

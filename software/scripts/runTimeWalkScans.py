@@ -17,19 +17,19 @@ from computeVth import *
 #####################
 
 
-doThres= 0
+doThres= 1
 
-doNoise= 0
+doLinearity= 0 
 
-doTW   = 1
-doTOA  = 1
+doTW   = 0
+doTOA  = 0
 
 doPS   = 0 # TW with thres. scan
 doXtalk= 0 # TOA Channels should be ON
 
 
 chList=None
-chList=[4,9]
+#chList=[4,9,14]
 
 
 #####################
@@ -50,12 +50,9 @@ Ntoa=100;
 delayStep=5 
 delayMin=2200
 delayMax=2700
-#Ntoa=100; delayStep=1  #TDR
-#QTOAList=list(range(3,10,1))+[13,21]#jitter vs Q
 QTOAList=[4,5,6,7,8,9,13,26,52]#default
-#QTOAList=[5,6,9,13,26,52]#default
-#default
-Ntoa=500;delayStep=20;QTOAList=[52] #Default to check distributions
+#QTOAList=[52]#ClockTree
+#Ntoa=500;delayStep=20;#QTOAList=[52] #Default to check distributions
 
 if doXtalk == 1:
     doTOA=1
@@ -74,13 +71,13 @@ QThresList=[3]#default
 thresMin=260  #overwritten for Q>5
 thresMax=1023#max is 1023
 thresStep=2
-if doNoise:
+if doLinearity:
     Nthres=1000
     doThres= 1
     thresStep=1
     #thresMin= #
     thresMax=1000
-    QThresList=[0,2,4,6,13]
+    QThresList=[0,3,6,13,26,39,52]
 
 
     

@@ -1,7 +1,33 @@
+############## Nikola ###############
 python scripts/measureTOA.py --ch 1 --board 8 --DAC 450 --Q 13 --delayMin 2000
 python scripts/thresholdScan.py --ch 2 --minVth 300 --maxVth 500 --VthStep 20 --Q 13 --delay 2400 --board 8
 python scripts/measureTOT.py --ch 1 --board 8 --DAC 450 --Q 13 --useExt True --pulserMin 200 --pulserMax 2800 --pulserStep 20
 
 ##update firmware
 python scripts/ReprogramFpga.py --ip 192.168.1.10 --mcs ../firmware/targets/AtlasAltirocFpga1GbE/images/nameoffile.mcs
+
+############## NSM ################
+python scripts/measureTOA.py --ch 1 --board 8 --DAC 450 --Q 13 --delayMin 2000
+python scripts/thresholdScan.py --ch 2 --minVth 300 --maxVth 500 --VthStep 20 --Q 13 --delay 2400 --board 8
+python scripts/measureTOT.py --ch 1 --board 8 --DAC 450 --Q 13 --useExt True --pulserMin 200 --pulserMax 2800 --pulserStep 20
+
+##update firmware
+python scripts/ReprogramFpga.py --ip 192.168.1.10 --mcs ../firmware/targets/AtlasAltirocFpga1GbE/images/nameoffile.mcs
+
+
+python scripts/DevGui.py --ip 192.168.1.10
+
+python scripts/thresholdScan.py  --checkOFtoa False --checkOFtot False --autoStop True --delay 2450 --Q 4 -N 10  --VthStep 1 --minVth 300 --maxVth 350 --board 23 --ch 0
+
+
+python scripts/measureTimeWalk.py -N 20 --checkOFtoa False --checkOFtot False --QMin 2 --QMax 60 --QStep 1 --LSBTOA 20 --LSBTOTc 160 --LSBTOTf 40 --Qconv 1 --useProbePA False --useProbeDiscri False --out TestData/B3 --board 3 --delay 2450 --ch 6 --DAC 360 --debug False --readAllChannels True
+
+python scripts/measureTOT.py -N 10 --checkOFtoa False --checkOFtot True --useExt True --riseEdgeMin 400 --riseEdgeMax 3200 --riseEdgeStep 100  --useProbeDiscri False --out TestData/widthScanTrigExt --board 13 --ch 0
+
+python scripts/measureTOA.py -N 100  --checkOFtoa False --checkOFtot False --useExt True --delayMin 1900 --delayMax 2400 --delayStep 20 --useProbeDiscri False --out TestData/delayScanTrigExt --board 13 --ch 0
+
+python scripts/measureTOA.py -N 50  --checkOFtoa False --checkOFtot False --useExt False --Q 40 --DAC 490 --delayMin 2300 --delayMax 2600 --delayStep 20 --useProbeDiscri False --out TestData/CkTreeScanTOA --board 9 --ch 13
+
+With PLL
+python scripts/measureTOA.py -N 100  --checkOFtoa False --checkOFtot False --useExt True --delayMin 500 --delayMax 2000 --delayStep 20 --useProbeDiscri False --out TestData/delayScanTrigExt --board 11 --ch 4
 

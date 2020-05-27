@@ -1,0 +1,158 @@
+Top:
+  Fpga[:]: # "[:]" is a wildcard for a dict search
+    ##########################################################################
+    Dac:
+      RawValue:  0x8000
+    ##########################################################################
+    Asic:
+      ##########################################################################
+      Gpio:
+        RSTB_RAM: 0x1
+        RST_COUNTER: 0x0
+        RSTB_TDC: 0x1
+        RSTB_DLL: 0x1
+        DlyCalPulseSet: 2450 # Rising edge of EXT_TRIG
+        DlyCalPulseReset: 0xfff # Falling edge of EXT_TRIG
+        ###########################################
+      ##########################################################################
+      TdcClk:
+        Tdc40MHzClkSel: Pll
+        FpgaTdcClkHigh: 0x1
+        FpgaTdcClkLow: 0x1
+      ##########################################################################
+      CalPulse:
+        CalPulseDelay: 0x32
+        CalPulseCount: 0x0
+        CalPulseWidth: 0x2
+        Continuous: 0x0
+      ##########################################################################
+      Trig:
+        TrigTypeSel: Slave
+        CalStrobeAlign: 0x3
+        TrigStrobeAlign: 0x3
+        EnCalPulseTrig: 0x0   
+        EnBncExtTrig: 0x0      
+        EnPcieLocalTrig: 0x0      
+        EnLemoRemoteTrig: 0x0      
+        MasterModeSel: OR      
+        ReadoutStartDly: 128 # Units of 6.4ns
+        TrigSizeBeforePause: 0x0      
+        DeadtimeDuration: 0x0
+        EnableReadout: 0x0 # Disable triggers
+      ##########################################################################
+      SlowControl:
+        dac: 0x0
+        ON_dac_LR: 0x1
+        Write_opt: 0x0
+        Precharge_opt: 0x0
+        ref_bg: 0x1
+        dac_pulser: 0x7
+        Ccomp_TZ: 0x0
+        Rin_Vpa: 0x0
+        Cp_Vpa: 0x0
+        dac_biaspa: 0xc
+        ON_dac_biaspa: 0x1
+        ON_ota_dac: 0x1
+        DAC10bit: 0x80
+        SatFVa: 0x0
+        IntFVa: 0x0
+        SatFTz: 0x0
+        IntFTz: 0x0
+        totf_satovfw: 0x0
+        totc_satovfw: 0x0
+        toa_satovfw: 0x0
+        Ck40_choice: 0x0
+        cBitf: 0x0
+        DLL_ALockR_en: 0x1
+        CP_b: 0x3
+        ext_Vcrtlf_en: 0x0
+        cBits: 0x0
+        ext_Vcrtls_en: 0x0
+        cBitc: 0x0
+        ext_Vcrtlc_en: 0x0
+        en_8drivers: 0x0
+        #####################
+        EN_ck_SRAM[:]: 0x1
+        ON_Ctest[:]: 0x0
+        disable_pa[:]: 0x0
+        bit_vth_cor[:]: 0x8
+        ON_discri[:]: 0x1
+        EN_hyst[:]: 0x1
+        EN_trig_ext[:]: 0x0
+        cBit_f_TOT[:]: 0x0
+        cBit_c_TOT[:]: 0x0
+        cBit_s_TOT[:]: 0x0
+        cBit_s_TOA[:]: 0x0
+        cBit_f_TOA[:]: 0x0
+        #####################
+        cd[0]: 0x0
+        cd[1]: 0x0
+        cd[2]: 0x0
+        cd[3]: 0x0
+        cd[4]: 0x0
+        PLL: 0x1
+        dac_icpb: 0xa
+        # dac_CP_BWb: 0x20 # Legacy V1 value
+        Shifted_ck40: 0x1
+        dac_CP_BWb: 0x10 # V2 maps dac_CP_BW<0> to Shifted_ck40
+        EN_Ext_Vin_VCO: 0x0
+        setN: 0x3
+        setProbe: 0x0
+        EN_500: 0x0
+        EN_1000: 0x0
+        EN_2000: 0x1
+        EN_4000: 0x0
+        EN_200p: 0x0
+        EN_LowKvco: 0x0
+        delay: 0x0
+        Ph: 0x0
+        forcedown: 0x0
+        inita: 0x1
+        initb: 0x1
+        initc: 0x1
+        cpen: 0x1
+        cp: 0x0
+        En_40M: 0x1
+        En_640M: 0x1
+        rstL: 0x1       
+      ##########################################################################
+      Readout:
+        ReadoutSize: 24
+        RdIndexLut[0]: 0
+        RdIndexLut[1]: 1
+        RdIndexLut[2]: 2
+        RdIndexLut[3]: 3
+        RdIndexLut[4]: 4
+        RdIndexLut[5]: 5
+        RdIndexLut[6]: 6
+        RdIndexLut[7]: 7
+        RdIndexLut[8]: 8
+        RdIndexLut[9]: 9
+        RdIndexLut[10]: 10
+        RdIndexLut[11]: 11
+        RdIndexLut[12]: 12
+        RdIndexLut[13]: 13
+        RdIndexLut[14]: 14
+        RdIndexLut[15]: 15
+        RdIndexLut[16]: 16
+        RdIndexLut[17]: 17
+        RdIndexLut[18]: 18
+        RdIndexLut[19]: 19
+        RdIndexLut[20]: 20
+        RdIndexLut[21]: 21
+        RdIndexLut[22]: 22
+        RdIndexLut[23]: 23
+        RdIndexLut[24]: 24       
+        #####################
+        RstRamPulseWidth: 0xF
+        ProbeToRstDly: 0x0  # Min. tuned on 18JULY2019:LLR
+        RstPulseWidth: 0xF
+        RstToReadDly: 0x0   # Min. tuned on 18JULY2019:LLR
+        RckHighWidth: 0x2   # Min. tuned on 18JULY2019:LLR
+        RckLowWidth: 0x2    # Min. tuned on 18JULY2019:LLR
+        #####################
+        RestoreProbeConfig: 0x0
+        EnProbeWrite: 0x1
+        OnlySendFirstHit: 0x0
+        #####################
+      ##########################################################################

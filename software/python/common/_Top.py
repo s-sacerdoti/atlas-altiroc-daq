@@ -306,11 +306,11 @@ class Top(pr.Root):
             self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x0)
             self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x0)
             self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x0)
-            time.sleep(0.001)
+            time.sleep(0.001)# original 0.001
             self.Fpga[i].Asic.Gpio.RSTB_RAM.set(0x1)                
             self.Fpga[i].Asic.Gpio.RSTB_TDC.set(0x1)
             self.Fpga[i].Asic.Gpio.RSTB_DLL.set(0x1)
-            
+            #time.sleep(1)# original no sleep
             # Reset the sequence and trigger counters
             self.Fpga[i].Asic.Trig.countReset()
             self.Fpga[i].Asic.Readout.SeqCntRst()
