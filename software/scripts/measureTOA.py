@@ -332,7 +332,7 @@ def measureTOA(argsip,
     #ax1.grid(True)
     ax1.set_title('TOA Measurment VS Programmable Delay Value', fontsize = 11)
     ax1.set_xlabel('Programmable Delay Value [step estimate = %f ps]' % DelayStep, fontsize = 10)
-    ax1.set_ylabel('Mean Value [ps]', fontsize = 10)
+    ax1.set_ylabel('Mean Value', fontsize = 10)
     ax1.legend(['LSB estimate: %f ps' % LSBest],loc = 'upper right', fontsize = 9, markerfirst = False, markerscale = 0, handlelength = 0)
     #ax1.set_ylim(bottom = 0, top = np.max(np.multiply(DataMean,LSBest))+100)
     ax1.set_xlim(left = np.min(Delay), right = np.max(Delay))

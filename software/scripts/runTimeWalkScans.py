@@ -17,21 +17,37 @@ from computeVth import *
 #####################
 
 
-doThres= 1
+doThres     = 0
+doNoise     = 0 # Thres
+doLinearity = 1 # Thres
 
-doLinearity= 0 
+doTW        = 0
+doPS        = 0 # TW with thres. scan
 
-doTW   = 0
-doTOA  = 0
-
-doPS   = 0 # TW with thres. scan
-doXtalk= 0 # TOA Channels should be ON
+doTOA       = 0
+doClockTree = 0 # TOA with Q=52 and maybe larger N
+doXtalk     = 0 # TOA Channels should be ON
 
 
 chList=None
 #chList=[4,9,14]
 
+#####################
+# 
+#####################
 
+
+
+if doTOA+doClockTree +doXtalk>1:
+    print ("Prb TOA")
+    sys.exit()
+if doThres+doNoise+doLinearity >1:
+    print ("Prb Thres")
+    sys.exit()
+if doTW+doPS>1:
+    print ("Prb TW")
+    sys.exit()
+    
 #####################
 # TW
 #####################
@@ -46,13 +62,19 @@ if doPS:
 #####################
 # TOA
 #####################
+    
 Ntoa=100;
 delayStep=5 
 delayMin=2200
 delayMax=2700
 QTOAList=[4,5,6,7,8,9,13,26,52]#default
-#QTOAList=[52]#ClockTree
-#Ntoa=500;delayStep=20;#QTOAList=[52] #Default to check distributions
+#Ntoa=500;delayStep=20;#QTOAList=[52] #Default to check distributions
+
+
+if doClockTree:
+    doTOA=1
+    QTOAList=[13,26,52]#ClockTree
+    Ntoa=1000
 
 if doXtalk == 1:
     doTOA=1
@@ -69,15 +91,20 @@ if doXtalk == 1:
 Nthres=100
 QThresList=[3]#default
 thresMin=260  #overwritten for Q>5
-thresMax=1023#max is 1023
+thresMax=1023 #max is 1023
 thresStep=2
 if doLinearity:
-    Nthres=1000
     doThres= 1
-    thresStep=1
-    #thresMin= #
-    thresMax=1000
+    Nthres=100
+    thresStep=2
     QThresList=[0,3,6,13,26,39,52]
+    
+if doNoise:
+    doThres=1
+    Nthres=1000
+    thresStep=1
+    thresMax=600
+    QThresList=[13]
 
 
     
@@ -167,9 +194,10 @@ if __name__ == "__main__":
             
             if doPS:
                 qMin=0;
-                qMax=26;
+                qMax=60#26;
                 qStep=4 #for pulse shape#PULSESHAPE
-                dacListLocal=list(range(dacNom-40,dacNom+150,4))####+list(range(dacNom+100,dacNom+200,4));
+                dacListLocal=list(range(dacNom-40,dacNom+150,4))
+                #dacListLocal=list(range(dacNom-100,dacNom+50,10))
             
             print(ch,cd,delay,dacListLocal,vthcList)            
             for dac in dacListLocal:   
@@ -238,8 +266,11 @@ if __name__ == "__main__":
         for ch in chList:
             for cd in cdList:
                 for Q in QThresList:#ATT TRIG EXT
-                    if Q >5:thresMinLocal=dacMap[(board,ch,cd)]-20+(Q-3)*7
-                    else:thresMinLocal=thresMin
+                    if Q >6:
+                        thresMinLocal=dacMap[(board,ch,cd)]-20+(Q-3)*7
+                        thresMinLocal=min(thresMinLocal,500)
+                    else:
+                        thresMinLocal=thresMin
                     cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --out Data/ --autoStop True  --Q %d "%(Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q)
                     cmd+=" --Vthc 64"
 
