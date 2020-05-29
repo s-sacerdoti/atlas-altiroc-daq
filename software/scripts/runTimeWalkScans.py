@@ -17,15 +17,15 @@ from computeVth import *
 #####################
 
 
-doThres     = 0
+doThres     = 1
 doNoise     = 0 # Thres
-doLinearity = 1 # Thres
+doLinearity = 0 # Thres
 
-doTW        = 0
+doTW        = 1
 doPS        = 0 # TW with thres. scan
 
 doTOA       = 0
-doClockTree = 0 # TOA with Q=52 and maybe larger N
+doClockTree = 1 # TOA with at least Q=52 and maybe larger N
 doXtalk     = 0 # TOA Channels should be ON
 
 
@@ -74,7 +74,8 @@ QTOAList=[4,5,6,7,8,9,13,26,52]#default
 if doClockTree:
     doTOA=1
     QTOAList=[13,26,52]#ClockTree
-    Ntoa=1000
+    QTOAList=[52]#ClockTree
+    Ntoa=100
 
 if doXtalk == 1:
     doTOA=1
@@ -90,6 +91,7 @@ if doXtalk == 1:
 #####################
 Nthres=100
 QThresList=[3]#default
+#QThresList=[1,2,3,5]
 thresMin=260  #overwritten for Q>5
 thresMax=1023 #max is 1023
 thresStep=2
@@ -193,11 +195,14 @@ if __name__ == "__main__":
 
             
             if doPS:
-                qMin=0;
-                qMax=60#26;
+                qMin=0;#for pedestal
+                qMax=26+1#26;
                 qStep=4 #for pulse shape#PULSESHAPE
                 dacListLocal=list(range(dacNom-40,dacNom+150,4))
-                #dacListLocal=list(range(dacNom-100,dacNom+50,10))
+
+                #dacListLocal=list(range(dacNom-100,dacNom+150,10))
+                dacListLocal=list(range(dacNom+150,dacNom+250,10))
+
             
             print(ch,cd,delay,dacListLocal,vthcList)            
             for dac in dacListLocal:   
@@ -268,7 +273,7 @@ if __name__ == "__main__":
                 for Q in QThresList:#ATT TRIG EXT
                     if Q >6:
                         thresMinLocal=dacMap[(board,ch,cd)]-20+(Q-3)*7
-                        thresMinLocal=min(thresMinLocal,500)
+                        thresMinLocal=min(thresMinLocal,450)
                     else:
                         thresMinLocal=thresMin
                     cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --out Data/ --autoStop True  --Q %d "%(Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q)
@@ -277,10 +282,26 @@ if __name__ == "__main__":
                     f.write(cmd+"\n sleep 5 \n")
 
 
+print ("*********************************************")
+print ("doThres     ",doThres     )
+print ("doNoise     ",doNoise     )
+print ("doLinearity ",doLinearity )
+
+print ("doTW        ",doTW        )
+print ("doPS        ",doPS        )
+
+print ("doTOA       ",doTOA       )
+print ("doClockTree ",doClockTree )
+print ("doXtalk     ",doXtalk     )
+print ("*********************************************")
                     
                     
 print (" ") 
 print ("args.useVthc:",args.useVthc)
 print (" " )
 print (" ************ CHECK TRIG EXT ***************")
+print (" ************ CHECK TRIG EXT ***************")
+print (" ************ CHECK TRIG EXT ***************")
 print("source "+fname)
+
+

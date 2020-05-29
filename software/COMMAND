@@ -30,3 +30,11 @@ python scripts/runTDCCalib.py  -b $B --tot  > runTOT_B$B.sh
 
 
 python scripts/measureTimeWalk.py --skipExistingFile False --moreStatAtLowQ False --morePointsAtLowQ False --debug False --display False --checkOFtoa False --checkOFtot False --delay 2500 --QMax 63 --QStep 1 --out Data/ --board 8 --ch 14 --Cd 4 --DAC 350 --Vthc 64 --useProbeDiscri True --useProbePA True --N 100000 --QMin 4
+
+
+
+
+ sleep 5 
+python scripts/thresholdScan.py  --skipExistingFile True --N 100 --debug False --display False --checkOFtoa False --checkOFtot False  --board 8 --delay 2500 --minVth 450 --maxVth 1023 --VthStep 2 --Cd 4 --ch 9 --out Data/ --autoStop True  --Q 39  --Vthc 64
+ sleep 5 
+python scripts/thresholdScan.py  --skipExistingFile True --N 100 --debug False --display False --checkOFtoa False --checkOFtot False  --board 8 --delay 2500 --minVth 450 --maxVth 1023 --VthStep 2 --Cd 4 --ch 9 --out Data/ --autoStop True  --Q 52  --Vthc 64

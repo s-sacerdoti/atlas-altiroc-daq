@@ -208,6 +208,8 @@ def measureTimeWalk(argsip,
 
     #list of charge for looping
     QRange = list(range( QMin, QMax, QStep ))
+
+  
     
     if args.morePointsAtLowQ:
         for p in range(13,0,-1):
