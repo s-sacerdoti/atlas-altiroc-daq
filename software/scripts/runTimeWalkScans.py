@@ -17,11 +17,11 @@ from computeVth import *
 #####################
 
 
-doThres     = 1
+doThres     = 0
 doNoise     = 0 # Thres
 doLinearity = 0 # Thres
 
-doTW        = 1
+doTW        = 0
 doPS        = 0 # TW with thres. scan
 
 doTOA       = 0
@@ -91,7 +91,7 @@ if doXtalk == 1:
 #####################
 Nthres=100
 QThresList=[3]#default
-#QThresList=[1,2,3,5]
+QThresList=[1,2,3,5]
 thresMin=260  #overwritten for Q>5
 thresMax=1023 #max is 1023
 thresStep=2
