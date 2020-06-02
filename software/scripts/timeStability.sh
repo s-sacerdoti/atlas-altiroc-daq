@@ -1,7 +1,7 @@
-B=9
+B=8
 
 
-for i in $(seq 10 20); 
+for i in $(seq 100 120); 
 do
     #d=Data/B9-toa-clkV$i
     d=Data/B$B-toa-clkV$i
