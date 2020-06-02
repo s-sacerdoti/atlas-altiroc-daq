@@ -113,6 +113,7 @@ if doNoise:
 def parse_arguments():
     parser = argparse.ArgumentParser()
     argBool = lambda s: s.lower() in ['true', 't', 'yes', '1']
+    parser.add_argument("-o", "--outputDir", default = "Data/")
     parser.add_argument("-b", "--board", type = int, required = False, default = 8,help = "Choose board")
     parser.add_argument("-c","--ch", type = int, required = False, default = 4, help = "channel")
     parser.add_argument("--cfg", required = False, default = None)
@@ -211,7 +212,7 @@ if __name__ == "__main__":
                 # measure TW
                 ###############################
                 for vthc in vthcList:
-                    name="Data/"
+                    name=args.outputDir
                     cmd="python scripts/measureTimeWalk.py --skipExistingFile True --moreStatAtLowQ False --morePointsAtLowQ True --debug False --display False -N %d --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board %d  --delay %d  --QMin %d --QMax %d --QStep %d --out %s  --ch %d  --Cd %d --DAC %d --Rin_Vpa %d"%(Ntw,board,delay,qMin,qMax,qStep,name,ch,cd,dac,Rin_Vpa)
 
                     
@@ -240,8 +241,8 @@ if __name__ == "__main__":
                     if Q<0:#trig ext                        
                         delayMin=1800
                         delayMax=2300
-                    logName='Data/delayTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d.log'%(board,Rin_Vpa,ch,cd,Q,dac)
-                    cmd="python scripts/measureTOA.py --skipExistingFile True -N %d --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep %d --out Data/delay "%(Ntoa,cd,ch,board,dac,Q,delayMin,delayMax,delayStep)
+                    logName=args.outputDir+'/delayTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d.log'%(board,Rin_Vpa,ch,cd,Q,dac)
+                    cmd="python scripts/measureTOA.py --skipExistingFile True -N %d --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep %d --out %s/delay "%(Ntoa,cd,ch,board,dac,Q,delayMin,delayMax,delayStep,args.outputDir)
 
                     if not args.useVthc:#take the one from config
                         #vthc=64
@@ -276,7 +277,7 @@ if __name__ == "__main__":
                         thresMinLocal=min(thresMinLocal,450)
                     else:
                         thresMinLocal=thresMin
-                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --out Data/ --autoStop True  --Q %d "%(Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q)
+                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --out %s/ --autoStop True  --Q %d "%(Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q,args.outputDir)
                     cmd+=" --Vthc 64"
 
                     f.write(cmd+"\n sleep 5 \n")

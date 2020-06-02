@@ -86,7 +86,7 @@ def parse_arguments():
         extra+="allChON"
     if args.allCtestON:
         extra+="allCtestON"
-    args.out='%sthres_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_Q_%d_%s'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.delay,args.Q,extra)
+    args.out='%sthres_B_%d_rin_%d_ch_%d_cd_%d_delay_%d_Q_%d_vthc_%d_%s'%(args.out,args.board,args.Rin_Vpa,args.ch,args.Cd,args.delay,args.Q,args.Vthc,extra)
     return args
 
 ##############################################################################
