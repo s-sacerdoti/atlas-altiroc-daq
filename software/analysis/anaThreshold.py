@@ -106,13 +106,8 @@ plt.savefig("eff.pdf")
 # compute Vthc
 ###########################################################################
 
-print ("Compute Vthc")
 
-#sorted(allGraphs[key].keys(), key=lambda n: int(n.split("_")[-8]))
 
-#key=lambda n:int(n.split("-")[1].replace("B",""))):
-
-#print (thresDict.values())
 thresRef=int(np.mean(list(thresDict.values())))
 print ("Reference threshold: ",thresRef)
 for key in sorted(thresDict.keys(),key=lambda n:n[2]):
@@ -123,10 +118,8 @@ for key in sorted(thresDict.keys(),key=lambda n:n[2]):
     print ("        bit_vth_cor["+str(ch)+"]: "+str(vthc)+"   #"+str(thres))
 
 
-#         if vthc<0 or vthc>126:
-#             print ("PRB vthc !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-#             break
-#         vthcMap[ch]=vthc
-#     return dacRef,vthcMap
+    if vthc<0 or vthc>126:
+        print ("PRB vthc !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        break
 
 
