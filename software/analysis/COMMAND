@@ -1,1 +1,2 @@
 python anaThreshold.py -i Data/B4_thres/
+python anaTimeWalk.py --Qmin 0 --Qmax 10

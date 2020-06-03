@@ -23,11 +23,11 @@ print (sys.argv)
 
 parser = OptionParser()
 #parser.add_option("-f","--fileName", help="", default=None)
-parser.add_option("-i","--inputDir", help="Data location", default="Data/")
+parser.add_option("-i","--inputDir", help="Data location", default="Data/B4_thres")
 parser.add_option("-e","--extra", help="select only file names containing this string", default="")
 parser.add_option("--xmax", help="max of x axis", default=None,type=int)
 parser.add_option("--xmin", help="min of x axis", default=None,type=int)
-parser.add_option("-d","--debug", help="for debugging purpose", default=False,action="store_true")
+parser.add_option("-a","--allPlots", help="make all plots", default=False,action="store_true")
 (options, args) = parser.parse_args()
 
 
@@ -45,8 +45,9 @@ allData=collections.OrderedDict()
 for fileName in fileNameList:
 
     # extra information from the file name
-    board,ch,cd,thres,Q=getInfoFromFileName(fileName)
-    
+    board,ch,cd,thres,vthc,Q=getInfoFromFileName(fileName)
+
+
     #get data
     NArray,thresArray,nHitArray,nHit2Array=readThresFile(fileName)
     
@@ -71,14 +72,22 @@ for fileName in fileNameList:
 #figEff, axEff = plt.subplots("Eff")
 figEff=plt.figure('Efficiency')
 axEff = figEff.add_subplot(1,1,1)
-axEff.set_ylim(top=1.2+0.1*len(allData))
+axEff.set_ylim(top=1.2)#+0.1*len(allData))
 
-for fileName,data in allData.items():
+counter=0
+
+for fileName in sorted(allData.keys(),key=lambda n: getInfoFromFileName(n)[1]):
+
+    board,ch,cd,thres,vthc,Q=getInfoFromFileName(fileName)
+    label="B"+str(board)+" ch"+str(ch)+" Qdac="+str(Q)
+
+    data=allData[fileName]
+    counter+=1
     thresArray,effArray,effErArray,eff2Array,eff2ErArray=data
 
     #common plot
     plt.figure(figEff.number)
-    plt.plot(thresArray,effArray,label=os.path.basename(fileName))
+    plt.plot(thresArray,effArray,label=label,color=colors[counter-1])
 
     # individual plot
     fig, ax = plt.subplots()
@@ -90,7 +99,7 @@ for fileName,data in allData.items():
     plt.plot(thresArray,effArray,label="Eff")
     plt.plot(thresArray,eff2Array,label="Eff without 127")
     plt.legend(loc='upper left')
-    plt.savefig(os.path.basename(fileName)+".pdf")
+    if options.allPlots:plt.savefig("Thres_"+os.path.basename(fileName)+".pdf")
 
 #plt.show()
 plt.figure('Efficiency')
@@ -98,15 +107,17 @@ if options.xmax is not None:
     axEff.set_xlim(right=options.xmax)
 if options.xmin is not None:
     axEff.set_xlim(left=options.xmin)
-plt.legend(loc='upper left', prop={"size":6})
-plt.savefig("eff.pdf")
+axEff.set_xlabel("Threshold", fontsize = 10)
+axEff.set_ylabel("Efficiency", fontsize = 10)
+#plt.legend(loc='upper right', prop={"size":6})
+plt.legend(bbox_to_anchor=(1.1, 1.0),loc='upper right', prop={"size":6})
+plt.savefig("Thres_SummaryEff.pdf")
+
 
 
 ###########################################################################
 # compute Vthc
 ###########################################################################
-
-
 
 thresRef=int(np.mean(list(thresDict.values())))
 print ("Reference threshold: ",thresRef)
