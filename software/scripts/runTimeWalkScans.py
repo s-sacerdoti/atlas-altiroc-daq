@@ -18,14 +18,14 @@ from computeVth import *
 
 
 doThres     = 0
-doNoise     = 0 # Thres
-doLinearity = 0 # Thres
+doNoise     = 0 # Thres with high stat for few Q
+doLinearity = 1 # Thres for many Q
 
-doTW        = 0
+doTW        = 1
 doPS        = 0 # TW with thres. scan
 
-doTOA       = 0
-doClockTree = 1 # TOA with at least Q=52 and maybe larger N
+doTOA       = 1
+doClockTree = 0 # TOA with at least Q=52 and maybe larger N
 doXtalk     = 0 # TOA Channels should be ON
 
 
@@ -99,7 +99,7 @@ if doLinearity:
     doThres= 1
     Nthres=100
     thresStep=2
-    QThresList=[0,3,6,13,26,39,52]
+    QThresList=[0,3,5,9,13,26,39,52]
     
 if doNoise:
     doThres=1
@@ -277,7 +277,10 @@ if __name__ == "__main__":
                         thresMinLocal=min(thresMinLocal,450)
                     else:
                         thresMinLocal=thresMin
-                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --out %s/ --autoStop True  --Q %d "%(Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q,args.outputDir)
+
+
+                        print (Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q,args.outputDir)
+                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --autoStop True  --Q %d --out %s"%(Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q,args.outputDir)
                     cmd+=" --Vthc 64"
 
                     f.write(cmd+"\n sleep 5 \n")
