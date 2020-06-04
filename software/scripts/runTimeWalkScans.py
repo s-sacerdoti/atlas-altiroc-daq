@@ -19,7 +19,7 @@ from computeVth import *
 
 doThres     = 0
 doNoise     = 0 # Thres with high stat for few Q
-doLinearity = 1 # Thres for many Q
+doLinearity = 1 #  Thres for many Q
 
 doTW        = 1
 doPS        = 0 # TW with thres. scan
