@@ -38,9 +38,7 @@ see also scripts/setASICconfig.py called in all scripts
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch 18 of the IB should be OFF
 
-python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot False  --out Data/ --delay 2450 --board 2 --Cd 0  --minVth 330 --maxVth 370 --VthStep 2 --ch 5 --Q 5
-python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot False  --out Data/ --delay 2500 --board 8 --Cd 4  --minVth 330 --maxVth 390 --VthStep 2 --ch 4 --Q 5
-python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot False  --out Data/ --delay 2450 --board 18 --Cd 0  --minVth 330 --maxVth 370 --VthStep 2 --ch 0 --Q 5
+python scripts/thresholdScan.py  --skipExistingFile True --N 100 --debug False --display False --checkOFtoa False --checkOFtot False  --board 8   --Rin_Vpa 0 --delay 2450 --minVth 260 --maxVth 1023 --autoStop True --VthStep 2 --Cd 4 --ch 1 --Q 3 --out Data/ --Vthc 64
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -48,9 +46,8 @@ python scripts/thresholdScan.py  --debug False --checkOFtoa True --checkOFtot Fa
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch 18 of the IB should be OFF
 
-python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 2 --Cd 0  --QMin 3 --QMax 63 --QStep 1 --out Data/  --delay 2450  --ch 5  --DAC 350
-python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 8 --Cd 4  --QMin 3 --QMax 63 --QStep 1 --out Data/  --delay 2500  --ch 4  --DAC 350
-python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 18 --Cd 0 --QMin 3 --QMax 63 --QStep 1 --out Data/  --delay 2450   --ch 0 --DAC 350
+python scripts/measureTimeWalk.py --skipExistingFile True --moreStatAtLowQ False --morePointsAtLowQ True --debug False --display False -N 100 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 8   --Rin_Vpa 0 --delay 2500  --QMin 1 --QMax 63 --QStep 1 --out Data/  --ch 1  --Cd 4 --DAC 406 --Vthc 64
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Delay scan using external trigger
@@ -58,8 +55,6 @@ python scripts/measureTimeWalk.py --debug False --N 100 --useProbePA False --use
 switch 18 of the IB should be ON
 
 python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False  --board 2 --ch 5 --useExt True --delayMin 1800 --delayMax 2300 --delayStep 1  --out Data/
-python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False  --board 8 --ch 4 --useExt True --delayMin 1800 --delayMax 2300 --delayStep 1  --out Data/
-python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False  --board 18 --ch 0 --useExt True --delayMin 1800 --delayMax 2300 --delayStep 1  --out Data/ 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -67,9 +62,8 @@ python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFto
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch 18 of the IB should be OFF
 
-python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False --ch 5  --Cd 0  --board 2 --DAC 350 --Q 26 --delayMin 2200 --delayMax 2700 --delayStep 1 --out Data/
-python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False --ch 4  --Cd 4  --board 8 --DAC 350 --Q 26 --delayMin 2200 --delayMax 2700 --delayStep 1 --out Data/
-python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFtot False --ch 0  --Cd 0  --board 18 --DAC 350 --Q 26 --delayMin 2200 --delayMax 2700 --delayStep 1 --out Data/
+python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd 4 --checkOFtoa False --checkOFtot False --ch 1 --board 8 --DAC 406 --Q 52 --delayMin 2200 --delayMax 2700 --delayStep 5 --out Data//delay  --Rin_Vpa 0 --Vthc 64
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

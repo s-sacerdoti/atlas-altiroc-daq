@@ -19,9 +19,9 @@ from computeVth import *
 
 doThres     = 0
 doNoise     = 0 # Thres with high stat for few Q
-doLinearity = 1 #  Thres for many Q
+doLinearity = 0 #  Thres for many Q
 
-doTW        = 1
+doTW        = 0
 doPS        = 0 # TW with thres. scan
 
 doTOA       = 1
@@ -91,7 +91,7 @@ if doXtalk == 1:
 #####################
 Nthres=100
 QThresList=[3]#default
-QThresList=[1,2,3,5]
+#QThresList=[1,2,3,5]
 thresMin=260  #overwritten for Q>5
 thresMax=1023 #max is 1023
 thresStep=2
@@ -205,7 +205,7 @@ if __name__ == "__main__":
                 dacListLocal=list(range(dacNom+150,dacNom+250,10))
 
             
-            print(ch,cd,delay,dacListLocal,vthcList)            
+            #print(ch,cd,delay,dacListLocal,vthcList)            
             for dac in dacListLocal:   
 
                 ###############################
@@ -242,7 +242,7 @@ if __name__ == "__main__":
                         delayMin=1800
                         delayMax=2300
                     logName=args.outputDir+'/delayTOA_B_%d_rin_%d_ch_%d_cd_%d_Q_%d_thres_%d.log'%(board,Rin_Vpa,ch,cd,Q,dac)
-                    cmd="python scripts/measureTOA.py --skipExistingFile True -N %d --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep %d --out %s/delay "%(Ntoa,cd,ch,board,dac,Q,delayMin,delayMax,delayStep,args.outputDir)
+                    cmd="python scripts/measureTOA.py --skipExistingFile True -N %d --debug False --display False --Cd %d --checkOFtoa False --checkOFtot False --ch %d --board %d --DAC %d --Q %d --delayMin %d --delayMax %d --delayStep %d --out %s/delay  --Rin_Vpa %d"%(Ntoa,cd,ch,board,dac,Q,delayMin,delayMax,delayStep,args.outputDir,Rin_Vpa)
 
                     if not args.useVthc:#take the one from config
                         #vthc=64
@@ -279,8 +279,8 @@ if __name__ == "__main__":
                         thresMinLocal=thresMin
 
 
-                        print (Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q,args.outputDir)
-                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --autoStop True  --Q %d --out %s"%(Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q,args.outputDir)
+                    #print (Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q,args.outputDir)
+                    cmd="python scripts/thresholdScan.py  --skipExistingFile True --N %d --debug False --display False --checkOFtoa False --checkOFtot False  --board %d --delay %d --minVth %d --maxVth %d --VthStep %d --Cd %d --ch %d --autoStop True  --Q %d --out %s  --Rin_Vpa %d"%(Nthres,board,delay,thresMinLocal,thresMax,thresStep,cd,ch,Q,args.outputDir,Rin_Vpa)
                     cmd+=" --Vthc 64"
 
                     f.write(cmd+"\n sleep 5 \n")
