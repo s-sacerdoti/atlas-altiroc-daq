@@ -132,7 +132,7 @@ if __name__ == "__main__":
     boardASICAlone=[8,9,10,11,12,14,15]
     board=args.board
 
-    fname="runTW_B"+str(board)
+    fname="runPulser"#TW_B"+str(board)
     if args.useVthc:
         fname+="_useVthc"
     if args.chON:
