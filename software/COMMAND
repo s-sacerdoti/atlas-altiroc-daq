@@ -17,24 +17,20 @@ python scripts/measureTimeWalk.py -N 100 --board 2 --checkOFtoa False --checkOFt
 python scripts/measureTimeWalk.py --morePointsAtLowQ False --debug False --display True -N 100 --useProbePA False --useProbeDiscri False --checkOFtoa False --checkOFtot False --board 3 --Cd 0  --QMin 5 --QMax 63 --QStep 5 --out Data/test  --delay 2380  --ch 7  --DAC 340
 
 
+###########################################################
+#
+###########################################################
+
+B=8
+python scripts/runPulser.py  -b $B
+python scripts/runPulser.py  -b $B --useVthc 
+python scripts/runPulser.py  -b $B --useVthc --chON 
+python scripts/runPulser.py  -b $B --useVthc --chON --ctestON
+
+python scripts/runTrigExt.py  -b $B --toa  > runTOA.sh
+python scripts/runTrigExt.py  -b $B --tot  > runTOT.sh
 
 
-B=9
-python scripts/runTimeWalkScans.py  -b $B
-python scripts/runTimeWalkScans.py  -b $B --useVthc 
-python scripts/runTimeWalkScans.py  -b $B --useVthc --chON 
-python scripts/runTimeWalkScans.py  -b $B --useVthc --chON --ctestON
-
-python scripts/runTDCCalib.py  -b $B --toa  > runTOA_B$B.sh
-python scripts/runTDCCalib.py  -b $B --tot  > runTOT_B$B.sh
 
 
-python scripts/measureTimeWalk.py --skipExistingFile False --moreStatAtLowQ False --morePointsAtLowQ False --debug False --display False --checkOFtoa False --checkOFtot False --delay 2500 --QMax 63 --QStep 1 --out Data/ --board 8 --ch 14 --Cd 4 --DAC 350 --Vthc 64 --useProbeDiscri True --useProbePA True --N 100000 --QMin 4
-
-
-
-
- sleep 5 
-python scripts/thresholdScan.py  --skipExistingFile True --N 100 --debug False --display False --checkOFtoa False --checkOFtot False  --board 8 --delay 2500 --minVth 450 --maxVth 1023 --VthStep 2 --Cd 4 --ch 9 --out Data/ --autoStop True  --Q 39  --Vthc 64
- sleep 5 
-python scripts/thresholdScan.py  --skipExistingFile True --N 100 --debug False --display False --checkOFtoa False --checkOFtot False  --board 8 --delay 2500 --minVth 450 --maxVth 1023 --VthStep 2 --Cd 4 --ch 9 --out Data/ --autoStop True  --Q 52  --Vthc 64
+git commit -am "update runX"
