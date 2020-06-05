@@ -1,5 +1,5 @@
 ##########################################
-#TOA analysis
+#Analysis of the outputs of the measureTOA.py script
 ##########################################
 
 #read data from an input file containing a list of file:
@@ -15,16 +15,16 @@ python python/anaTOA.py --allPlots --display --inputDir Data/B8_toa_clkTree --se
 python python/anaTOA.py -h
 
 ##########################################
-#Threshold analysis
+#Analysis of the outputs of the thresholdScan.py script
 ##########################################
 
 #read data from a directory (it is also possible to provide a list of file as above)
-python python/anaThreshold.py --display --allPlots -i Data/B4_thres/ --xmin 200 --xmax 600 
+python python/anaThreshold.py --display --allPlots -i Data/B4_thres/ --xmin 200 --xmax 600 --QRef 52
 
-#in addition to produce plots, DAC10bit and bit_vth_cor is printed on the screen
+#in addition to produce plots, it computes DAC10bit and bit_vth_cor which are printed on the screen and pasted to the config file when needed
 
 ##########################################
-#TimeWalk analysis
+#Analysis of the outputs of the measureTimeWalk.py script
 ##########################################
 
 #read data from a directory (it is also possible to provide a list of file as above)

@@ -24,6 +24,8 @@ from Utils import *
 
 
 parser = OptionParser()
+QRef=52
+parser.add_option("--QRef", help="Charge values to make some plots", default=52,type=int)
 parser.add_option("-f","--fileList", help="file containing a list of input file", default=None)
 parser.add_option("-i","--inputDir", help="Data location", default=None)#"Data/B8_toa_clkTree/")
 parser.add_option("-s","--select", help="select only file names containing this string", default="")
@@ -42,7 +44,7 @@ fileNameList=getFileList(options.inputDir,options.fileList,options.select)
 DelayStep=9.5582
 Qconv=10./13.
 delayRef=2450*DelayStep
-
+nChannelsMax=15
 
 ###########################################################################
 # 
@@ -59,7 +61,13 @@ allData=collections.OrderedDict()
 LSBList=[]
 chList=[]
 TOARefList=[]
+QList=[]
+jitterMeanList=[]
+for i in range(nChannelsMax):
+    QList.append([])
+    jitterMeanList.append([])
 
+counterColor=0
 for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFileName(n)[1])):
     print ("process ",fileName)
     #define lists  to store data
@@ -79,7 +87,6 @@ for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFi
     delayMap,dataMap=readTOAFile(fileName,Qconv=Qconv,DelayStep=DelayStep)
 
     #loop over data
-    counter=0
     nMax=0
     for delay in sorted(dataMap.keys()):
 
@@ -150,53 +157,62 @@ for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFi
         current_cmap.set_bad(color='white')
         X, Y = np.meshgrid(xedges, yedges)        
 
+    if Q==QRef:
+        counterColor+=1
+        # plots with LSB applied
+        fig, ax = plt.subplots(3,1)
+        ax[0].plot(delayArray,effArray,label="eff")
+        ax[0].set_ylabel("Efficiency", fontsize = 10)
+        ax[1].plot(delayArray,toaMeanArray*LSBTOA,label="TOA")
+        ax[1].set_ylabel("<TOA> [ps]", fontsize = 10)
+        ax[2].plot(delayArray,jitterArray*LSBTOA,label="Jitter")
+        ax[2].set_ylabel("jitter [ps]", fontsize = 10)
+        ax[2].set_xlabel("Delay [ps]", fontsize = 10)
+        if options.allPlots:plt.savefig("TOA_"+os.path.basename(fileName)+"_All.pdf")
+        plt.close()
 
-    # plots with LSB applied
-    fig, ax = plt.subplots(3,1)
-    ax[0].plot(delayArray,effArray,label="eff")
-    ax[0].set_ylabel("Efficiency", fontsize = 10)
-    ax[1].plot(delayArray,toaMeanArray*LSBTOA,label="TOA")
-    ax[1].set_ylabel("<TOA> [ps]", fontsize = 10)
-    ax[2].plot(delayArray,jitterArray*LSBTOA,label="Jitter")
-    ax[2].set_ylabel("jitter [ps]", fontsize = 10)
-    ax[2].set_xlabel("Delay [ps]", fontsize = 10)
-    if options.allPlots:plt.savefig("TOA_"+os.path.basename(fileName)+"_All.pdf")
-    plt.close()
+        # TOA mean only without LSB applied
+        figTOA=plt.figure()
+        gs = gridspec.GridSpec(3,1)
+        ax1 = plt.subplot(gs[:2, :])
+        ax1.scatter(delayArray[okEff],toaMeanArray[okEff],label="TOA with eff cut", facecolors='none', edgecolors='green')
+        ax1.plot(delayArray[okEff], pol1(delayArray[okEff], params[0], params[1]),label='pol1',color='r')
+        if options.bidim:    ax1.pcolormesh(X, Y, HTOA,cmap=plt.cm.jet)
+        ax1.set_ylabel("<TOA> [dac]", fontsize = 10)
+        ax1.set_xlabel("Delay [ps]", fontsize = 10)
+        ax1.set_xlim(left=delayMin)
+        ax1.set_xlim(right=delayMax)
+        ax1.text(0.8,0.8,'LSB='+str(round(LSBTOA,1))+"ps",horizontalalignment='center',verticalalignment='center', transform = ax1.transAxes)
+        ax2 = plt.subplot(gs[2, :]) 
+        ax2.scatter(delayArray[okEff],toaMeanArray[okEff]-pol1(delayArray[okEff], params[0], params[1]),label="TOA with eff cut", facecolors='none', edgecolors='green')
+        ax2.set_xlim(left=delayMin)
+        ax2.set_xlim(right=delayMax)
+        ax2.set_ylabel("Fit residual", fontsize = 10)
+        ax2.set_xlabel("Delay [ps]", fontsize = 10)
+        if options.allPlots:plt.savefig("TOA_"+os.path.basename(fileName)+"_toaMean.pdf")
+        plt.close()
 
-    # TOA mean only without LSB applied
-    figTOA=plt.figure()
-    gs = gridspec.GridSpec(3,1)
-    ax1 = plt.subplot(gs[:2, :])
-    ax1.scatter(delayArray[okEff],toaMeanArray[okEff],label="TOA with eff cut", facecolors='none', edgecolors='green')
-    ax1.plot(delayArray[okEff], pol1(delayArray[okEff], params[0], params[1]),label='pol1',color='r')
-    if options.bidim:    ax1.pcolormesh(X, Y, HTOA,cmap=plt.cm.jet)
-    ax1.set_ylabel("<TOA> [dac]", fontsize = 10)
-    ax1.set_xlabel("Delay [ps]", fontsize = 10)
-    ax1.set_xlim(left=delayMin)
-    ax1.set_xlim(right=delayMax)
-    ax1.text(0.8,0.8,'LSB='+str(round(LSBTOA,1))+"ps",horizontalalignment='center',verticalalignment='center', transform = ax1.transAxes)
-    ax2 = plt.subplot(gs[2, :]) 
-    ax2.scatter(delayArray[okEff],toaMeanArray[okEff]-pol1(delayArray[okEff], params[0], params[1]),label="TOA with eff cut", facecolors='none', edgecolors='green')
-    ax2.set_xlim(left=delayMin)
-    ax2.set_xlim(right=delayMax)
-    ax2.set_ylabel("Fit residual", fontsize = 10)
-    ax2.set_xlabel("Delay [ps]", fontsize = 10)
-    if options.allPlots:plt.savefig("TOA_"+os.path.basename(fileName)+"_toaMean.pdf")
-    plt.close()
+        #comparison plots TOAMean
+        plt.figure(figTOAMean.number)
+        axTOAMean.scatter(delayArray[okEff],toaMeanArray[okEff]*LSBTOA,s=10,label=label, color=colors[counterColor-1])#, markersize=5)
 
-    #comparison plots TOAMean
-    plt.figure(figTOAMean.number)
-    axTOAMean.scatter(delayArray[okEff],toaMeanArray[okEff]*LSBTOA,s=10,label=label, color=colors[fileNb])#, markersize=5)
+        #comparison plots Jitter
+        plt.figure(figJitter.number)
+        axJitter.scatter(delayArray[okEff],jitterArray[okEff]*LSBTOA,s=10,label=label, color=colors[counterColor-1])#, markersize=5)
 
-    #comparison plots Jitter
-    plt.figure(figJitter.number)
-    axJitter.scatter(delayArray[okEff],jitterArray[okEff]*LSBTOA,s=10,label=label, color=colors[fileNb])#, markersize=5)
+        #save some data
+        LSBList.append(LSBTOA)
+        chList.append(ch)
+        TOARefList.append(TOARef)
 
-    #save some data
-    LSBList.append(LSBTOA)
-    chList.append(ch)
-    TOARefList.append(TOARef)
 
+    #save more data
+    jitterMean=np.mean(jitterArray[okEff])*LSBTOA
+    QList[ch].append(Q)
+    jitterMeanList[ch].append(jitterMean)
+
+    #print
+    #print (board,ch,cd,thres,vthc,Q,LSBTOA,jitterMean,TOARef)
 
 #toaMean summary plot
 plt.figure(figTOAMean.number)
@@ -219,6 +235,8 @@ plt.legend(loc='upper right', prop={"size":6})
 plt.savefig("TOA_SummaryJitter.pdf")
 
 #convert to numpy array
+jitterMeanArray=np.array(jitterMeanList)
+QArray=np.array(QList)
 chArray=np.array(chList)
 LSBArray=np.array(LSBList)
 TOARefArray=np.array(TOARefList)
@@ -238,6 +256,16 @@ axTOARef.scatter(chArray,TOARefArray)
 axTOARef.set_xlabel("Channel number", fontsize = 10)
 axTOARef.set_ylabel("TOA for delay="+str(int(delayRef))+"ps [ps]", fontsize = 10)
 plt.savefig("TOA_TOARefvsCh.pdf")
+
+#jitter vs Q
+figjitterMean=plt.figure('jitterMean')
+axjitterMean = figjitterMean.add_subplot(1,1,1)
+for ich in range(nChannelsMax):
+    axjitterMean.scatter(np.multiply(QArray[ich],Qconv),jitterMeanArray[ich],color=colors[ich],label="ch"+str(ich))
+axjitterMean.set_xlabel("Injected charge [fC]", fontsize = 10)
+axjitterMean.set_ylabel("Jitter [ps]", fontsize = 10)
+plt.legend(loc='upper right', prop={"size":6})
+plt.savefig("TOA_jitterMeanvsQ.pdf")
 
 
 #display figures

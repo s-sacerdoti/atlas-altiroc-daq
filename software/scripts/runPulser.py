@@ -17,11 +17,11 @@ from computeVth import *
 #####################
 
 
-doThres     = 0
+doThres     = 1
 doNoise     = 0 # Thres with high stat for few Q
 doLinearity = 0 #  Thres for many Q
 
-doTW        = 0
+doTW        = 1
 doPS        = 0 # TW with thres. scan
 
 doTOA       = 1

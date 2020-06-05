@@ -116,13 +116,13 @@ plt.savefig("Thres_SummaryEff.pdf")
 ###########################################################################
 
 thresRef=int(np.mean(list(thresDict.values())))
-print ("Reference threshold (DAC10bit): ",thresRef)
+print ("        DAC10bit:  ",thresRef)
 for key in sorted(thresDict.keys(),key=lambda n:n[2]):
     fileName,board,ch,cd,Q=key
     thres=thresDict[key]
 
     vthc=int(64+(thresRef-thres)*0.4/0.8)
-    print ("        bit_vth_cor["+str(ch)+"]: "+str(vthc)+"   #"+str(thres))
+    print ("        bit_vth_cor["+str(ch)+"]: "+str(vthc)+"   #DAC10bit="+str(int(thres)))
 
 
     if vthc<0 or vthc>126:
