@@ -24,18 +24,20 @@ from Utils import *
 
 
 parser = OptionParser()
-#parser.add_option("-f","--fileName", help="", default=None)
-parser.add_option("-N","--Nevents", help="Data location", default=100,type=int)
-parser.add_option("-i","--inputDir", help="Data location", default="Data/B8_toa_clkTree/")
-parser.add_option("-e","--extra", help="select only file names containing this string", default="")
-parser.add_option("--Qmax", help="max Q", default=None,type=int)
-parser.add_option("--Qmin", help="min Q", default=None,type=int)
-parser.add_option("-a","--allPlots", help="make all plots", default=False,action="store_true")
-parser.add_option("-b","--bidim", help="make bidim ", default=False,action="store_true")
+parser.add_option("-f","--fileList", help="file containing a list of input file", default=None)
+parser.add_option("-i","--inputDir", help="Data location", default=None)#"Data/B8_toa_clkTree/")
+parser.add_option("-s","--select", help="select only file names containing this string", default="")
+parser.add_option("-a","--allPlots", help="make all plots for debugging purpose", default=False,action="store_true")
+parser.add_option("-d","--display", help="display summary plots on screen", default=False,action="store_true")
+parser.add_option("-b","--bidim", help="make TOA vs delay 2D plot (a bit slower) ", default=False,action="store_true")
 (options, args) = parser.parse_args()
 
-fileNameList=glob.glob(options.inputDir+"/*"+options.extra+"*.txt")
+#make list of input files
+fileNameList=getFileList(options.inputDir,options.fileList,options.select)
 
+###########################################################################
+# some parameters
+###########################################################################
 
 DelayStep=9.5582
 Qconv=10./13.
@@ -46,27 +48,21 @@ delayRef=2450*DelayStep
 # 
 ###########################################################################
 
+#define figures
 figTOAMean=plt.figure('TOAMean')
 axTOAMean = figTOAMean.add_subplot(1,1,1)
-
 figJitter=plt.figure('Jitter')
 axJitter = figJitter.add_subplot(1,1,1)
 
+#define lists to store data
 allData=collections.OrderedDict()
 LSBList=[]
 chList=[]
 TOARefList=[]
 
 for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFileName(n)[1])):
-    #print (fileName)
-    # extra information from the file name
-    board,ch,cd,thres,vthc,Q=getInfoFromFileName(fileName)
-    label="B"+str(board)+" ch"+str(ch)+" Vth="+str(thres)+" Vthc="+str(vthc)+" Q="+str(Q)
-
-    #get data
-    delayMap,dataMap=readTOAFile(fileName,Qconv=Qconv,DelayStep=DelayStep)
-
-
+    print ("process ",fileName)
+    #define lists  to store data
     delayList=[]
     delayDACList=[]
     toaMeanList=[]
@@ -75,17 +71,28 @@ for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFi
     effList=[]
     allDelayList=[]
 
+    # extract information from the file name
+    board,ch,cd,thres,vthc,Q=getInfoFromFileName(fileName)
+    label="B"+str(board)+" ch"+str(ch)+" Vth="+str(thres)+" Vthc="+str(vthc)+" Q="+str(Q)
+
+    #get data
+    delayMap,dataMap=readTOAFile(fileName,Qconv=Qconv,DelayStep=DelayStep)
+
+    #loop over data
     counter=0
     nMax=0
     for delay in sorted(dataMap.keys()):
+
+        #convert data to numpy array
         toaList=np.array(dataMap[delay])
 
         #extract information
         okTOA=toaList!=127 #used to remove saturated toa
-        toaOKList=toaList[okTOA]
+        toaOKList=toaList[okTOA]#data without saturated toa
+
+        #compute mean and jitter
         TOAMean=0
         jitter=0
-
         if len(toaList)>    nMax:
             nMax=len(toaList)
         if len(toaOKList)>10:#compute mean and jitter with at N events
@@ -103,7 +110,9 @@ for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFi
             allTOAList.append(toa)
             allDelayList.append(delay)
 
+    #skip when no data
     if len(effList)==0: continue
+
     #convert to np array
     effArray=np.array(effList)/nMax
     delayArray=np.array(delayList)
@@ -112,9 +121,8 @@ for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFi
     allDelayArray=np.array(allDelayList)
     allTOAArray=np.array(allTOAList)
 
-    # eff selection
+    # efficiency selection
     okEff=effArray>0.5
-    print (okEff,all(okEff))
     try:
         delayMin=int(min(delayArray[okEff])*0.99)
         delayMax=int(max(delayArray[okEff])*1.01)
@@ -123,16 +131,14 @@ for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFi
         delayMax=25000
         
     #compute LSB from a fit
-    #params, covariance = optimize.curve_fit(pol1, delayArray[okEff],toaMeanArray[okEff],p0=[1/20, 10000])
+    #params, covariance = optimize.curve_fit(pol1, delayArray[okEff],toaMeanArray[okEff],p0=[1/20, 10000])#fit using scipy
     params=np.polyfit(delayArray[okEff],toaMeanArray[okEff], 1)
-
     LSBTOA=0
     if params[0]!=0:
         LSBTOA=abs(1/params[0])
+    #compute TOA with the fit a given delay value
     TOARef=pol1(delayRef , params[0], params[1])*LSBTOA
     
-    print (board,ch,cd,thres,vthc,Q,TOARef,LSBTOA)
-
     #TOA vs delay 2D Hist
     if options.bidim:
         xedges = range(delayMin,delayMax,10)
@@ -145,7 +151,7 @@ for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFi
         X, Y = np.meshgrid(xedges, yedges)        
 
 
-    # all plots with LSB applied
+    # plots with LSB applied
     fig, ax = plt.subplots(3,1)
     ax[0].plot(delayArray,effArray,label="eff")
     ax[0].set_ylabel("Efficiency", fontsize = 10)
@@ -199,22 +205,25 @@ axTOAMean.set_xlabel("Delay [ps]", fontsize = 10)
 axTOAMean.set_ylabel("<TOA> [ps]", fontsize = 10)
 plt.legend(loc='upper right', prop={"size":6})
 plt.savefig("TOA_SummaryTOAMean.pdf")
+#plt.savefig("TOA_SummaryTOAMean.png")
 
 
 #jitter summary plot
 plt.figure(figJitter.number)
 #axToaMean.set_ylim(top=1.2)
 axJitter.set_xlabel("Delay [ps]", fontsize = 10)
-axJitter.set_ylabel("<TOA> [ps]", fontsize = 10)
+axJitter.set_ylabel("Jitter [ps]", fontsize = 10)
+axJitter.set_ylim(top=100)
+axJitter.set_ylim(bottom=0)
 plt.legend(loc='upper right', prop={"size":6})
 plt.savefig("TOA_SummaryJitter.pdf")
 
-#convert
+#convert to numpy array
 chArray=np.array(chList)
 LSBArray=np.array(LSBList)
 TOARefArray=np.array(TOARefList)
 
-
+#LSB vs channel
 figLSB=plt.figure('LSB')
 axLSB = figLSB.add_subplot(1,1,1)
 axLSB.scatter(chArray,LSBArray)
@@ -222,6 +231,7 @@ axLSB.set_xlabel("Channel nb", fontsize = 10)
 axLSB.set_ylabel("LSB", fontsize = 10)
 plt.savefig("TOA_LSBvsCh.pdf")
 
+#TOA vs channel
 figTOARef=plt.figure('TOARef')
 axTOARef = figTOARef.add_subplot(1,1,1)
 axTOARef.scatter(chArray,TOARefArray)
@@ -230,4 +240,6 @@ axTOARef.set_ylabel("TOA for delay="+str(int(delayRef))+"ps [ps]", fontsize = 10
 plt.savefig("TOA_TOARefvsCh.pdf")
 
 
-
+#display figures
+if options.display:
+    plt.show()

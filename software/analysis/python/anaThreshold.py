@@ -22,37 +22,34 @@ from Utils import *
 print (sys.argv)
 
 parser = OptionParser()
-#parser.add_option("-f","--fileName", help="", default=None)
-parser.add_option("-i","--inputDir", help="Data location", default="Data/B4_thres")
-parser.add_option("-e","--extra", help="select only file names containing this string", default="")
+parser.add_option("-f","--fileList", help="file containing a list of input file", default=None)
+parser.add_option("-i","--inputDir", help="Data location", default=None)
+parser.add_option("-s","--select", help="select only file names containing this string", default="")
+parser.add_option("-d","--display", help="display summary plots on screen", default=False,action="store_true")
 parser.add_option("--xmax", help="max of x axis", default=None,type=int)
 parser.add_option("--xmin", help="min of x axis", default=None,type=int)
 parser.add_option("-a","--allPlots", help="make all plots", default=False,action="store_true")
 (options, args) = parser.parse_args()
 
-
-fileNameList=glob.glob(options.inputDir+"/*"+options.extra+"*.txt")
-
-
+#make list of input files
+fileNameList=glob.glob(options.inputDir+"/*"+options.select+"*.txt")
 
 
 ###########################################################################
 # get all data and compute efficiency
 ###########################################################################
-thresDict={}
 
+thresDict={}
 allData=collections.OrderedDict()
 for fileName in fileNameList:
 
-    # extra information from the file name
+    # extract information from the file name
     board,ch,cd,thres,vthc,Q=getInfoFromFileName(fileName)
-
 
     #get data
     NArray,thresArray,nHitArray,nHit2Array=readThresFile(fileName)
     
     #compute eff
-
     effArray=nHitArray/NArray
     effErArray=np.sqrt(effArray*(1-effArray)/NArray)
     eff2Array=nHit2Array/NArray
@@ -61,31 +58,30 @@ for fileName in fileNameList:
 
     #threshold
     thres,eff,eff2=getThreshold(thresArray,nHitArray,nHit2Array,NArray)
-    #print (fileName,"Thres=",thres,eff,eff2)
     thresDict[(fileName,board,ch,cd,Q)]=thres
 
 ###########################################################################
 # make efficiency plots
 ###########################################################################
 
-
-#figEff, axEff = plt.subplots("Eff")
+#define figure 
 figEff=plt.figure('Efficiency')
 axEff = figEff.add_subplot(1,1,1)
 axEff.set_ylim(top=1.2)#+0.1*len(allData))
 
 counter=0
-
 for fileName in sorted(allData.keys(),key=lambda n: getInfoFromFileName(n)[1]):
+    counter+=1
 
+    # extract information from the file name
     board,ch,cd,thres,vthc,Q=getInfoFromFileName(fileName)
     label="B"+str(board)+" ch"+str(ch)+" Qdac="+str(Q)
 
+    #get data
     data=allData[fileName]
-    counter+=1
     thresArray,effArray,effErArray,eff2Array,eff2ErArray=data
 
-    #common plot
+    #common eff plot
     plt.figure(figEff.number)
     plt.plot(thresArray,effArray,label=label,color=colors[counter-1])
 
@@ -100,8 +96,8 @@ for fileName in sorted(allData.keys(),key=lambda n: getInfoFromFileName(n)[1]):
     plt.plot(thresArray,eff2Array,label="Eff without 127")
     plt.legend(loc='upper left')
     if options.allPlots:plt.savefig("Thres_"+os.path.basename(fileName)+".pdf")
+    plt.close()
 
-#plt.show()
 plt.figure('Efficiency')
 if options.xmax is not None:
     axEff.set_xlim(right=options.xmax)
@@ -120,7 +116,7 @@ plt.savefig("Thres_SummaryEff.pdf")
 ###########################################################################
 
 thresRef=int(np.mean(list(thresDict.values())))
-print ("Reference threshold: ",thresRef)
+print ("Reference threshold (DAC10bit): ",thresRef)
 for key in sorted(thresDict.keys(),key=lambda n:n[2]):
     fileName,board,ch,cd,Q=key
     thres=thresDict[key]
@@ -133,4 +129,9 @@ for key in sorted(thresDict.keys(),key=lambda n:n[2]):
         print ("PRB vthc !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         break
 
+
+
+#display figures
+if options.display:
+    plt.show()
 

@@ -19,20 +19,28 @@ from Utils import *
 # command line arguments
 ###########################################################################
 
-print (sys.argv)
+
 
 parser = OptionParser()
 #parser.add_option("-f","--fileName", help="", default=None)
-parser.add_option("-N","--Nevents", help="Data location", default=100,type=int)
-parser.add_option("-i","--inputDir", help="Data location", default="Data/B8_tw")
-parser.add_option("-e","--extra", help="select only file names containing this string", default="")
+parser.add_option("-f","--fileList", help="file containing a list of input file", default=None)
+parser.add_option("-i","--inputDir", help="Data location", default=None)#"Data/B8_toa_clkTree/")
+parser.add_option("-s","--select", help="select only file names containing this string", default="")
+parser.add_option("-a","--allPlots", help="make all plots for debugging purpose", default=False,action="store_true")
+parser.add_option("-d","--display", help="display summary plots on screen", default=False,action="store_true")
+parser.add_option("-N","--Nevents", help="Nb of events during data taking. Needed to compute efficiency", default=100,type=int)
 parser.add_option("--Qmax", help="max Q", default=None,type=int)
 parser.add_option("--Qmin", help="min Q", default=None,type=int)
-parser.add_option("-d","--debug", help="for debugging purpose", default=False,action="store_true")
+
 (options, args) = parser.parse_args()
 
 
-fileNameList=glob.glob(options.inputDir+"/*"+options.extra+"*.data")
+#make list of input files
+fileNameList=getFileList(options.inputDir,options.fileList,options.select,extension="data")
+
+###########################################################################
+# some parameters
+###########################################################################
 
 LSBTOA=20
 LSBTOTC=160
@@ -44,35 +52,31 @@ Qconv=10./13.
 # 
 ###########################################################################
 
+#define figures
 figEff=plt.figure('Efficiency')
 axEff = figEff.add_subplot(1,1,1)
-
 figTOAmean=plt.figure('TOAmean')
 axTOAmean = figTOAmean.add_subplot(1,1,1)
-
 figTOArms=plt.figure('TOArms')
 axTOArms = figTOArms.add_subplot(1,1,1)
-
-
 figTOTCmean=plt.figure('TOTCmean')
 axTOTCmean = figTOTCmean.add_subplot(1,1,1)
+#figTOTCrms=plt.figure('TOTCrms')
+#axTOTCrms = figTOTCrms.add_subplot(1,1,1)
 
-figTOTCrms=plt.figure('TOTCrms')
-axTOTCrms = figTOTCrms.add_subplot(1,1,1)
-
-
-
+#define dict to store data
 allData=collections.OrderedDict()
 
+#loop over files
 for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFileName(n)[1])):
-    print (fileName)
-    # extra information from the file name
+    print ("Process: ",fileName)
+
+    # extra informatiaon from the file name
     board,ch,cd,thres,vthc,Q=getInfoFromFileName(fileName)
     label="B"+str(board)+" ch"+str(ch)+" Vth="+str(thres)+" Vthc="+str(vthc)
 
     #get data
     QArray,QDACArray,pixel_data=readTimeWalkFile(fileName,Qconv=Qconv)
-
 
     #initialize list
     effArray = np.zeros(len(QArray))
@@ -81,24 +85,21 @@ for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFi
     TOTCmeanArray = np.zeros(len(QArray))-9999.
     TOTCrmsArray = np.zeros(len(QArray))-9999.
 
-
-    # compute variables
+    # loop over charges
     for counter,Q in enumerate(QArray):
+       QDAC=QDACArray[counter]
         
        #skip when almost no data
        if len(pixel_data[('HitDataTOA',Q)])<=2:
            continue
-
-       QDAC=QDACArray[counter]
        
        #compute eff
        toaof=0
        for ele in  pixel_data[('HitDataTOA',Q)]:
            if ele==127:toaof+=1
        eff= float(len(pixel_data[('HitDataTOA',Q)])-toaof)/options.Nevents
-
        
-       #stop here if very low eff
+       #stop here if very low eff (can't compute jitter with very low stat)
        if eff<0.05: continue
 
        #compute TOA mean and rms without saturated TOA
@@ -119,6 +120,7 @@ for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFi
            TOTCmean=np.mean(totcVec)*LSBTOTC
            TOTCrms=np.std(totcVec)*LSBTOTC
 
+       #fill list
        effArray[counter]=eff
        if not math.isnan(TOAmean):TOAmeanArray[counter]=TOAmean
        if not math.isnan(TOArms):TOArmsArray[counter]=TOArms
@@ -143,9 +145,9 @@ for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFi
     plt.plot(QArray,TOTCmeanArray,label=label,color=colors[fileNb])
 
     # TOTC rms
-    plt.figure(figTOTCrms.number)
-    plt.plot(QArray,TOTCrmsArray,label=label,color=colors[fileNb])
-
+    #plt.figure(figTOTCrms.number)
+    #plt.plot(QArray,TOTCrmsArray,label=label,color=colors[fileNb])
+    
 
 
 #eff
@@ -208,3 +210,26 @@ axTOTCmean.set_xlabel("Q [fC]", fontsize = 10)
 axTOTCmean.set_ylabel("<TOTC> [ps]", fontsize = 10)
 plt.legend(loc='upper left', prop={"size":6})
 plt.savefig("TW_SummaryTOTCmean.pdf")
+
+
+
+# #TOTC rms
+# axTOTCrms.set_title('Plot done with LSBTOTC='+str(LSBTOTC)+"ps", fontsize = 11)
+# plt.figure(figTOTCrms.number)
+# if options.Qmax is not None:
+#     axTOTCrms.set_xlim(right=options.Qmax)
+# if options.Qmin is not None:
+#     axTOTCrms.set_xlim(left=options.Qmin)
+# axTOTCrms.set_ylim(bottom=0)
+# axTOTCrms.set_ylim(top=127*LSBTOTC)
+# axTOTCrms.set_xlabel("Q [fC]", fontsize = 10)
+# axTOTCrms.set_ylabel("TOTC rms [ps]", fontsize = 10)
+# plt.legend(loc='upper left', prop={"size":6})
+# plt.savefig("TW_SummaryTOTCrms.pdf")
+
+
+
+
+#display figures
+if options.display:
+    plt.show()

@@ -1,0 +1,33 @@
+##########################################
+#TOA analysis
+##########################################
+
+#read data from an input file containing a list of file:
+python python/anaTOA.py --allPlots --display --fileList  inputTOA.list 
+
+#read data from a directory
+python python/anaTOA.py --allPlots --display --inputDir Data/B8_toa_clkTree
+
+#read data from a directory using only files with that match a string selection
+python python/anaTOA.py --allPlots --display --inputDir Data/B8_toa_clkTree --select thres_3
+
+# get information about the options
+python python/anaTOA.py -h
+
+##########################################
+#Threshold analysis
+##########################################
+
+#read data from a directory (it is also possible to provide a list of file as above)
+python python/anaThreshold.py --display --allPlots -i Data/B4_thres/ --xmin 200 --xmax 600 
+
+#in addition to produce plots, DAC10bit and bit_vth_cor is printed on the screen
+
+##########################################
+#TimeWalk analysis
+##########################################
+
+#read data from a directory (it is also possible to provide a list of file as above)
+python python/anaTimeWalk.py --display --allPlots -i Data/B8_tw/ --Qmin 0 --Qmax 60
+
+

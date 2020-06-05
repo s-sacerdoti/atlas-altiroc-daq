@@ -1,7 +1,7 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 # Import Modules                                                             # 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-import sys, os, string, shutil,pickle, subprocess, math
+import sys, os, string, shutil,pickle, subprocess, math, glob
 import getpass
 from array import array
 from math import *
@@ -37,6 +37,21 @@ colors=[
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 # Functions                                                                  # 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+
+
+def getFileList(inputDir,fileList,select,extension="txt"):
+    if inputDir==None and fileList==None:
+        print ("No input provided. Exit...")
+        sys.exit
+    elif inputDir!=None and fileList!=None:
+        print ("You should either the --inputDir or --fileList options but not both")
+        sys.exit
+    else:
+        if inputDir!=None:
+            return glob.glob(inputDir+"/*"+select+"*."+extension)
+        else:
+            f=open(fileList)
+            return [l.strip() for l in f.readlines()]
 
 
 #first order polynom
