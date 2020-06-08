@@ -39,16 +39,17 @@ colors=[
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 
 
-def getFileList(inputDir,fileList,select,extension="txt"):
+def getFileList(inputDir,fileList,measType="",select="",extension="txt"):
     if inputDir==None and fileList==None:
         print ("No input provided. Exit...")
         sys.exit
+    
     elif inputDir!=None and fileList!=None:
         print ("You should either the --inputDir or --fileList options but not both")
         sys.exit
     else:
         if inputDir!=None:
-            return glob.glob(inputDir+"/*"+select+"*."+extension)
+            return glob.glob(inputDir+"/*"+measType+"*"+select+"*."+extension)
         else:
             f=open(fileList)
             return [l.strip() for l in f.readlines()]

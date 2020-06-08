@@ -35,7 +35,7 @@ parser.add_option("-b","--bidim", help="make TOA vs delay 2D plot (a bit slower)
 (options, args) = parser.parse_args()
 
 #make list of input files
-fileNameList=getFileList(options.inputDir,options.fileList,options.select)
+fileNameList=getFileList(options.inputDir,options.fileList,measType="TOA_B",select=options.select)
 
 ###########################################################################
 # some parameters
@@ -129,7 +129,7 @@ for fileNb,fileName in enumerate(sorted(fileNameList,key=lambda n: getInfoFromFi
     allTOAArray=np.array(allTOAList)
 
     # efficiency selection
-    okEff=effArray>0.5
+    okEff=effArray>0.8
     try:
         delayMin=int(min(delayArray[okEff])*0.99)
         delayMax=int(max(delayArray[okEff])*1.01)

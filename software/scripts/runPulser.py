@@ -17,15 +17,15 @@ from computeVth import *
 #####################
 
 
-doThres     = 1
+doThres     = 0
 doNoise     = 0 # Thres with high stat for few Q
 doLinearity = 0 #  Thres for many Q
 
-doTW        = 1
+doTW        = 0
 doPS        = 0 # TW with thres. scan
 
-doTOA       = 1
-doClockTree = 0 # TOA with at least Q=52 and maybe larger N
+doTOA       = 0
+doClockTree = 1 # TOA with at least Q=52 and maybe larger N
 doXtalk     = 0 # TOA Channels should be ON
 
 

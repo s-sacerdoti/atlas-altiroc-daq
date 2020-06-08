@@ -32,8 +32,8 @@ parser.add_option("-a","--allPlots", help="make all plots", default=False,action
 (options, args) = parser.parse_args()
 
 #make list of input files
-fileNameList=glob.glob(options.inputDir+"/*"+options.select+"*.txt")
-
+#fileNameList=glob.glob(options.inputDir+"/*"+options.select+"*.txt")
+fileNameList=getFileList(options.inputDir,options.fileList,measType="thres_B",select=options.select)
 
 ###########################################################################
 # get all data and compute efficiency

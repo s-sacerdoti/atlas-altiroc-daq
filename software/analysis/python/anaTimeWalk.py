@@ -37,6 +37,7 @@ parser.add_option("--Qmin", help="min Q", default=None,type=int)
 
 #make list of input files
 fileNameList=getFileList(options.inputDir,options.fileList,options.select,extension="data")
+fileNameList=getFileList(options.inputDir,options.fileList,measType="TW_B",select=options.select,extension="data")
 
 ###########################################################################
 # some parameters
@@ -157,7 +158,7 @@ if options.Qmax is not None:
 if options.Qmin is not None:
     axEff.set_xlim(left=options.Qmin)
 axEff.set_ylim(top=1.2)
-axEff.set_xlabel("Q [fC]", fontsize = 10)
+axEff.set_xlabel("Injected charge [fC]", fontsize = 10)
 axEff.set_ylabel("Efficiency", fontsize = 10)
 plt.legend(loc='upper right', prop={"size":6})
 plt.savefig("TW_SummaryEff.pdf")
@@ -174,7 +175,7 @@ if options.Qmin is not None:
     axTOAmean.set_xlim(left=options.Qmin)
 axTOAmean.set_ylim(bottom=0)
 axTOAmean.set_ylim(top=127*LSBTOA)
-axTOAmean.set_xlabel("Q [fC]", fontsize = 10)
+axTOAmean.set_xlabel("Injected charge [fC]", fontsize = 10)
 axTOAmean.set_ylabel("<TOA>  [ps]", fontsize = 10)
 plt.legend(loc='upper left', prop={"size":6})
 plt.savefig("TW_SummaryTOAmean.pdf")
@@ -189,7 +190,7 @@ if options.Qmin is not None:
     axTOArms.set_xlim(left=options.Qmin)
 axTOArms.set_ylim(bottom=0)
 axTOArms.set_ylim(top=5*LSBTOA)
-axTOArms.set_xlabel("Q [fC]", fontsize = 10)
+axTOArms.set_xlabel("Injected charge [fC]", fontsize = 10)
 axTOArms.set_ylabel("Jitter  [ps]", fontsize = 10)
 plt.legend(loc='upper right', prop={"size":6})
 plt.savefig("TW_SummaryTOArms.pdf")
@@ -206,7 +207,7 @@ if options.Qmin is not None:
     axTOTCmean.set_xlim(left=options.Qmin)
 axTOTCmean.set_ylim(bottom=0)
 axTOTCmean.set_ylim(top=127*LSBTOTC)
-axTOTCmean.set_xlabel("Q [fC]", fontsize = 10)
+axTOTCmean.set_xlabel("Injected charge [fC]", fontsize = 10)
 axTOTCmean.set_ylabel("<TOTC> [ps]", fontsize = 10)
 plt.legend(loc='upper left', prop={"size":6})
 plt.savefig("TW_SummaryTOTCmean.pdf")
