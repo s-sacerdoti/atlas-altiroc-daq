@@ -25,7 +25,8 @@ doTW        = 0
 doPS        = 0 # TW with thres. scan
 
 doTOA       = 0
-doClockTree = 1 # TOA with at least Q=52 and maybe larger N
+doClockTree = 0 # TOA with at least Q=52 and maybe larger N
+doDNL       = 1 # TOA step=1
 doXtalk     = 0 # TOA Channels should be ON
 
 
@@ -38,7 +39,7 @@ chList=None
 
 
 
-if doTOA+doClockTree +doXtalk>1:
+if doTOA+doClockTree +doXtalk+doDNL>1:
     print ("Prb TOA")
     sys.exit()
 if doThres+doNoise+doLinearity >1:
@@ -71,6 +72,12 @@ QTOAList=[4,5,6,7,8,9,13,26,52]#default
 #Ntoa=500;delayStep=20;#QTOAList=[52] #Default to check distributions
 
 
+if doDNL:
+    doTOA=1
+    delayStep=1
+    QTOAList=[52]#ClockTree
+    Ntoa=500
+        
 if doClockTree:
     doTOA=1
     QTOAList=[13,26,52]#ClockTree

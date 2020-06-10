@@ -3,13 +3,13 @@
 ##########################################
 
 #read data from an input file containing a list of file:
-python python/anaTOA.py --allPlots --display --fileList  inputTOA.list 
+python python/anaTOA.py --QRef 52 --allPlots --display --fileList  inputTOA.list 
 
 #read data from a directory
-python python/anaTOA.py --allPlots --display --inputDir Data/B8_toa_clkTree
+python python/anaTOA.py --QRef 52  --allPlots --display --inputDir Data/B8_toa_clkTree
 
 #read data from a directory using only files with that match a string selection
-python python/anaTOA.py --allPlots --display --inputDir Data/B8_toa_clkTree --select thres_3
+python python/anaTOA.py --QRef 52  --allPlots --display --inputDir Data/B8_toa_clkTree --select thres_3
 
 # get information about the options
 python python/anaTOA.py -h
