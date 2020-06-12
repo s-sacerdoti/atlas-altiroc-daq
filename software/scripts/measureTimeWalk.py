@@ -258,6 +258,8 @@ def measureTimeWalk(argsip,
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
     #for i in range(15):print(i,top.Fpga[0].Asic.SlowControl.bit_vth_cor[i].value())
+    print (os.path.abspath(Configuration_LOAD_file))
+
     
     # get data
     pixel_data = acquire_data(top, useExt,QRange,Nevts,args.ch,readAllData=args.readAllChannels)
