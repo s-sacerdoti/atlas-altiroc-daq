@@ -18,11 +18,11 @@ from computeVth import *
 
 doSepDir = 1
 
-doThres     = 1
+doThres     = 0
 doNoise     = 0 # Thres with high stat for few Q
 doLinearity = 0 #  Thres for many Q
 
-doTW        = 1
+doTW        = 0
 doPS        = 0 # TW with thres. scan
 
 doTOA       = 1
@@ -269,7 +269,9 @@ if __name__ == "__main__":
                 ###############################
                 # measure TOA
                 ###############################
-                if doTOA:
+            
+            if doTOA:
+                for vthc in vthcList:
                     if dac!=dacNom: continue
                     for Q in QTOAList:
                         if Q<0:#trig ext                        

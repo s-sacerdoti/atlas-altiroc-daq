@@ -258,8 +258,10 @@ def measureTimeWalk(argsip,
     #You MUST call this function after doing ASIC configurations!!!
     top.initialize()
     #for i in range(15):print(i,top.Fpga[0].Asic.SlowControl.bit_vth_cor[i].value())
-    print (os.path.abspath(Configuration_LOAD_file))
-    os.system("cat "+Configuration_LOAD_file)
+    # print (os.path.abspath(Configuration_LOAD_file))
+    # os.system("cat "+Configuration_LOAD_file)
+    # os.system("pwd ")
+    # os.system("echo $PYTHONPATH ")
 
     
     # get data
