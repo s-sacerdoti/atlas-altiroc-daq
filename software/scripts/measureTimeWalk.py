@@ -259,6 +259,7 @@ def measureTimeWalk(argsip,
     top.initialize()
     #for i in range(15):print(i,top.Fpga[0].Asic.SlowControl.bit_vth_cor[i].value())
     print (os.path.abspath(Configuration_LOAD_file))
+    os.system("cat "+Configuration_LOAD_file)
 
     
     # get data
