@@ -23,16 +23,16 @@ doNoise     = 0 # Thres with high stat for few Q
 doLinearity = 0 #  Thres for many Q
 
 doTW        = 0
-doPS        = 0 # TW with thres. scan
+doPS        = 1 # TW with thres. scan
 
-doTOA       = 1
+doTOA       = 0
 doClockTree = 0 # TOA with at least Q=52 and maybe larger N
 doDNL       = 0 # TOA step=1
 doXtalk     = 0 # TOA Channels should be ON
 
 
 chList=None
-#chList=[4,9,14]
+chList=[4,9,14]
 
 #####################
 # 
@@ -232,7 +232,7 @@ if __name__ == "__main__":
                 dacListLocal=list(range(dacNom-40,dacNom+150,4))
 
                 #dacListLocal=list(range(dacNom-100,dacNom+150,10))
-                dacListLocal=list(range(dacNom+150,dacNom+250,10))
+                #dacListLocal=list(range(dacNom+150,dacNom+250,10))
 
             
             #print(ch,cd,delay,dacListLocal,vthcList)            
