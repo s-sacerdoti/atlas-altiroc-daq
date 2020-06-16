@@ -19,11 +19,11 @@ from computeVth import *
 doSepDir = 1
 
 doThres     = 0
-doNoise     = 0 # Thres with high stat for few Q
+doNoise     = 1 # Thres with high stat for few Q
 doLinearity = 0 #  Thres for many Q
 
 doTW        = 0
-doPS        = 1 # TW with thres. scan
+doPS        = 0 # TW with thres. scan
 
 doTOA       = 0
 doClockTree = 0 # TOA with at least Q=52 and maybe larger N
@@ -114,7 +114,8 @@ if doNoise:
     Nthres=1000
     thresStep=1
     thresMax=600
-    QThresList=[6,13]
+    QThresList=[6,13]#10
+    #QThresList=[5,9,6,13]
 
 
     
@@ -137,7 +138,7 @@ if __name__ == "__main__":
     args = parse_arguments()
     
 
-    boardASICAlone=[8,9,10,11,12,14,15]
+    boardASICAlone=[4,8,9,10,11,12,14,15]
     board=args.board
 
     #output dir name
@@ -178,7 +179,7 @@ if __name__ == "__main__":
     if board in boardASICAlone:
         cdList=[4,];
         #chList=[4,9]
-        #cdList=[4,5,6,7];
+        cdList=[4,5,6,7];
         
     #threshold
     dacMap=None
@@ -229,7 +230,7 @@ if __name__ == "__main__":
                 qMin=0;#for pedestal
                 qMax=26+1#26;
                 qStep=4 #for pulse shape#PULSESHAPE
-                dacListLocal=list(range(dacNom-40,dacNom+150,4))
+                dacListLocal=list(range(dacNom-40,dacNom+200,4))
 
                 #dacListLocal=list(range(dacNom-100,dacNom+150,10))
                 #dacListLocal=list(range(dacNom+150,dacNom+250,10))
@@ -312,7 +313,7 @@ if __name__ == "__main__":
         for ch in chList:
             for cd in cdList:
                 for Q in QThresList:#ATT TRIG EXT
-                    if Q >6:
+                    if Q >6 and (board,ch,cd) in dacMap.keys():
                         thresMinLocal=dacMap[(board,ch,cd)]-20+(Q-3)*7
                         thresMinLocal=min(thresMinLocal,450)
                     else:
