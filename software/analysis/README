@@ -2,14 +2,16 @@
 #Analysis of the outputs of the measureTOA.py script
 ##########################################
 
+#read data from a directory
+python python/anaTOA.py --QRef 52  --allPlots --display --inputDir Data/B4_toa
+
+#read data from a directory using only files with that match a string selection
+python python/anaTOA.py --QRef 52  --allPlots --display --inputDir Data/B4_toa --select thres_3
+
+
 #read data from an input file containing a list of file:
 python python/anaTOA.py --QRef 52 --allPlots --display --fileList  inputTOA.list 
 
-#read data from a directory
-python python/anaTOA.py --QRef 52  --allPlots --display --inputDir Data/B8_toa_clkTree
-
-#read data from a directory using only files with that match a string selection
-python python/anaTOA.py --QRef 52  --allPlots --display --inputDir Data/B8_toa_clkTree --select thres_3
 
 # get information about the options
 python python/anaTOA.py -h
@@ -28,6 +30,6 @@ python python/anaThreshold.py --display --allPlots -i Data/B4_thres/ --xmin 200 
 ##########################################
 
 #read data from a directory (it is also possible to provide a list of file as above)
-python python/anaTimeWalk.py --display --allPlots -i Data/B8_tw/ --Qmin 0 --Qmax 60
+python python/anaTimeWalk.py --display --allPlots -i Data/B4_tw/ --Qmin 0 --Qmax 60
 
 
