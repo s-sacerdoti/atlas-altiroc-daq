@@ -38,7 +38,7 @@ see also scripts/setASICconfig.py called in all scripts
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch 18 of the IB should be OFF
 
-python scripts/thresholdScan.py  --skipExistingFile True --N 100 --debug False --display False --checkOFtoa False --checkOFtot False  --board 8   --Rin_Vpa 0 --delay 2450 --minVth 260 --maxVth 1023 --autoStop True --VthStep 2 --Cd 4 --ch 1 --Q 3 --out Data/ --Vthc 64
+python scripts/thresholdScan.py  --skipExistingFile False --N 100 --debug False --display True --checkOFtoa False --checkOFtot False  --board 8   --Rin_Vpa 0 --delay 2450 --minVth 260 --maxVth 1023 --autoStop True --VthStep 2 --Cd 4 --ch 1 --Q 3 --out Data/ --Vthc 64
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,7 +46,7 @@ python scripts/thresholdScan.py  --skipExistingFile True --N 100 --debug False -
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch 18 of the IB should be OFF
 
-python scripts/measureTimeWalk.py --skipExistingFile True --moreStatAtLowQ False --morePointsAtLowQ True --debug False --display False -N 100 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 8   --Rin_Vpa 0 --delay 2500  --QMin 1 --QMax 63 --QStep 1 --out Data/  --ch 1  --Cd 4 --DAC 406 --Vthc 64
+python scripts/measureTimeWalk.py --skipExistingFile False --moreStatAtLowQ False --morePointsAtLowQ True --debug False --display True -N 100 --useProbePA False --useProbeDiscri False  --checkOFtoa False --checkOFtot False --board 8   --Rin_Vpa 0 --delay 2500  --QMin 1 --QMax 63 --QStep 1 --out Data/  --ch 1  --Cd 4 --DAC 406 --Vthc 64
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,7 +62,7 @@ python scripts/measureTOA.py --N 100 --debug False --checkOFtoa True --checkOFto
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch 18 of the IB should be OFF
 
-python scripts/measureTOA.py --skipExistingFile True -N 100 --debug False --display False --Cd 4 --checkOFtoa False --checkOFtot False --ch 1 --board 8 --DAC 406 --Q 52 --delayMin 2200 --delayMax 2700 --delayStep 5 --out Data//delay  --Rin_Vpa 0 --Vthc 64
+python scripts/measureTOA.py --skipExistingFile False -N 100 --debug False --display True --Cd 4 --checkOFtoa False --checkOFtot False --ch 1 --board 8 --DAC 406 --Q 52 --delayMin 2200 --delayMax 2700 --delayStep 5 --out Data//delay  --Rin_Vpa 0 --Vthc 64
 
 
 
