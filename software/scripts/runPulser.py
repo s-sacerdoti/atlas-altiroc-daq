@@ -19,10 +19,10 @@ from computeVth import *
 doSepDir = 1
 
 doThres     = 0
-doNoise     = 1 # Thres with high stat for few Q
+doNoise     = 0 # Thres with high stat for few Q
 doLinearity = 0 #  Thres for many Q
 
-doTW        = 0
+doTW        = 1
 doPS        = 0 # TW with thres. scan
 
 doTOA       = 0
@@ -30,10 +30,11 @@ doClockTree = 0 # TOA with at least Q=52 and maybe larger N
 doDNL       = 0 # TOA step=1
 doXtalk     = 0 # TOA Channels should be ON
 
-
+#ch list
 chList=None
-chList=[4,9,14]
+#chList=[4,9,14]
 
+        
 #####################
 # 
 #####################
@@ -69,7 +70,7 @@ Ntoa=100;
 delayStep=5 
 delayMin=2200
 delayMax=2700
-QTOAList=[4,5,6,7,8,9,13,26,52]#default
+QTOAList=[4,5,6,7,8,9,13,18,26,52]#default
 #Ntoa=500;delayStep=20;#QTOAList=[52] #Default to check distributions
 
 
@@ -107,13 +108,13 @@ if doLinearity:
     doThres= 1
     Nthres=100
     thresStep=2
-    QThresList=[0,3,5,9,13,26,39,52]
+    QThresList=[0,3,5,9,13,18,26,39,52]
     
 if doNoise:
     doThres=1
-    Nthres=1000
+    Nthres=500
     thresStep=1
-    thresMax=600
+    thresMax=800
     QThresList=[6,13]#10
     #QThresList=[5,9,6,13]
 
@@ -140,6 +141,12 @@ if __name__ == "__main__":
 
     boardASICAlone=[4,8,9,10,11,12,14,15]
     board=args.board
+
+    
+    #detector capacitance
+    cdList=[4]
+    if board not in boardASICAlone:
+        cdList=[0];
 
     #output dir name
     if doSepDir:
@@ -170,16 +177,14 @@ if __name__ == "__main__":
         fname+="_chON"
     if args.ctestON:
         fname+="_ctestON"
-    f=open(fname+".sh","w")
+    fname+=".sh"
+    f=open(fname,"w")
 
 
 
-    #detector capacitance
-    cdList=[0]
-    if board in boardASICAlone:
-        cdList=[4,];
-        #chList=[4,9]
-        cdList=[4,5,6,7];
+
+
+
         
     #threshold
     dacMap=None
@@ -209,7 +214,8 @@ if __name__ == "__main__":
     # TW and TOA
     ###############################
     for ch in chList:
-        for cd in cdList:            
+        for cd in cdList:
+            #if ch not in [4,9,14] ans:
             #dac list
             dacNom=0
             if args.useVthc:                
@@ -331,13 +337,14 @@ if __name__ == "__main__":
 
 
 print ("*********************************************")
+print ("---------------------------------")
 print ("doThres     ",doThres     )
 print ("doNoise     ",doNoise     )
 print ("doLinearity ",doLinearity )
-
+print ("---------------------------------")
 print ("doTW        ",doTW        )
 print ("doPS        ",doPS        )
-
+print ("---------------------------------")
 print ("doTOA       ",doTOA       )
 print ("doClockTree ",doClockTree )
 print ("doXtalk     ",doXtalk     )
@@ -350,6 +357,11 @@ print (" " )
 print (" ************ CHECK TRIG EXT ***************")
 print (" ************ CHECK TRIG EXT ***************")
 print (" ************ CHECK TRIG EXT ***************")
+
+print("===========================================> board: "+str(args.board))
+print ("Cd:",cdList)
+print ("Ch:",chList)
 print("source "+fname)
+
 
 

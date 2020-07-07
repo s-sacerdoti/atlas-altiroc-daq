@@ -38,7 +38,7 @@ Top:
  ########################
         #Threshold alignment. DAC cor 7 bits 0x40= 64 decimal (mid range) #
         bit_vth_cor[:]: 64 #
-	DAC10bit: 382
+        DAC10bit: 382
         bit_vth_cor[0]: 55   #400 382
         bit_vth_cor[1]: 65   #380 382
         bit_vth_cor[2]: 81   #348 382
